@@ -1,0 +1,2342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Tổng hợp - v218.22 (Dán thông minh)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --dmx-blue: #0088ff;
+            --dmx-green: #28a745;
+            --dmx-yellow: #ffc107;
+            --dmx-red: #dc3545;
+            --dmx-orange: #fd7e14;
+            --dmx-pink: #EC4899;
+            --text-dark: #333;
+            --text-light: #f8f9fa;
+            --text-muted: #6c757d;
+            --bg-color: #eef2f7; 
+            --border-color: #dee2e6;
+            --card-shadow: 0 5px 15px rgba(0, 0, 0, 0.07);
+        }
+        html, body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: var(--bg-color); 
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            color: var(--text-dark); 
+        }
+        .container { 
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex; 
+            flex-direction: column; 
+            gap: 25px; 
+        }
+        header { text-align: center; margin-bottom: 10px; }
+        header h1 { color: var(--text-dark); margin: 0; font-size: 2.5em; font-weight: 700; }
+        
+        .tab-buttons { display: flex; gap: 10px; border-bottom: 2px solid var(--border-color); margin-bottom: 25px; flex-wrap: wrap; }
+        .tab-button { padding: 10px 20px; cursor: pointer; border: none; background-color: transparent; font-size: 1.1em; font-weight: 600; color: var(--text-muted); border-bottom: 3px solid transparent; transition: all 0.2s ease-in-out; }
+        .tab-button.active { color: var(--dmx-blue); border-bottom-color: var(--dmx-blue); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 25px; }
+        .input-section, .card { background: #ffffff; padding: 20px; border-radius: 15px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); }
+        .input-section h4 { margin-top: 0; color: var(--text-muted); }
+        .input-section h4 a { color: inherit; text-decoration: none; transition: color 0.2s; }
+        .input-section h4 a:hover { color: var(--dmx-blue); }
+        textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); background: #f8f9fa; border-radius: 8px; font-size: 14px; box-sizing: border-box; resize: vertical; }
+        .mainDataInput, .contestDataInput { height: 120px; }
+        .button-container { display: flex; justify-content: center; align-items: center; gap: 20px; grid-column: 1 / -1; }
+        .analyzeBtn, .captureBtn { flex: 1; max-width: 400px; }
+        
+        /* Styles for Smart Paste Button */
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        .paste-btn-container {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 8px;
+        }
+        .paste-btn {
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            background-color: var(--dmx-blue);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0.85;
+            transition: all 0.2s;
+        }
+        .paste-btn:hover {
+            opacity: 1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 136, 255, 0.3);
+        }
+
+        .interactive-table-wrapper { height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 8px; }
+        .interactive-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .interactive-table thead th { position: sticky; top: 0; background-color: #f8f9fa; color: var(--text-dark); font-weight: 600; padding: 10px; text-align: center; border-bottom: 1px solid var(--border-color); z-index: 1; }
+        .interactive-table tbody td { padding: 8px 10px; border-bottom: 1px solid #f1f1f1; text-align: right; }
+        .interactive-table tbody td:first-child { text-align: center; font-weight: 500; background-color: #f8f9fa; }
+        .interactive-table tbody td[contenteditable="true"] { background-color: #fff; transition: background-color 0.2s; }
+        .interactive-table tbody td[contenteditable="true"]:focus { background-color: #e6f0ff; outline: 2px solid var(--dmx-blue); outline-offset: -2px; }
+        .interactive-table tbody tr:last-child td { border-bottom: none; }
+
+        .action-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 15px; font-size: 18px; font-weight: 600; color: var(--text-light); border: none; border-radius: 10px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        .action-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); }
+        .action-btn svg { width: 20px; height: 20px; }
+        .analyzeBtn { background: var(--dmx-blue); }
+        .captureBtn { background: linear-gradient(45deg, #28a745, #218838); }
+        .copySummaryBtn { background: linear-gradient(45deg, #007bff, #0069d9); margin-top: 15px; }
+
+        .dashboard-body { display: none; margin-top: 15px; }
+        .report-title { text-align: center; font-size: 1.8em; font-weight: 700; margin: 10px 0 0 0; color: var(--text-dark); }
+        #capture-area-luyke > * + *, #capture-area-rt > * + * { margin-top: 25px; }
+        #capture-content-luyke > * + *, #capture-content-rt > * + * { margin-top: 25px; }
+
+        .progress-bar-container { padding: 15px 25px; }
+        .progress-labels { display: flex; justify-content: space-between; font-size: 1em; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); }
+        .progress-track { width: 100%; height: 18px; background-color: #e9ecef; border-radius: 9px; overflow: hidden; position: relative; border: 1px solid #ddd; }
+        .progress-fill { height: 100%; background: var(--dmx-blue); border-radius: 9px; transition: width 0.8s ease-out; }
+        .progress-text { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); color: black; font-size: 0.9em; font-weight: bold; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff; }
+        
+        .kpi-group-container { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+        .kpi-group-card { background-color: #fff; border-radius: 15px; box-shadow: var(--card-shadow); overflow: hidden; border: 1px solid var(--border-color); }
+        .kpi-group-header { color: white; padding: 12px 20px; font-size: 1.2em; font-weight: 700; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .kpi-group-header svg { width: 24px; height: 24px; }
+        .kpi-group-header.blue { background-color: #3B82F6; }
+        .kpi-group-header.orange { background-color: #F97316; }
+        .kpi-group-header.red { background-color: #ef4444; }
+        .kpi-group-body { padding: 15px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .kpi-item { display: flex; justify-content: space-between; align-items: center; font-size: 1.1em; padding: 5px 0; border-bottom: 1px solid #f0f0f0; }
+        .kpi-item:last-child { border-bottom: none; }
+        .kpi-label { display: flex; align-items: center; gap: 10px; color: #343a40; font-weight: 600; }
+        .kpi-label svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .kpi-value { font-weight: 700; color: var(--text-dark); font-size: 1.15em; }
+        .kpi-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .sub-kpi-card { text-align: center; display: flex; flex-direction: column; justify-content: space-between; padding: 15px 10px; min-height: 160px; }
+        .sub-kpi-card h4 { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1.2em; margin: 0; color: var(--text-dark); font-weight: 700; }
+        .sub-kpi-card h4 svg { width: 24px; height: 24px; flex-shrink: 0; }
+        .sub-kpi-card .value { font-size: 4em; font-weight: 700; margin: 0; color: var(--dmx-blue); line-height: 1; }
+        .sub-kpi-card .sub-text { font-size: 1em; color: var(--text-muted); margin: 0; }
+        .kpi-installment-card { justify-content: center; gap: 10px; }
+        .kpi-installment-card .text-content { text-align: center; }
+        .kpi-installment-card .chart-content { width: 100px; height: 100px; position: relative; margin: 0 auto; }
+        .kpi-installment-card .chart-content .chart-inner-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 1.8em; font-weight: 700; color: var(--text-dark); }
+
+        .dashboard-layout-grid { display: grid; gap: 25px; align-items: flex-start; }
+        .charts-column { display: flex; flex-direction: column; gap: 25px; }
+        .chart-wrapper, .report-section { padding: 25px; min-width: 0; } 
+        .report-section h2, .chart-wrapper h2 { font-size: 1.8em; color: var(--dmx-blue); text-align: center; margin-top:0; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .chart-wrapper h2 svg, .report-section h2 svg { width: 24px !important; height: 24px !important; flex-shrink: 0; }
+        .chart-container { position: relative; width: 100%; }
+        
+        .contest-results-container .card-content { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        .contest-column-visual { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px; border: 1px solid var(--border-color); border-radius: 15px; }
+        .status-icon-wrapper { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+        .status-icon-wrapper.green { background-color: #d4edda; border: 3px solid var(--dmx-green); }
+        .status-icon-wrapper.red { background-color: #f8d7da; border: 3px solid var(--dmx-red); }
+        .status-icon-wrapper svg { width: 50%; height: 50%; }
+        .status-icon-wrapper.green svg { color: var(--dmx-green); }
+        .status-icon-wrapper.red svg { color: var(--dmx-red); }
+        .contest-column-visual h4 { font-size: 1.3em; font-weight: 700; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+        .contest-column-visual h4.on-track { color: var(--dmx-green); }
+        .contest-column-visual h4.behind { color: var(--dmx-red); }
+        .contest-list-new { width: 100%; }
+        .contest-item-new { padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+        .contest-item-new:last-child { border-bottom: none; }
+        .contest-main-info { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+        .contest-main-info .name-rank { font-weight: 700; font-size: 1.1em; flex-grow: 1; text-align: left; }
+        .contest-main-info .stats { font-size: 0.9em; color: var(--text-muted); text-align: right; white-space: normal; flex-shrink: 1; }
+        .contest-main-info .stats strong { color: var(--text-dark); font-weight: 700; }
+        .contest-progress-track { width: 100%; height: 10px; background-color: #e9ecef; border-radius: 5px; overflow: hidden; margin-top: 8px; }
+        .contest-progress-fill { height: 100%; border-radius: 5px; transition: width 0.8s ease-out; }
+        
+        .summary-textarea { height: 500px; background-color: #f8f9fa; border: 1px solid var(--border-color); }
+        
+        .toast-notification { position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%); background-color: var(--dmx-green); color: white; padding: 16px 30px; border-radius: 8px; z-index: 1001; font-size: 1.1em; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: bottom 0.5s ease-in-out; }
+        .toast-notification.show { bottom: 30px; }
+        .toast-notification.error { background-color: var(--dmx-red); }
+
+        .details-toggle { text-align: center; margin-top: 25px; }
+        .details-toggle button { font-size: 0.9em; font-weight: 600; background: #6c757d; color: var(--text-light); padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; transition: background-color 0.3s, box-shadow 0.3s; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+        .details-toggle button:hover { background-color: #5a6268; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
+        .tables-container { max-height: 0; overflow: hidden; transition: max-height 0.5s ease-out; }
+        .tables-container.show { max-height: 5000px; margin-top: 25px; }
+        #specificTablesContainer.show, #specificTablesContainer-rt.show { max-height: 5000px; margin-top: 25px; }
+        .table-container { margin-bottom:25px; overflow-x: auto; } 
+        .table-container h2 { margin-top: 0; font-size: 1.5em; color: var(--dmx-blue); }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        thead th { background-color: var(--dmx-blue); color: var(--text-light); text-transform: uppercase; font-size: 0.9em; }
+        tbody tr:nth-child(even) { background-color: #f8f9fa; }
+        tbody tr:hover { background-color: #e9ecef; }
+        
+        #contest-table-luyke-wrapper { padding: 25px; }
+        #contest-table-luyke-wrapper h2 { text-align: center; font-size: 2em; margin-bottom: 25px; }
+        .contest-split-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: flex-start; }
+        .contest-group { background: #fff; border-radius: 15px; padding: 20px; border: 1px solid var(--border-color); box-shadow: var(--card-shadow); }
+        .contest-group-title { font-size: 1.5em; font-weight: 700; margin: 0 0 15px 0; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .contest-group-title.top-performers { color: var(--dmx-green); }
+        .contest-group-title.needs-improvement { color: var(--dmx-red); }
+
+        .contest-detail-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .contest-detail-table th, .contest-detail-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); vertical-align: middle; }
+        .contest-detail-table th:last-child, .contest-detail-table td:last-child { border-right: none; }
+        .contest-detail-table thead th { background-color: #f8f9fa; color: var(--text-dark); font-weight: 600; text-align: center; font-size: 0.9em; text-transform: uppercase; }
+        .contest-detail-table tbody tr:last-child td { border-bottom: none; }
+        .contest-detail-table tbody tr:hover { background-color: #e9ecef; }
+        .contest-detail-table td { font-weight: 500; }
+        .contest-detail-table th:not(:nth-child(2)), .contest-detail-table td:not(:nth-child(2)) { text-align: center; }
+        .contest-detail-table .col-category { text-align: left; font-weight: 700; width: 30%; }
+        .contest-detail-table .col-rank { width: 40px; }
+        .col-negative { color: var(--dmx-red); font-weight: bold; }
+
+        .progress-bar-cell { min-width: 100px; }
+        .bar-wrapper { display: flex; align-items: center; gap: 8px; }
+        .bar-track { flex-grow: 1; height: 12px; background-color: #e9ecef; border-radius: 6px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 6px; transition: width 0.5s ease-out; }
+        .bar-percent-text { font-weight: 700; font-size: 1.1em; width: 50px; text-align: right; }
+        .tooltip { position: relative; display: inline-block; cursor: pointer; }
+        .tooltip .tooltiptext { visibility: hidden; width: 160px; background-color: #555; color: #fff; text-align: center; border-radius: 6px; padding: 5px 0; position: absolute; z-index: 1; bottom: 125%; left: 50%; margin-left: -80px; opacity: 0; transition: opacity 0.3s; }
+        .tooltip .tooltiptext::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border-width: 5px; border-style: solid; border-color: #555 transparent transparent transparent; }
+        .tooltip:hover .tooltiptext { visibility: visible; opacity: 1; }
+        
+        @media (max-width: 1200px) {
+            .kpi-group-container { grid-template-columns: 1fr; }
+            .kpi-panel { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+            .input-grid { grid-template-columns: 1fr; }
+            .contest-split-layout { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 992px) {
+            .dashboard-layout-grid {grid-template-columns: 1fr !important;}
+            .charts-column { grid-row: 1; }
+            .contest-results-container .card-content { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { padding: 10px; }
+            header h1 { font-size: 1.8em; }
+            .card { padding: 15px; }
+            .report-section h2, .chart-wrapper h2 { font-size: 1.5em; }
+            .kpi-panel { grid-template-columns: repeat(2, 1fr); }
+            .kpi-installment-card { flex-direction: column; }
+            .contest-detail-table { font-size: 12px; }
+            .contest-detail-table th, .contest-detail-table td { padding: 8px 4px; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+    </div>
+
+    <script>
+    /****************************************************************************
+    * SMART PASTE FUNCTIONS
+    ****************************************************************************/
+    /**
+     * Extracts a block of text from a larger string using a regular expression.
+     * @param {string} fullText The entire text to search within.
+     * @param {RegExp} regex The regular expression to find the data block. It should have one capturing group.
+     * @returns {string} The extracted data block, or an empty string if not found.
+     */
+    function extractData(fullText, regex) {
+        const match = fullText.match(regex);
+        return (match && match[1]) ? match[1].trim() : '';
+    }
+
+    /**
+     * Handles the smart paste functionality for a given textarea.
+     * @param {string} targetId The ID of the textarea to paste into.
+     */
+    async function handleSmartPaste(targetId) {
+        const targetTextarea = document.getElementById(targetId);
+        if (!targetTextarea) return;
+
+        try {
+            // Read text from the user's clipboard
+            const text = await navigator.clipboard.readText();
+            if (!text) {
+                showToast('Clipboard rỗng!', true);
+                return;
+            }
+            
+            let extractedData = '';
+            // Determine which extraction logic to use based on the textarea's ID
+            switch (targetId) {
+                case 'mainDataInput':
+                    // Extracts the main business report table for the "Lũy kế" tab
+                    extractedData = extractData(text, /(Nhóm ngành hàng\tSố lượng\tDTQĐ[\s\S]+?)Hỗ trợ BI/);
+                    break;
+                case 'contestDataInput':
+                    // Extracts the contest/competition tables for the "Lũy kế" tab
+                    extractedData = extractData(text, /(Ngành hàng\tDTQĐ\tTarget[\s\S]+?)Hỗ trợ BI/);
+                    break;
+                case 'realtimeDataInput':
+                    // Extracts the realtime category sales table
+                    extractedData = extractData(text, /(Nhóm ngành hàng\tSL Realtime[\s\S]+?)Hỗ trợ BI/);
+                    break;
+                case 'realtimeContestDataInput':
+                     // Extracts the realtime contest/competition tables
+                    extractedData = extractData(text, /(Ngành hàng\tDT Realtime \(QĐ\)[\s\S]+?)Hỗ trợ BI/);
+                    break;
+                case 'employeeSalesDataInput':
+                    // Extracts a list of employee sales data. This is a best-guess regex.
+                    extractedData = extractData(text, /((?:\d+\s+-\s+[^\r\n]+[\r\n]?)+)/);
+                    break;
+                default:
+                    // Fallback for any other textareas
+                    extractedData = text;
+            }
+
+            // Set the textarea value to the extracted data, or the full text if extraction failed
+            targetTextarea.value = extractedData || text;
+            showToast('Đã dán và lọc dữ liệu thông minh!');
+
+        } catch (err) {
+            console.error('Lỗi khi dán: ', err);
+            // Inform the user if clipboard access is denied or fails
+            showToast('Không thể truy cập clipboard. Vui lòng kiểm tra quyền truy cập của trình duyệt.', true);
+        }
+    }
+
+    /**
+     * Finds all smart paste buttons and attaches the click event listener.
+     */
+    function setupSmartPasteButtons() {
+        document.querySelectorAll('.paste-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetId = e.target.getAttribute('data-target');
+                handleSmartPaste(targetId);
+            });
+        });
+    }
+
+
+    /****************************************************************************
+    * INTERACTIVE TABLE FUNCTIONS
+    ****************************************************************************/
+    
+    function handleTablePaste(event, table) {
+        event.preventDefault();
+        const clipboardData = event.clipboardData || window.clipboardData;
+        const pastedData = clipboardData.getData('text/plain');
+        const rows = pastedData.split(/\r?\n/).filter(row => row.trim() !== '');
+
+        const startCell = event.target;
+        if (startCell.tagName !== 'TD') return;
+
+        const startRowIndex = startCell.parentElement.rowIndex - 1; 
+        const startColIndex = startCell.cellIndex;
+        
+        rows.forEach((rowData, i) => {
+            const currentRowIndex = startRowIndex + i;
+            const targetRow = table.tBodies[0].rows[currentRowIndex];
+            if (!targetRow) return;
+
+            const cellsToPaste = rowData.split('\t');
+            cellsToPaste.forEach((cellData, j) => {
+                const currentColIndex = startColIndex + j;
+                const targetCell = targetRow.cells[currentColIndex];
+                if (targetCell && targetCell.isContentEditable) {
+                    targetCell.innerText = cellData.trim();
+                }
+            });
+        });
+        
+        saveTableData(table.id);
+        showToast('Đã dán và lưu dữ liệu!');
+    }
+
+    function saveTableData(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        
+        const data = [];
+        const rows = table.tBodies[0].rows;
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].cells;
+            const rowData = [];
+            for (let j = 1; j < cells.length; j++) {
+                rowData.push(cells[j].innerText);
+            }
+            data.push(rowData);
+        }
+        
+        try {
+            localStorage.setItem(tableId, JSON.stringify(data));
+        } catch (e) {
+            console.error("Lỗi khi lưu vào localStorage:", e);
+        }
+    }
+
+    function loadTableData(tableId, defaultData = {}) {
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        
+        let dataToLoad = defaultData[tableId] || [];
+        try {
+            const savedData = localStorage.getItem(tableId);
+            if (savedData) {
+                const parsedSavedData = JSON.parse(savedData);
+                if (parsedSavedData.some(row => row.some(cell => cell.trim() !== ''))) {
+                    dataToLoad = parsedSavedData;
+                }
+            }
+        } catch (e) {
+            console.error("Lỗi khi tải từ localStorage:", e);
+            dataToLoad = defaultData[tableId] || [];
+        }
+
+        const rows = table.tBodies[0].rows;
+        for (let i = 0; i < dataToLoad.length && i < rows.length; i++) {
+            const rowData = dataToLoad[i];
+            const cells = rows[i].cells;
+            for (let j = 0; j < rowData.length && (j + 1) < cells.length; j++) {
+                cells[j + 1].innerText = rowData[j];
+            }
+        }
+    }
+
+    function getStructuredTableData(tableId) {
+        const table = document.getElementById(tableId);
+        if (!table) {
+            console.error(`Table with id ${tableId} not found.`);
+            return [];
+        }
+
+        const data = [];
+        const keys = tableId === 'yearlyDataTable' 
+            ? ['Tháng', 'Doanh thu tháng', 'Target tháng'] 
+            : ['Ngày', 'DT Tháng này', 'DT Tháng trước'];
+
+        const rows = table.tBodies[0].rows;
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].cells;
+            if (!cells || cells.length < 2) continue;
+
+            const rowObject = {};
+            let hasData = false;
+
+            rowObject[keys[0]] = cells[0] ? cells[0].innerText.trim() : '';
+
+            const val1_str = cells[1] ? cells[1].innerText.trim().replace(/,/g, '') : '0';
+            const val1 = parseFloat(val1_str);
+            rowObject[keys[1]] = isNaN(val1) ? 0 : val1;
+            if (!isNaN(val1) && val1 !== 0) hasData = true;
+            
+            if (keys.length > 2 && cells[2]) {
+                 const val2_str = cells[2].innerText.trim().replace(/,/g, '');
+                 const val2 = parseFloat(val2_str);
+                 rowObject[keys[2]] = isNaN(val2) ? 0 : val2;
+                 if (!isNaN(val2) && val2 !== 0) hasData = true;
+            } else if (keys.length > 2) {
+                rowObject[keys[2]] = 0;
+            }
+
+            if (hasData) {
+                data.push(rowObject);
+            }
+        }
+        return data;
+    }
+    
+    function createYearlyDataTable(defaultData) {
+        const container = document.getElementById('yearlyDataInputContainer');
+        let tableHTML = `
+            <div class="interactive-table-wrapper">
+                <table id="yearlyDataTable" class="interactive-table">
+                    <thead>
+                        <tr>
+                            <th>Tháng</th>
+                            <th>Doanh thu tháng</th>
+                            <th>Target tháng</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+        for (let i = 1; i <= 12; i++) {
+            tableHTML += `<tr>
+                            <td>${i}</td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true"></td>
+                          </tr>`;
+        }
+        tableHTML += `</tbody></table></div>`;
+        container.innerHTML = tableHTML;
+
+        const table = document.getElementById('yearlyDataTable');
+        table.addEventListener('input', () => saveTableData('yearlyDataTable'));
+        table.addEventListener('paste', (e) => handleTablePaste(e, table));
+        loadTableData('yearlyDataTable', defaultData);
+    }
+
+    function createDailyComparisonTable(defaultData) {
+        const container = document.getElementById('dailyComparisonInputContainer');
+        let tableHTML = `
+            <div class="interactive-table-wrapper">
+                <table id="dailyComparisonTable" class="interactive-table">
+                    <thead>
+                        <tr>
+                            <th>Ngày</th>
+                            <th>DT Tháng này</th>
+                            <th>DT Tháng trước</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+        for (let i = 1; i <= 31; i++) {
+            tableHTML += `<tr>
+                            <td>${i}</td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true"></td>
+                          </tr>`;
+        }
+        tableHTML += `</tbody></table></div>`;
+        container.innerHTML = tableHTML;
+
+        const table = document.getElementById('dailyComparisonTable');
+        table.addEventListener('input', () => saveTableData('dailyComparisonTable'));
+        table.addEventListener('paste', (e) => handleTablePaste(e, table));
+        loadTableData('dailyComparisonTable', defaultData);
+    }
+
+    /****************************************************************************
+    * SHARED UTILITY & SETUP FUNCTIONS
+    ****************************************************************************/
+    var VIBRANT_PALETTE = window.VIBRANT_PALETTE || ['#0088ff', '#28a745', '#ffc107', '#fd7e14', '#6f42c1', '#dc3545', '#20c997', '#6610f2', '#d63384'];
+    var formatNumber = window.formatNumber || ((num, decimals = 0) => {
+        const number = parseFloat(num);
+        if (isNaN(number)) {
+            return ''; 
+        }
+        return number.toLocaleString('vi-VN', { maximumFractionDigits: decimals });
+    });
+    var formatShortK = (num) => {
+        if (isNaN(num) || num === 0) return '0';
+        return (num / 1000).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    };
+    var getColor = window.getColor || ((value, threshold1 = 50, threshold2 = 100) => value < threshold1 ? 'var(--dmx-red)' : value < threshold2 ? 'var(--dmx-orange)' : 'var(--dmx-green)');
+    
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        if (isError) toast.classList.add('error');
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.parentNode && toast.parentNode.removeChild(toast), 500);
+        }, 3000);
+    }
+
+    function openTab(evt, tabName) {
+        Array.from(document.getElementsByClassName("tab-content")).forEach(tc => tc.style.display = "none");
+        Array.from(document.getElementsByClassName("tab-button")).forEach(tb => tb.className = tb.className.replace(" active", ""));
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
+    
+    function parseAllContestData(text) {
+        const blocks = text.trim().split(/\n\s*\n/); 
+        return blocks.map(block => parseSingleContestBlock(block)).filter(b => b.rows.length > 0); 
+    }
+
+    function parseSingleContestBlock(blockText) { 
+        const lines = blockText.trim().split('\n').filter(l => l.trim() !== ''); 
+        if (lines.length < 1) return { headers: [], rows: [] }; 
+        const headers = lines[0].split('\t').map(h => h.trim()); 
+        const rows = lines.slice(1).map(line => line.split('\t').map(cell => cell.trim())); 
+        return { headers, rows }; 
+    }
+
+    function createContestItem(item, rank, isRealtime = false) {
+        let statsHtml = `<strong>${formatNumber(item.actual)} / ${formatNumber(item.target)}</strong>`;
+        if (item.remaining > 0) {
+            statsHtml += ` | Còn lại: <strong>${formatNumber(item.remaining, 1)}</strong>`;
+        }
+        if (!isRealtime && item.dailyTarget > 0) {
+            statsHtml += ` | MT Ngày: <strong>${formatNumber(item.dailyTarget, 1)}</strong>`;
+        }
+        statsHtml += ` | Dự kiến HT: <strong style="color: ${getColor(item.percentProjected)}">${formatNumber(item.percentProjected, 1)}%</strong>`;
+        return `<div class="contest-item-new"><div class="contest-main-info"><span class="name-rank">#${rank} ${item.name}</span><span class="stats">${statsHtml}</span></div><div class="contest-progress-track"><div class="contest-progress-fill" style="width: ${item.percentProjected > 100 ? 100 : item.percentProjected}%; background-color: ${getColor(item.percentProjected)};"></div></div></div>`;
+    }
+
+    function processFullContestData(allContests, daysRemaining) {
+        let processedItems = [];
+        if (!allContests || allContests.length === 0) return { all: [], veDich:[], canCoGang:[], canTapTrung:[], baoDong:[], onTrack:[], behind:[] };
+        allContests.forEach(contest => {
+            const percentIndex = contest.headers.findIndex(h => h.toLowerCase().includes('% ht dự kiến') || h.toLowerCase().includes('%ht'));
+            const actualIndex = contest.headers.findIndex(h => h.toLowerCase().includes('thực hiện') || h.toLowerCase().includes('dtqđ') || h.toLowerCase().includes('sllk') || h.toLowerCase().includes('dtlk'));
+            const targetIndex = contest.headers.findIndex(h => h.toLowerCase().includes('target'));
+            if (percentIndex === -1 || actualIndex === -1 || targetIndex === -1) {
+                console.warn("Một bảng thi đua thiếu header cần thiết (target, thực hiện, %ht dự kiến), đã bỏ qua.");
+                return;
+            };
+            const items = contest.rows.filter(row => row.length > 1 && row[0].toLowerCase() !== 'tổng' && row[0].toLowerCase() !== 'ngành hàng');
+            items.forEach(row => {
+                const actual = parseFloat(row[actualIndex].replace(/,/g, '')) || 0;
+                const target = parseFloat(row[targetIndex].replace(/,/g, '')) || 0;
+                const remaining = target - actual;
+                processedItems.push({
+                    name: row[0],
+                    percentProjected: parseFloat(row[percentIndex]) || 0,
+                    percentActual: target > 0 ? (actual / target * 100) : 0,
+                    actual, target, remaining,
+                    dailyTarget: remaining > 0 && daysRemaining > 0 ? remaining / daysRemaining : 0,
+                });
+            });
+        });
+        const sortedItems = processedItems.sort((a,b) => b.percentProjected - a.percentProjected);
+        return {
+            all: sortedItems,
+            veDich: sortedItems.filter(p => p.percentActual >= 100),
+            canCoGang: sortedItems.filter(p => p.percentProjected >= 100 && p.percentActual < 100),
+            canTapTrung: sortedItems.filter(p => p.percentProjected >= 80 && p.percentProjected < 100),
+            baoDong: sortedItems.filter(p => p.percentProjected < 80),
+            onTrack: sortedItems.filter(p => p.percentProjected >= 100),
+            behind: sortedItems.filter(p => p.percentProjected < 100)
+        };
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const container = document.querySelector('.container');
+        container.innerHTML = `
+            <header><h1>Dashboard Điều hành Kinh doanh</h1></header>
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="openTab(event, 'luyKeTab')">Luỹ kế Siêu thị</button>
+                <button class="tab-button" onclick="openTab(event, 'realtimeTab')">Real-time Siêu thị</button>
+            </div>
+            <div id="luyKeTab" class="tab-content active"></div>
+            <div id="realtimeTab" class="tab-content"></div>
+        `;
+        
+        document.getElementById('luyKeTab').innerHTML = `
+            <div class="input-grid">
+                <div class="input-section">
+                    <h4><a href="https://bi.thegioididong.com/sieu-thi-con?id=16753&tab=bcdtnh&rt=2&dm=1" target="_blank" rel="noopener noreferrer">Dữ liệu Báo cáo Kinh doanh (Dán)</a></h4>
+                    <div class="input-wrapper">
+                        <textarea id="mainDataInput" class="mainDataInput" placeholder="Dán dữ liệu từ BI vào đây..."></textarea>
+                        <div class="paste-btn-container">
+                            <button class="paste-btn" data-target="mainDataInput">Dán Thông Minh</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-section">
+                    <h4><a href="https://bi.thegioididong.com/thi-dua-st?id=16753&tab=1&rt=2&dm=2&mt=1" target="_blank" rel="noopener noreferrer">Dữ liệu Thi đua (Dán)</a></h4>
+                    <div class="input-wrapper">
+                        <textarea id="contestDataInput" class="contestDataInput" placeholder="Dán dữ liệu thi đua vào đây..."></textarea>
+                        <div class="paste-btn-container">
+                            <button class="paste-btn" data-target="contestDataInput">Dán Thông Minh</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-section">
+                    <h4>Dữ liệu Năm (Bảng tương tác)</h4>
+                    <div id="yearlyDataInputContainer"></div>
+                </div>
+                <div class="input-section">
+                    <h4>Dữ liệu So sánh Ngày (Bảng tương tác)</h4>
+                    <div id="dailyComparisonInputContainer"></div>
+                </div>
+                <div class="button-container">
+                     <button id="analyzeBtn" class="action-btn analyzeBtn">TẠO DASHBOARD LUỸ KẾ</button>
+                     <button id="captureBtnLuyKe" class="action-btn captureBtn">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" /></svg>
+                        Chụp ảnh Báo cáo
+                    </button>
+                </div>
+            </div>
+            <div id="dashboard-body-luyke" class="dashboard-body">
+                <div id="capture-area-luyke">
+                    <div id="capture-content-luyke">
+                        <div id="reportTitleLuyKe" class="report-title"></div>
+                        <div class="progress-bar-container card"><div class="progress-labels"><span>Tiến độ Tháng</span><span id="progress-summary-date"></span></div><div class="progress-track"><div class="progress-fill" id="progress-fill-date"><span class="progress-text" id="progress-text-date"></span></div></div></div>
+                        <div class="progress-bar-container card"><div class="progress-labels"><span>Tiến độ Target</span><span id="progress-summary-target"></span></div><div class="progress-track"><div class="progress-fill" id="progress-fill-target"><span class="progress-text" id="progress-text-target"></span></div></div></div>
+                        
+                        <div id="kpi-group-container" class="kpi-group-container">
+                            <!-- Group 1: Tiến độ tháng -->
+                            <div class="kpi-group-card">
+                                <div class="kpi-group-header blue"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>TIẾN ĐỘ THÁNG</div>
+                                <div class="kpi-group-body">
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v-2h-2z"/></svg>Target tháng</span><span class="kpi-value" id="kpi-target-thang">0 Triệu</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M4 18h16v-2H4v2zm0-5h16v-2H4v2zm0-5h16V6H4v2z"/></svg>Luỹ kế</span><span class="kpi-value" id="kpi-luy-ke-thang">0 Triệu</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>% Thực hiện</span><span class="kpi-value" id="kpi-thuc-hien-pt">0%</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>DT dự kiến</span><span class="kpi-value" id="kpi-dt-du-kien">0 Triệu</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>% HT dự kiến</span><span class="kpi-value" id="kpi-ht-du-kien-pt">0%</span></div>
+                                </div>
+                            </div>
+                             <!-- Group 2: Phân tích chi tiết -->
+                            <div class="kpi-group-card">
+                                <div class="kpi-group-header orange"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M11 2v9h9a9 9 0 00-9-9zm2 1.08a7 7 0 016.92 6.92H13V3.08zM4 12a8 8 0 018-8v8H4zm9 8a8 8 0 01-8-8h8v8z"/></svg>PHÂN TÍCH CHI TIẾT</div>
+                                <div class="kpi-group-body">
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,9L8,13H11V17H13V13H16L12,9Z"/></svg>Mục tiêu ngày</span><span class="kpi-value" id="kpi-muc-tieu-ngay-new">0 Triệu</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/></svg>% Tăng trưởng</span><span class="kpi-value" id="kpi-tang-truong-pt">0%</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>± DT cùng kỳ tháng</span><span class="kpi-value" id="kpi-dt-cung-ky">0</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M21,11H12.42A3,3 0 0,1 12,11.58V13.42A3,3 0 0,1 12.42,14H21V16H12.42A3,3 0 0,1 10,18.42V20H8V18.42A3,3 0 0,1 5.58,16H3V14H5.58A3,3 0 0,1 8,11.58V10H10V11.58A3,3 0 0,1 12.42,14H15V12H12.42A3,3 0 0,1 10,9.58V8H8V9.58A3,3 0 0,1 5.58,12H3V10H5.58A3,3 0 0,1 8,7.58V6H10V7.58A3,3 0 0,1 12.42,10H21V11Z"/></svg>Tỷ trọng trả chậm</span><span class="kpi-value" id="kpi-ty-trong-tra-cham">0%</span></div>
+                                </div>
+                            </div>
+                             <!-- Group 3: Nợ & Mục tiêu nợ -->
+                            <div class="kpi-group-card">
+                                <div class="kpi-group-header red"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M10 20H4V8h6m0 12V8H4a2 2 0 00-2 2v8a2 2 0 002 2h6m8-14h-4a2 2 0 00-2 2v10a2 2 0 002 2h4a2 2 0 002-2V8a2 2 0 00-2-2m-4 12V8h4v10h-4z"/></svg>NỢ & MỤC TIÊU NỢ</div>
+                                <div class="kpi-group-body">
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.5 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/></svg>DT Nợ năm</span><span class="kpi-value" id="kpi-dt-no-nam">0 Triệu</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>% HT năm</span><span class="kpi-value" id="kpi-ht-nam-pt">0%</span></div>
+                                    <div class="kpi-item"><span class="kpi-label"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 1 0 22 12 10 10 0 0 0 12 2Z"/></svg>Mục tiêu trả nợ/ngày</span><span class="kpi-value" id="kpi-muc-tieu-no-ngay">0 Triệu</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="dashboard-layout-grid" style="grid-template-columns: 2fr 1fr;">
+                            <div class="charts-column">
+                                <div class="chart-wrapper card" id="yearly-revenue-chart-wrapper"></div>
+                                <div class="chart-wrapper card" id="daily-comparison-chart-wrapper"></div>
+                            </div>
+                            <div class="charts-column">
+                                <div class="chart-wrapper card" id="contribution-chart-wrapper"></div>
+                                <div class="chart-wrapper card" id="growth-chart-wrapper"></div>
+                            </div>
+                        </div>
+
+                        <div id="contest-table-luyke-wrapper" class="report-section card" style="grid-column: 1 / -1;"></div>
+
+                    </div>
+                    <div class="details-toggle">
+                        <button id="toggleSpecificTablesBtn">📊 Ẩn/Hiện Kết quả Thi đua & Chi tiết Ngành hàng</button>
+                    </div>
+                    <div id="specificTablesContainer" class="tables-container">
+                        <div class="dashboard-layout-grid" style="grid-template-columns: 1fr 1fr; gap: 25px;">
+                            <div id="contest-results-container" class="report-section card contest-results-container"></div>
+                            <div class="report-section card" id="category-table-container"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="summary-report-wrapper-luyke" class="report-section card" style="display:none;"></div>
+                <div class="details-toggle"><button id="toggleTablesBtn">🔍 Ẩn/Hiện Bảng Dữ liệu Đầy đủ</button></div>
+                <div id="tablesContainer" class="tables-container">
+                    <div id="main-table-wrapper" class="table-container card"></div>
+                    <div id="comparison-table-wrapper" class="table-container card"></div>
+                    <div id="contest-tables-wrapper" class="table-container card"></div>
+                </div>
+            </div>`;
+        
+        document.getElementById('realtimeTab').innerHTML = `
+            <div class="input-grid" style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
+                <div class="input-section">
+                    <h4><a href="https://bi.thegioididong.com/sieu-thi-con?id=16753&tab=bcdtnh&rt=1&dm=1" target="_blank" rel="noopener noreferrer">Dữ liệu Realtime Ngành hàng</a></h4>
+                    <div class="input-wrapper">
+                        <textarea id="realtimeDataInput" class="mainDataInput" placeholder="Dán dữ liệu ngành hàng..."></textarea>
+                        <div class="paste-btn-container">
+                            <button class="paste-btn" data-target="realtimeDataInput">Dán Thông Minh</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-section">
+                    <h4><a href="https://bi.thegioididong.com/thi-dua-st?id=16753&tab=1&rt=1&dm=2&mt=1" target="_blank" rel="noopener noreferrer">Dữ liệu Realtime Thi đua</a></h4>
+                    <div class="input-wrapper">
+                        <textarea id="realtimeContestDataInput" class="contestDataInput" placeholder="Dán dữ liệu thi đua..."></textarea>
+                        <div class="paste-btn-container">
+                            <button class="paste-btn" data-target="realtimeContestDataInput">Dán Thông Minh</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="input-section">
+                    <h4>Doanh thu Nhân viên (Dán)</h4>
+                    <div class="input-wrapper">
+                        <textarea id="employeeSalesDataInput" class="mainDataInput" placeholder="Dán dữ liệu doanh thu nhân viên vào đây..."></textarea>
+                        <div class="paste-btn-container">
+                            <button class="paste-btn" data-target="employeeSalesDataInput">Dán Thông Minh</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+             <div class="button-container">
+                <button id="analyzeBtn-rt" class="action-btn analyzeBtn">TẠO DASHBOARD REAL-TIME</button>
+                <button id="captureBtnRt" class="action-btn captureBtn">
+                   <svg fill="currentColor" viewBox="0 0 24 24"><path d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" /></svg>
+                   Chụp ảnh Báo cáo
+                </button>
+            </div>
+            <div id="dashboard-body-rt" class="dashboard-body">
+                <div id="capture-area-rt">
+                    <div id="capture-content-rt">
+                        <div id="reportTitleRt" class="report-title"></div>
+                        <div class="progress-bar-container card"><div class="progress-labels"><span>Tiến độ Thời gian làm việc (9h-22h)</span><span id="progress-summary-time">0%</span></div><div class="progress-track"><div class="progress-fill" id="progress-fill-time"><span class="progress-text" id="progress-text-time"></span></div></div></div>
+                        <div class="progress-bar-container card"><div class="progress-labels"><span>Tiến độ Target Ngày</span><span id="progress-summary-target-rt"></span></div><div class="progress-track"><div class="progress-fill" id="progress-fill-target-rt"><span class="progress-text" id="progress-text-target-rt"></span></div></div></div>
+                        <div id="kpi-panel-rt" class="kpi-panel"></div>
+                        <div id="employee-sales-chart-wrapper" class="card chart-wrapper" style="display: none; padding: 25px;"></div>
+                        <div class="dashboard-layout-grid" style="grid-template-columns: 1fr 1fr; align-items: start; gap: 25px;">
+                            <div id="contest-table-rt-wrapper" class="report-section card"></div>
+                            <div id="category-table-rt-wrapper" class="report-section card"></div>
+                        </div>
+                    </div>
+                    <div class="details-toggle">
+                        <button id="toggleSpecificTablesBtn-rt">📊 Ẩn/Hiện Kết quả Thi đua</button>
+                    </div>
+                    <div id="specificTablesContainer-rt" class="tables-container">
+                        <div id="contest-results-container-rt" class="report-section card contest-results-container"></div>
+                    </div>
+                </div>
+                <div id="summary-report-wrapper-rt" class="report-section card" style="display:none;"></div>
+                <div class="details-toggle"><button id="toggleTablesBtn-rt">🔍 Ẩn/Hiện Bảng Dữ liệu Đầy đủ</button></div>
+                <div id="tablesContainer-rt" class="tables-container">
+                    <div id="realtime-main-table-wrapper" class="table-container card"></div>
+                    <div id="realtime-contest-tables-wrapper" class="table-container card"></div>
+                </div>
+            </div>`;
+
+        Chart.register(ChartDataLabels);
+        Chart.defaults.color = 'var(--text-muted)';
+        Chart.defaults.font.family = 'system-ui, -apple-system, sans-serif';
+        Chart.defaults.font.weight = '600';
+        
+        const defaultData = {
+            yearlyDataTable: [
+                ['11745', '11940'], ['7567', '7158'], ['7639', '7177'],
+                ['9442', '6277'], ['8772', '7166'], ['9630', '7762'],
+                ['6911', '8910'], [], [], [], [], []
+            ],
+            dailyComparisonTable: [
+                ['116', '246'], ['114', '154'], ['116', '129'], ['','136'], ['','156'],
+                ['','205'], ['','305'], ['','222'], ['','149'], ['','149'],
+                ['','117'], ['','157'], ['','161'], ['','236'], ['','371'],
+                ['','132'], ['','218'], ['','174'], ['','114'], ['','121'],
+                ['','166'], ['','410'], ['','91'], ['','106'], ['','80'],
+                ['','162'], ['','430'], ['','387'], ['','353'], ['','187'], []
+            ]
+        };
+
+        createYearlyDataTable(defaultData);
+        createDailyComparisonTable(defaultData);
+
+        // Setup main logic for both tabs
+        setupLuyKeTab();
+        setupRealtimeTab();
+        
+        // Activate smart paste buttons
+        setupSmartPasteButtons();
+        
+        // Load saved data from localStorage
+        try {
+            document.getElementById('mainDataInput').value = localStorage.getItem('luyKeMainData') || '';
+            document.getElementById('contestDataInput').value = localStorage.getItem('luyKeContestData') || '';
+            document.getElementById('realtimeDataInput').value = localStorage.getItem('realtimeMainData') || '';
+            document.getElementById('realtimeContestDataInput').value = localStorage.getItem('realtimeContestData') || '';
+            document.getElementById('employeeSalesDataInput').value = localStorage.getItem('employeeSalesData') || '';
+        } catch (e) {
+            console.error("Could not access localStorage. Data will not be saved.", e);
+            showToast("Không thể truy cập bộ nhớ cục bộ. Dữ liệu sẽ không được lưu.", true);
+        }
+    });
+
+    /****************************************************************************
+    * TAB 1: LUỸ KẾ LOGIC                              *
+    ****************************************************************************/
+    function setupLuyKeTab() {
+        let allChartsLuyKe = [];
+        const destroyAllChartsLuyKe = () => { allChartsLuyKe.forEach(chart => chart && chart.destroy()); allChartsLuyKe = []; };
+
+        document.getElementById('analyzeBtn').addEventListener('click', () => { 
+            const mainDataFromTextarea = document.getElementById('mainDataInput').value;
+            const contestDataFromTextarea = document.getElementById('contestDataInput').value;
+            try {
+                localStorage.setItem('luyKeMainData', mainDataFromTextarea);
+                localStorage.setItem('luyKeContestData', contestDataFromTextarea);
+            } catch (e) { console.error("Could not save to localStorage", e); }
+
+            const yearlyDataFromTable = getStructuredTableData('yearlyDataTable');
+            const dailyDataFromTable = getStructuredTableData('dailyComparisonTable');
+
+            if (!mainDataFromTextarea.trim()) { 
+                showToast('Vui lòng dán dữ liệu Báo cáo Kinh doanh vào ô nhập liệu.', true); 
+                return; 
+            } 
+            if (yearlyDataFromTable.length === 0 || dailyDataFromTable.length === 0) {
+                showToast('Vui lòng nhập dữ liệu vào bảng Năm và So sánh Ngày.', true);
+                return;
+            }
+            
+            try { 
+                const mainParsedData = parseLuyKeData(mainDataFromTextarea); 
+                const contestParsedData = contestDataFromTextarea.trim() ? parseAllContestData(contestDataFromTextarea) : []; 
+                displayLuyKeDashboard(mainParsedData, contestParsedData, yearlyDataFromTable, dailyDataFromTable); 
+            } catch (error) { 
+                showToast("Lỗi xử lý dữ liệu Luỹ kế: " + error.message, true); 
+                console.error(error); 
+            } 
+        });
+        
+        document.getElementById('toggleSpecificTablesBtn').addEventListener('click', () => {
+            document.getElementById('specificTablesContainer').classList.toggle('show');
+        });
+
+        document.getElementById('toggleTablesBtn').addEventListener('click', () => document.getElementById('tablesContainer').classList.toggle('show'));
+        
+        document.getElementById('captureBtnLuyKe').addEventListener('click', () => {
+            const dashboardBody = document.getElementById('dashboard-body-luyke');
+            if (dashboardBody.style.display === 'none') {
+                showToast('Chưa có dữ liệu Luỹ kế để chụp ảnh.', true);
+                return;
+            }
+
+            const specificTablesContainer = document.getElementById('specificTablesContainer');
+            const tablesAreVisible = specificTablesContainer.classList.contains('show');
+            
+            const captureElement = tablesAreVisible 
+                ? document.getElementById('capture-area-luyke') 
+                : document.getElementById('capture-content-luyke');
+
+            html2canvas(captureElement, { useCORS: true, backgroundColor: '#eef2f7', scale: 2.5 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `báo cáo luỹ kế ngày ${new Date().toLocaleDateString('vi-VN')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => {
+                showToast('Lỗi khi chụp ảnh.', true);
+                console.error(err);
+            });
+        });
+
+        function parseLuyKeData(text) { 
+            const headers = [ "Nhóm ngành hàng", "Số lượng", "DTQĐ", "Target (QĐ)", "Lãi gộp QĐ", "% HT Target (QĐ)", "+/- DTCK Tháng (QĐ)", "Đơn giá", "DT Trả Góp", "Tỷ Trọng Trả Góp" ]; 
+            const rawLines = text.trim().split('\n'); 
+            const dataRows = rawLines[0].toLowerCase().includes('nhóm ngành hàng') ? rawLines.slice(1) : rawLines; 
+            return dataRows.map(line => { 
+                const values = line.split('\t'); 
+                const rowObject = {}; 
+                headers.forEach((header, index) => { 
+                    const valueStr = values[index] || '0'; 
+                    if (header === "Nhóm ngành hàng") {
+                        rowObject[header] = valueStr.trim();
+                    } else {
+                        const cleanedValueStr = valueStr.replace(/,/g, '').replace(/%/, '');
+                        rowObject[header] = parseFloat(cleanedValueStr) || 0; 
+                    }
+                }); 
+                return rowObject; 
+            }); 
+        }
+        
+        function displayLuyKeDashboard(mainData, contestData, yearlyData, dailyData) {
+            document.getElementById('dashboard-body-luyke').style.display = 'block';
+            destroyAllChartsLuyKe();
+            const totalRow = mainData.find(row => row["Nhóm ngành hàng"] === "Tổng");
+            if (!totalRow) { throw new Error("Không tìm thấy dòng 'Tổng' trong dữ liệu Kinh doanh."); }
+            
+            let today = new Date();
+            let reportDate = new Date(today);
+            let daysUsed, daysInMonth, daysRemaining;
+
+            if (today.getDate() === 1) {
+                const prevMonthEndDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                daysInMonth = prevMonthEndDate.getDate();
+                daysUsed = prevMonthEndDate.getDate();
+                daysRemaining = 0;
+                reportDate = prevMonthEndDate;
+            } else {
+                daysUsed = today.getDate() - 1;
+                daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                daysRemaining = daysInMonth - daysUsed;
+            }
+
+            const categoryData = mainData.filter(row => row["Nhóm ngành hàng"] !== "Tổng");
+            
+            const luyKe = totalRow["DTQĐ"], target = totalRow["Target (QĐ)"], htTarget = luyKe > 0 && target > 0 ? (luyKe/target*100) : 0;
+            const growthRate = totalRow["+/- DTCK Tháng (QĐ)"];
+            const dtDuKien = (daysUsed > 0 ? (luyKe / daysUsed) : 0) * daysInMonth;
+            const htDuKien = target > 0 ? (dtDuKien / target * 100) : 0;
+            const chenhLech = luyKe - ((1 + growthRate / 100) !== 0 ? luyKe / (1 + growthRate / 100) : 0);
+            const mucTieuNgay = daysRemaining > 0 ? (target - luyKe) / daysRemaining : 0;
+            const mainKpis = { luyKe, target, htTarget, growthRate, dtDuKien, htDuKien, chenhLech, mucTieuNgay, tyTrongTraGop: totalRow["Tỷ Trọng Trả Góp"], doanhThuTraGop: totalRow["DT Trả Góp"] };
+
+            const processedContestData = processFullContestData(contestData, daysRemaining);
+
+            const dateString = `ngày ${reportDate.getDate()}/${reportDate.getMonth() + 1}/${reportDate.getFullYear()}`;
+            document.getElementById('reportTitleLuyKe').textContent = `Báo cáo sức khoẻ siêu thị đến ${dateString}`;
+
+            renderLuyKeKPIs(mainKpis, daysUsed, daysInMonth, yearlyData, reportDate);
+            renderLuyKeCharts(categoryData);
+            
+            renderYearlyRevenueChart(yearlyData, mainKpis, reportDate);
+            renderDailyComparisonChart(dailyData, yearlyData, mainKpis, reportDate, daysInMonth);
+
+            renderLuyKeCategoryTables(categoryData);
+            renderLuyKeContestTable(processedContestData);
+            renderLuyKeContestResults(processedContestData);
+            renderLuyKeSummary(mainKpis, processedContestData, reportDate);
+            displayLuyKeHiddenTables(mainData, contestData);
+        }
+        
+        function renderLuyKeKPIs(kpis, daysUsed, daysInMonth, yearlyData, reportDate) {
+            const progressPercentDate = (daysUsed / daysInMonth) * 100;
+            document.getElementById('progress-fill-date').style.width = `${progressPercentDate}%`;
+            document.getElementById('progress-text-date').textContent = `Đã qua ${daysUsed}/${daysInMonth} ngày`;
+            document.getElementById('progress-summary-date').textContent = `${formatNumber(progressPercentDate, 1)}%`;
+            
+            const progressPercentTarget = kpis.htTarget > 100 ? 100 : kpis.htTarget;
+            const htTargetColor = getColor(kpis.htTarget);
+            const progressFillTarget = document.getElementById('progress-fill-target');
+            progressFillTarget.style.width = `${progressPercentTarget}%`;
+            progressFillTarget.style.backgroundColor = htTargetColor;
+            document.getElementById('progress-text-target').textContent = `${formatNumber(kpis.htTarget, 1)}%`;
+            document.getElementById('progress-summary-target').textContent = `${formatNumber(kpis.luyKe)} / ${formatNumber(kpis.target)}`;
+            
+            // Group 1
+            document.getElementById('kpi-target-thang').textContent = formatNumber(kpis.target, 0) + ' Triệu';
+            document.getElementById('kpi-luy-ke-thang').textContent = formatNumber(kpis.luyKe, 0) + ' Triệu';
+            document.getElementById('kpi-thuc-hien-pt').textContent = formatNumber(kpis.htTarget, 2) + '%';
+            document.getElementById('kpi-dt-du-kien').textContent = formatNumber(kpis.dtDuKien, 0) + ' Triệu';
+            const kpiHtDuKienPt = document.getElementById('kpi-ht-du-kien-pt');
+            kpiHtDuKienPt.textContent = formatNumber(kpis.htDuKien, 2) + '%';
+            kpiHtDuKienPt.style.color = getColor(kpis.htDuKien);
+
+            // Group 2
+            document.getElementById('kpi-muc-tieu-ngay-new').textContent = formatNumber(kpis.mucTieuNgay, 0) + ' Triệu';
+            const kpiTangTruongPt = document.getElementById('kpi-tang-truong-pt');
+            const growthIcon = kpis.growthRate >= 0 ? '<span style="color:var(--dmx-green)">▲</span>' : '<span style="color:var(--dmx-red)">▼</span>';
+            kpiTangTruongPt.style.color = kpis.growthRate >= 0 ? 'var(--dmx-green)' : 'var(--dmx-red)';
+            kpiTangTruongPt.innerHTML = `${growthIcon} ${formatNumber(Math.abs(kpis.growthRate), 2)}%`;
+
+            const kpiDtCungKy = document.getElementById('kpi-dt-cung-ky');
+            const chenhLechIcon = kpis.chenhLech >= 0 ? '<span style="color:var(--dmx-green)">▲</span>' : '<span style="color:var(--dmx-red)">▼</span>';
+            kpiDtCungKy.style.color = kpis.chenhLech >= 0 ? 'var(--dmx-green)' : 'var(--dmx-red)';
+            kpiDtCungKy.innerHTML = `${chenhLechIcon} ${formatNumber(Math.abs(kpis.chenhLech), 0)}`;
+            
+            const kpiTyTrongTraCham = document.getElementById('kpi-ty-trong-tra-cham');
+            kpiTyTrongTraCham.textContent = formatNumber(kpis.tyTrongTraGop, 1) + '%';
+            kpiTyTrongTraCham.style.color = kpis.tyTrongTraGop < 20 ? 'var(--dmx-red)' : 'var(--dmx-green)';
+
+            // Group 3
+            const currentMonth = reportDate.getMonth() + 1;
+            const yearlyTargetTotal = yearlyData
+                .filter(row => parseInt(row['Tháng']) <= currentMonth)
+                .reduce((sum, row) => sum + (row['Target tháng'] || 0), 0);
+            
+            const pastMonthsActual = yearlyData
+                .filter(row => parseInt(row['Tháng']) < currentMonth)
+                .reduce((sum, row) => sum + (row['Doanh thu tháng'] || 0), 0);
+
+            const yearlyActualTotal = pastMonthsActual + kpis.dtDuKien;
+            const yearlyPercent = yearlyTargetTotal > 0 ? (yearlyActualTotal / yearlyTargetTotal * 100) : 0;
+            const yearlyRemaining = yearlyTargetTotal - yearlyActualTotal;
+            
+            document.getElementById('kpi-dt-no-nam').textContent = formatNumber(yearlyRemaining, 0) + ' Triệu';
+            const kpiHtNamPt = document.getElementById('kpi-ht-nam-pt');
+            kpiHtNamPt.textContent = formatNumber(yearlyPercent, 2) + '%';
+            kpiHtNamPt.style.color = getColor(yearlyPercent);
+            document.getElementById('kpi-muc-tieu-no-ngay').textContent = '544 Triệu';
+        }
+        
+        function renderLuyKeContestTable(processedContest) {
+            const wrapper = document.getElementById('contest-table-luyke-wrapper');
+            if (!processedContest.all || processedContest.all.length === 0) {
+                wrapper.innerHTML = '<h2>Bảng chi tiết Thi đua</h2><p>Không có dữ liệu thi đua.</p>';
+                return;
+            }
+
+            const completedItems = processedContest.onTrack.length;
+            const totalItems = processedContest.all.length;
+            const progressPercentContest = totalItems > 0 ? (completedItems / totalItems * 100) : 0;
+            const contestProgressColor = getColor(progressPercentContest, 50, 80);
+            const progressBarHtml = `
+                <div class="progress-bar-container" style="padding: 0 0 25px 0;">
+                    <div class="progress-labels">
+                        <span>Tiến độ Về Đích (Dự kiến)</span>
+                        <span>${completedItems} / ${totalItems} Nhóm</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: ${progressPercentContest}%; background-color: ${contestProgressColor};">
+                            <span class="progress-text">${formatNumber(progressPercentContest, 1)}%</span>
+                        </div>
+                    </div>
+                </div>`;
+
+            const topPerformers = processedContest.all.filter(p => p.percentProjected >= 70);
+            const needsImprovement = processedContest.all.filter(p => p.percentProjected < 70);
+
+            const createProgressBar = (percent) => {
+                const color = getColor(percent);
+                const displayPercent = Math.min(percent, 120);
+                return `
+                    <div class="bar-wrapper">
+                        <span class="bar-percent-text" style="color: ${color};">${formatNumber(percent, 1)}%</span>
+                        <div class="bar-track">
+                            <div class="bar-fill" style="width: ${displayPercent}%; background-color: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+            };
+
+            const createContestDetailTable = (data, title, titleClass, isTopPerformer = false) => {
+                if (data.length === 0) return '';
+                
+                let tableRows = data.map((item, index) => {
+                    const rank = index + 1;
+                    const icon = isTopPerformer && rank === 1 ? '🏆' : (item.percentProjected >= 100 ? '🚀' : '');
+                    const tooltipText = item.percentProjected < 50 ? "Cần tập trung cao độ!" : item.percentProjected < 70 ? "Cần cải thiện thêm!" : "Duy trì phong độ tốt!";
+                    
+                    const remainingCell = item.remaining <= 0
+                        ? `<td style="color: var(--dmx-green); font-weight: bold;">Hoàn thành</td>`
+                        : `<td class="col-negative">${formatNumber(item.remaining, 1)}</td>`;
+
+                    return `
+                        <tr data-category-name="${item.name.toLowerCase()}">
+                            <td class="col-rank">${icon} ${rank}</td>
+                            <td class="col-category">
+                                <div class="tooltip">${item.name}<span class="tooltiptext">${tooltipText}</span></div>
+                            </td>
+                            <td>${formatNumber(item.dailyTarget, 1)}</td>
+                            <td>${formatNumber(item.target)}</td>
+                            <td>${formatNumber(item.actual)}</td>
+                            ${remainingCell}
+                            <td class="progress-bar-cell">${createProgressBar(item.percentActual)}</td>
+                            <td class="progress-bar-cell">${createProgressBar(item.percentProjected)}</td>
+                        </tr>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="contest-group">
+                        <h3 class="contest-group-title ${titleClass}">
+                            ${isTopPerformer ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.34,9.32l-1.4-4.29A2,2,0,0,0,17.09,4H6.91a2,2,0,0,0-1.85,1L3.66,9.32a1,1,0,0,0,.37,1.1l.49,.35-.16,1.8-3.2,3.2A1,1,0,0,0,2,17v3a1,1,0,0,0,1,1H21a1,1,0,0,0,1-1V17a1,1,0,0,0-.78-1.23l-3.2-3.2.16-1.8.49-.35a1,1,0,0,0,.37-1.1ZM12,6a3,3,0,1,1-3,3A3,3,0,0,1,12,6Z"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12,6a3.91,3.91,0,0,0-4,4,3.91,3.91,0,0,0,4,4,3.91,3.91,0,0,0,4-4,3.91,3.91,0,0,0-4-4Zm0,6a1.94,1.94,0,0,1-2-2,1.94,1.94,0,0,1,2-2,1.94,1.94,0,0,1,2,2,1.94,1.94,0,0,1-2,2Zm8.72,2.72L18,11.85V7a1,1,0,0,0-1-1H7A1,1,0,0,0,6,7v4.85L3.28,14.72A2,2,0,0,0,3,16.15V19a2,2,0,0,0,2,2H19a2,2,0,0,0,2-2v-2.85a2,2,0,0,0-.28-1.43ZM19,19H5V16.15l3-3V7H16v6.15l3,3Z"/></svg>'}
+                            ${title} (${data.length})
+                        </h3>
+                        <div class="table-responsive">
+                            <table class="contest-detail-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-rank">#</th>
+                                        <th class="col-category">Ngành hàng</th>
+                                        <th>MT Ngày</th>
+                                        <th>Target</th>
+                                        <th>Lũy kế</th>
+                                        <th>Còn lại</th>
+                                        <th>% HT</th>
+                                        <th>% HT Dự kiến</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${tableRows}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            };
+            
+            const finalHtml = `
+                <h2><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" /></svg>Bảng Chi Tiết Thi Đua Ngành Hàng</h2>
+                ${progressBarHtml}
+                <div class="contest-split-layout">
+                    ${createContestDetailTable(topPerformers, 'Ngành Hàng Hiệu Quả', 'top-performers', true)}
+                    ${createContestDetailTable(needsImprovement, 'Ngành Hàng Cần Cải Thiện', 'needs-improvement')}
+                </div>
+            `;
+            
+            wrapper.innerHTML = finalHtml;
+        }
+        
+        function renderLuyKeCharts(data) {
+            const chartData = data.filter(row => row["DTQĐ"] > 0);
+            const growthData = data.filter(r => r.DTQĐ !== 0 || (r["+/- DTCK Tháng (QĐ)"] !== 0 && r["+/- DTCK Tháng (QĐ)"] !== -100));
+            
+            const contributionWrapper = document.getElementById('contribution-chart-wrapper');
+            contributionWrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M11 2v9h9a9 9 0 00-9-9zm2 1.08a7 7 0 016.92 6.92H13V3.08zM4 12a8 8 0 018-8v8H4zm9 8a8 8 0 01-8-8h8v8z"/></svg>Tỷ trọng Doanh thu</h2><div class="chart-container" style="height: 300px;"><canvas id="contributionChart"></canvas></div>`;
+            const growthWrapper = document.getElementById('growth-chart-wrapper');
+            growthWrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M22,21H2V3H4V19H22V21M18,17V9H20V17H18M14,17V12H16V17H14M10,17V5H12V17H10M6,17V14H8V17H6Z"/></svg>Tăng/Giảm Cùng kỳ</h2><div class="chart-container" style="height: 300px;"><canvas id="growthDriverChart"></canvas></div>`;
+            
+            const sortedDataByDT = [...chartData].sort((a, b) => b.DTQĐ - a.DTQĐ);
+            const top6 = sortedDataByDT.slice(0, 6);
+            const othersValue = sortedDataByDT.slice(6).reduce((s, r) => s + r.DTQĐ, 0);
+            if (othersValue > 0) {
+                top6.push({ "Nhóm ngành hàng": "Ngành hàng khác", "DTQĐ": othersValue });
+            }
+
+            const contributionLabels = top6.map(d => d["Nhóm ngành hàng"]);
+            const contributionValues = top6.map(d => d.DTQĐ);
+            
+            const contributionChart = new Chart('contributionChart', { 
+                type: 'doughnut', 
+                data: { 
+                    labels: contributionLabels, 
+                    datasets: [{ 
+                        data: contributionValues, 
+                        backgroundColor: VIBRANT_PALETTE 
+                    }] 
+                }, 
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { 
+                        legend: { display: false }, 
+                        datalabels: { 
+                            formatter: (v, ctx) => { 
+                                const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0); 
+                                const p = (v * 100 / total).toFixed(0) + '%'; 
+                                const l = ctx.chart.data.labels[ctx.dataIndex]; 
+                                return `${l}\n${p}`;
+                            }, 
+                            color: '#fff', 
+                            font: { weight: 'bold', size: 12 }, 
+                            textStrokeColor: 'rgba(0,0,0,0.5)', 
+                            textStrokeWidth: 2 
+                        } 
+                    } 
+                } 
+            });
+            allChartsLuyKe.push(contributionChart);
+
+            const calcData = growthData.map(r => ({ name: r["Nhóm ngành hàng"], diff: r.DTQĐ - ((1 + r["+/- DTCK Tháng (QĐ)"] / 100) !== 0 ? r.DTQĐ / (1 + r["+/- DTCK Tháng (QĐ)"] / 100) : 0) })).filter(d => d.diff !== 0).sort((a, b) => a.diff - b.diff);
+            const growthDriverChart = new Chart('growthDriverChart', { type: 'bar', data: { labels: calcData.map(d => d.name), datasets: [{ data: calcData.map(d => d.diff), backgroundColor: VIBRANT_PALETTE }] }, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, datalabels: { color: '#fff', font: { weight: 'bold', size: 12 }, textStrokeColor: 'rgba(0,0,0,0.5)', textStrokeWidth: 2, formatter: (v) => formatNumber(v), anchor: 'center', align: 'center' } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } } });
+            allChartsLuyKe.push(growthDriverChart);
+        }
+
+        function renderYearlyRevenueChart(yearlyData, kpis, reportDate) {
+            const wrapper = document.getElementById('yearly-revenue-chart-wrapper');
+            wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H6V1H8V3H16V1H18V3H19M19,19V8H5V19H19Z"/></svg>Doanh thu Năm</h2><div class="chart-container" style="height: 300px;"><canvas id="yearlyRevenueChart"></canvas></div>`;
+            
+            const currentMonth = reportDate.getMonth() + 1;
+            const labels = yearlyData.map(d => `Th ${d['Tháng']}`);
+            const targets = yearlyData.map(d => d['Target tháng']);
+            const actuals = yearlyData.map(d => {
+                return parseInt(d['Tháng']) === currentMonth ? kpis.dtDuKien : d['Doanh thu tháng'];
+            });
+
+            const yearlyChart = new Chart('yearlyRevenueChart', {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Target tháng',
+                            data: targets,
+                            backgroundColor: VIBRANT_PALETTE[5] + '99',
+                            borderColor: VIBRANT_PALETTE[5],
+                            borderWidth: 1,
+                            datalabels: {
+                                color: 'var(--text-muted)',
+                                anchor: 'end',
+                                align: 'top',
+                                formatter: (value) => value > 0 ? formatNumber(value) : '',
+                            }
+                        },
+                        {
+                            label: 'Doanh thu thực hiện',
+                            data: actuals,
+                            backgroundColor: VIBRANT_PALETTE[0] + '99',
+                            borderColor: VIBRANT_PALETTE[0],
+                            borderWidth: 1,
+                            datalabels: {
+                                color: 'var(--text-dark)',
+                                anchor: 'end',
+                                align: 'top',
+                                offset: -5,
+                                font: { weight: 'bold' },
+                                formatter: (value, context) => {
+                                    if (!value || value === 0) return '';
+                                    const targetValue = context.chart.data.datasets[0].data[context.dataIndex];
+                                    const percentage = targetValue > 0 ? `(${(value / targetValue * 100).toFixed(0)}%)` : '';
+                                    return `${formatNumber(value)}\n${percentage}`;
+                                }
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        datalabels: { display: true }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                display: false // CHANGE: Removed Y-axis grid lines
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false // CHANGE: Removed X-axis grid lines
+                            }
+                        }
+                    }
+                }
+            });
+            allChartsLuyKe.push(yearlyChart);
+        }
+
+        function renderDailyComparisonChart(dailyData, yearlyData, kpis, reportDate, daysInMonth) {
+            const wrapper = document.getElementById('daily-comparison-chart-wrapper');
+            wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3H18V1M17,12H12V17H17V12Z"/></svg>So sánh Doanh thu Ngày</h2><div class="chart-container" style="height: 300px;"><canvas id="dailyComparisonChart"></canvas></div>`;
+            
+            const currentMonth = reportDate.getMonth() + 1;
+            const monthTargetData = yearlyData.find(row => parseInt(row['Tháng']) === currentMonth);
+            const monthTarget = monthTargetData ? (monthTargetData['Target tháng'] || 0) : 0;
+            const dailyTarget = monthTarget > 0 && daysInMonth > 0 ? monthTarget / daysInMonth : (kpis.target > 0 && daysInMonth > 0 ? kpis.target / daysInMonth : 0);
+
+            const labels = Array.from({ length: daysInMonth }, (_, i) => `Ngày ${i + 1}`);
+
+            const thisMonthRevenue = new Array(daysInMonth).fill(null);
+            const lastMonthRevenue = new Array(daysInMonth).fill(null);
+            
+            const currentDay = reportDate.getDate();
+            dailyData.forEach(d => {
+                const dayIndex = parseInt(d['Ngày']) - 1;
+                if (dayIndex >= 0 && dayIndex < daysInMonth) {
+                    if (d['DT Tháng này'] > 0 && (dayIndex + 1) <= currentDay) {
+                        thisMonthRevenue[dayIndex] = d['DT Tháng này'];
+                    }
+                    if (d['DT Tháng trước'] > 0) {
+                        lastMonthRevenue[dayIndex] = d['DT Tháng trước'];
+                    }
+                }
+            });
+
+            const weekendColorCallback = (context) => {
+    const day = context.dataIndex + 1;
+    const date = new Date(reportDate.getFullYear(), reportDate.getMonth(), day);
+    const dayOfWeek = date.getDay();
+    return dayOfWeek === 0 || dayOfWeek === 6 ? '#dc3545' : '#0088ff';  // đỏ và xanh dương
+};
+
+
+            const dailyChart = new Chart('dailyComparisonChart', {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Hiện tại',
+                            data: thisMonthRevenue,
+                            backgroundColor: weekendColorCallback,
+                            order: 2,
+                            datalabels: {
+                                display: (ctx) => ctx.dataset.data[ctx.dataIndex] !== null,
+                                formatter: (value) => formatNumber(value, 0),
+                                color: (ctx) => weekendColorCallback(ctx),
+                                align: 'top',
+                                anchor: 'end',
+                                offset: -5,
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        {
+                            type: 'line',
+                            label: 'Tháng trước',
+                            data: lastMonthRevenue,
+                            borderColor: '#5f6368', 
+                            backgroundColor: '#5f6368',
+                            pointBackgroundColor: (context) => {
+                                if (context.dataIndex === null || context.dataIndex >= daysInMonth) return '#5f6368';
+                                const day = context.dataIndex + 1;
+                                const prevMonthDate = new Date(reportDate.getFullYear(), reportDate.getMonth() - 1, day);
+                                const dayOfWeek = prevMonthDate.getDay();
+                                return dayOfWeek === 0 || dayOfWeek === 6 ? 'var(--dmx-pink)' : '#5f6368';
+                            },
+                            borderDash: [5, 5],
+                            pointRadius: 4,
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.1,
+                            order: 1,
+                            datalabels: {
+                                display: (ctx) => ctx.dataset.data[ctx.dataIndex] !== null,
+                                formatter: (value) => formatNumber(value, 0),
+                                color: '#5f6368',
+                                align: 'bottom',
+                                font: { size: 10 }
+                            }
+                        },
+                        {
+                            type: 'line',
+                            label: 'Target',
+                            data: Array(daysInMonth).fill(dailyTarget),
+                            borderColor: '#ffc107', 
+                            backgroundColor: '#ffc107',
+                            borderDash: [10, 5], 
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false,
+                            order: 0,
+                            datalabels: {
+                                display: true,
+                                color: '#ffc107',
+                                align: 'end',
+                                anchor: 'end',
+                                formatter: (value, context) => context.dataIndex === Math.floor(daysInMonth / 2) ? formatNumber(value, 0) : '',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { 
+                            position: 'top',
+                             labels: {
+                                usePointStyle: true,
+                            }
+                        },
+                        datalabels: {
+                            display: true,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { display: false },
+                            ticks: {
+                                callback: (value) => formatNumber(value, 0)
+                            }
+                        },
+                        x: {
+                             grid: { display: false },
+                             ticks: {
+                                callback: function(val) {
+                                    return this.getLabelForValue(val).replace('Ngày ','');
+                                },
+                                autoSkip: false,
+                                maxRotation: 0,
+                                minRotation: 0
+                             }
+                        }
+                    }
+                }
+            });
+            allChartsLuyKe.push(dailyChart);
+        }
+
+
+        function renderLuyKeCategoryTables(data) {
+            const categoryContainer = document.getElementById('category-table-container');
+            const categoryData = data.filter(d => d["DTQĐ"] > 0).sort((a,b) => b.DTQĐ - a.DTQĐ);
+
+            if (categoryData.length === 0) {
+                categoryContainer.innerHTML = '<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3,4H21V6H3V4M3,7H21V9H3V7M3,10H21V12H3V10M3,13H21V15H3V13M3,16H21V18H3V16Z"/></svg>Bảng Chi tiết Ngành hàng</h2><p>Không có dữ liệu.</p>';
+                return;
+            }
+
+            const midpoint = Math.ceil(categoryData.length / 2);
+            const leftData = categoryData.slice(0, midpoint);
+            const rightData = categoryData.slice(midpoint);
+
+            const createTableHtml = (data) => {
+                let tableHtml = '<table><thead><tr><th>Ngành hàng</th><th>Doanh thu</th><th>Target</th><th>%HT</th></tr></thead><tbody>';
+                data.forEach(row => { 
+                    tableHtml += `<tr><td>${row["Nhóm ngành hàng"]}</td><td>${formatNumber(row["DTQĐ"])}</td><td>${formatNumber(row["Target (QĐ)"])}</td><td style="color: ${getColor(row["% HT Target (QĐ)"])}">${formatNumber(row["% HT Target (QĐ)"], 1)}%</td></tr>`; 
+                });
+                tableHtml += '</tbody></table>';
+                return tableHtml;
+            };
+
+            categoryContainer.innerHTML = `
+                <h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3,4H21V6H3V4M3,7H21V9H3V7M3,10H21V12H3V10M3,13H21V15H3V13M3,16H21V18H3V16Z"/></svg>Bảng Chi tiết Ngành hàng</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start;">
+                    <div>${createTableHtml(leftData)}</div>
+                    <div>${rightData.length > 0 ? createTableHtml(rightData) : ''}</div>
+                </div>
+            `;
+        }
+        
+        function renderLuyKeContestResults(processedContest) {
+            const container = document.getElementById('contest-results-container');
+            container.innerHTML = ''; 
+            
+            if (!processedContest.all || processedContest.all.length === 0) { 
+                container.style.display = 'none';
+                return; 
+            }
+            container.style.display = 'block';
+
+            const headerHtml = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>Kết Quả Thi Đua</h2>`;
+            const contentGrid = document.createElement('div');
+            contentGrid.className = 'card-content';
+
+            const onTrackItems = processedContest.onTrack;
+            const behindItems = processedContest.behind;
+
+            if (onTrackItems.length > 0) {
+                const onTrackCol = document.createElement('div');
+                onTrackCol.className = 'contest-column-visual';
+                let onTrackHtml = onTrackItems.map((item, index) => createContestItem(item, index + 1)).join('');
+                onTrackCol.innerHTML = `
+                    <div class="status-icon-wrapper green">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <h4 class="on-track">Dự kiến Về Đích (${onTrackItems.length})</h4>
+                    <div class="contest-list-new">${onTrackHtml}</div>
+                `;
+                contentGrid.appendChild(onTrackCol);
+            }
+
+            if (behindItems.length > 0) {
+                const behindCol = document.createElement('div');
+                behindCol.className = 'contest-column-visual';
+                let behindHtml = behindItems.map((item, index) => createContestItem(item, index + 1)).join('');
+                behindCol.innerHTML = `
+                    <div class="status-icon-wrapper red">
+                         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.47 2,12C2,17.53 6.47,22 12,22C17.53,22 22,17.53 22,12C22,6.47 17.53,2 12,2Z"/></svg>
+                    </div>
+                    <h4 class="behind">Chậm Tiến Độ (${behindItems.length})</h4>
+                    <div class="contest-list-new">${behindHtml}</div>
+                `;
+                contentGrid.appendChild(behindCol);
+            }
+
+            container.innerHTML = headerHtml;
+            container.appendChild(contentGrid);
+        }
+        
+        function renderLuyKeSummary(kpis, contest, reportDate) {
+            const container = document.getElementById('summary-report-wrapper-luyke');
+            container.style.display = 'block';
+            if (!kpis) { container.innerHTML = ''; return; }
+            
+            const dateToUse = reportDate || new Date();
+            const dateString = `ngày ${dateToUse.getDate()}/${dateToUse.getMonth() + 1}/${dateToUse.getFullYear()}`;
+            const growthText = kpis.chenhLech >= 0 ? 'Tăng' : 'Giảm';
+
+            const createSubListWithProjected = (items, showDailyTarget = false) => {
+                if (!items || items.length === 0) return '';
+                return items.map(item =>
+                    `  - ${item.name} (${formatNumber(item.percentProjected, 1)}%)` +
+                    (showDailyTarget && item.dailyTarget > 0 ? `: cần ${formatNumber(item.dailyTarget, 1)}/ngày` : '')
+                ).join('\n');
+            };
+
+            const createSimpleList = (items) => {
+                 if (!items || items.length === 0) return '';
+                return items.map(item => `  - ${item.name}`).join('\n');
+            }
+
+            const onTrackCount = contest.onTrack.length;
+            const totalCount = contest.all.length;
+            
+            let contestSummarySections = [];
+            if (contest.veDich.length > 0) {
+                contestSummarySections.push(`✅ ĐÃ VỀ ĐÍCH (${contest.veDich.length} nhóm):\n${createSubListWithProjected(contest.veDich)}`);
+            }
+            if (contest.canCoGang.length > 0) {
+                contestSummarySections.push(`💪 CẦN CỐ GẮNG (${contest.canCoGang.length} nhóm):\n${createSubListWithProjected(contest.canCoGang, true)}`);
+            }
+            if (contest.canTapTrung.length > 0) {
+                contestSummarySections.push(`🎯 CẦN TẬP TRUNG (${contest.canTapTrung.length} nhóm):\n${createSubListWithProjected(contest.canTapTrung, true)}`);
+            }
+            if (contest.baoDong.length > 0) {
+                // CHANGE: Modified to display horizontally
+                const baoDongList = contest.baoDong.map(item => item.name).join(', ');
+                contestSummarySections.push(`🚨 BÁO ĐỘNG (${contest.baoDong.length} nhóm): ${baoDongList}`);
+            }
+
+            const summaryText = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ - ${dateString} 📊
+-------------------
+- 🎯 Target Tháng: ${formatNumber(kpis.target)}
+- 📈 Luỹ kế đạt: ${formatNumber(kpis.luyKe)} (${formatNumber(kpis.htTarget, 1)}%)
+- 📉 DT còn lại: ${formatNumber(kpis.target - kpis.luyKe)}
+- 🚀 Dự kiến đạt: ${formatNumber(kpis.dtDuKien)} (${formatNumber(kpis.htDuKien, 1)}%)
+- 💹 So với cùng kỳ: ${growthText} ${formatNumber(Math.abs(kpis.chenhLech))} (${kpis.growthRate}%)
+- 💳 Tỷ trọng trả góp: ${formatNumber(kpis.tyTrongTraGop, 2)}%
+- 💵 Doanh thu trả góp: ${formatNumber(kpis.doanhThuTraGop)}
+- 💰 Mục tiêu ngày: ${formatNumber(kpis.mucTieuNgay > 0 ? kpis.mucTieuNgay : 0)}
+- 🏆 Số ngành hàng thi đua đạt: ${onTrackCount}/${totalCount}
+-------------------
+${contestSummarySections.join('\n\n')}`.trim();
+
+            const html = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z" /></svg>Nhận xét (Dạng văn bản)</h2>
+                         <textarea class="summary-textarea" readonly>${summaryText}</textarea>
+                         <button class="action-btn copySummaryBtn">
+                            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
+                            Sao chép Nhận xét
+                         </button>`;
+            container.innerHTML = html;
+            container.querySelector('.copySummaryBtn').addEventListener('click', (e) => {
+                const textarea = e.currentTarget.previousElementSibling;
+                textarea.select();
+                document.execCommand('copy');
+                showToast('Đã sao chép nhận xét!');
+            });
+        }
+
+        function displayLuyKeHiddenTables(mainData, contestData) { 
+            const mainWrapper = document.getElementById('main-table-wrapper'); mainWrapper.innerHTML = '<h2>Bảng 1: Dữ liệu Kinh doanh</h2><table id="main-data-table"></table>'; const mainTable = document.getElementById('main-data-table'); const mainHeaders = Object.keys(mainData[0]); const mainThead = mainTable.createTHead(); mainThead.insertRow().innerHTML = mainHeaders.map(h => `<th>${h}</th>`).join(''); const mainTbody = mainTable.createTBody(); mainData.forEach(rowData => { const row = mainTbody.insertRow(); row.innerHTML = mainHeaders.map(header => { let value = rowData[header]; let cellContent = typeof value === 'number' ? formatNumber(value,2) : value; if (header.includes('%') || header.includes('Tỷ Trọng')) cellContent += '%'; return `<td>${cellContent}</td>`; }).join(''); }); 
+            const compWrapper = document.getElementById('comparison-table-wrapper'); compWrapper.innerHTML = '<h2>Bảng 2: So sánh Cùng kỳ</h2><table id="comparison-table"></table>'; const compTable = document.getElementById('comparison-table'); const compHeaders = ["Nhóm ngành hàng", "DT Tháng này (QĐ)", "DT Tháng trước (Ước tính)", "+/- Cùng kỳ", "Chênh lệch (QĐ)"]; const compThead = compTable.createTHead(); compThead.insertRow().innerHTML = compHeaders.map(h => `<th>${h}</th>`).join(''); const compTbody = compTable.createTBody(); mainData.filter(r => r["DTQĐ"] > 0 || r["+/- DTCK Tháng (QĐ)"] !== 0).forEach(rowData => { const dtThis = rowData["DTQĐ"], growth = rowData["+/- DTCK Tháng (QĐ)"]; const dtLast = (1 + growth / 100) !== 0 ? dtThis / (1 + growth / 100) : 0; const diff = dtThis - dtLast; const row = compTbody.insertRow(); const diffClass = diff > 0 ? 'text-green' : diff < 0 ? 'text-red' : ''; row.innerHTML = `<td>${rowData["Nhóm ngành hàng"]}</td><td>${formatNumber(dtThis)}</td><td>${formatNumber(dtLast)}</td><td>${growth}%</td><td class="${diffClass}">${formatNumber(diff)}</td>`; });
+            const contestWrapper = document.getElementById('contest-tables-wrapper'); contestWrapper.innerHTML = ""; if(contestData && contestData.length > 0) { contestData.forEach((contest, idx) => { const tableContainer = document.createElement('div'); tableContainer.className = 'table-container'; tableContainer.innerHTML = `<h2 style="margin-top: 25px;">Bảng ${3+idx}: Thi đua - ${contest.headers[0]}</h2><table class="contest-data-table"></table>`; const table = tableContainer.querySelector('.contest-data-table'); const thead = table.createTHead(); thead.insertRow().innerHTML = contest.headers.map(h => `<th>${h}</th>`).join(''); const tbody = table.createTBody(); contest.rows.forEach(rowData => { const row = tbody.insertRow(); row.innerHTML = rowData.map(cell => `<td>${cell}</td>`).join(''); }); contestWrapper.appendChild(tableContainer); }); }
+        }
+    }
+
+
+    /****************************************************************************
+    * TAB 2: REAL-TIME LOGIC                             *
+    ****************************************************************************/
+    function setupRealtimeTab() {
+        let timeInterval;
+        let employeeChart = null;
+        let installmentChart = null;
+
+        function toggleNoRevenueRows(tableId, button) {
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            
+            const rows = table.querySelectorAll('.no-revenue-row');
+            if (rows.length === 0) return;
+
+            let areRowsHidden = rows[0].style.display === 'none';
+
+            rows.forEach(row => {
+                row.style.display = areRowsHidden ? '' : 'none';
+            });
+            
+            if(button) {
+                button.textContent = areRowsHidden ? `Ẩn ${rows.length} nhóm chưa có DT khỏi bảng` : `Hiện ${rows.length} nhóm chưa có DT trong bảng`;
+            }
+        }
+
+        document.getElementById('analyzeBtn-rt').addEventListener('click', () => { 
+            const mainDataRaw = document.getElementById('realtimeDataInput').value; 
+            const contestDataRaw = document.getElementById('realtimeContestDataInput').value; 
+            const employeeDataRaw = document.getElementById('employeeSalesDataInput').value;
+            
+            try {
+                localStorage.setItem('realtimeMainData', mainDataRaw);
+                localStorage.setItem('realtimeContestData', contestDataRaw);
+                localStorage.setItem('employeeSalesData', employeeDataRaw);
+            } catch(e) {
+                console.error("Could not access localStorage. Data will not be saved.", e);
+            }
+
+            if (!mainDataRaw.trim()) { showToast('Vui lòng dán dữ liệu Realtime Ngành hàng.', true); return; } 
+            try { 
+                const mainParsedData = parseRealtimeData(mainDataRaw); 
+                const contestParsedData = contestDataRaw.trim() ? parseRealtimeData(contestDataRaw) : []; 
+                const employeeParsedData = employeeDataRaw.trim() ? parseEmployeeSalesData(employeeDataRaw) : [];
+                displayRealtimeDashboard(mainParsedData, contestParsedData, employeeParsedData); 
+            } catch (error) { 
+                showToast("Lỗi xử lý dữ liệu Realtime: " + error.message, true); 
+                console.error(error); 
+            } 
+        });
+
+        document.getElementById('toggleTablesBtn-rt').addEventListener('click', () => document.getElementById('tablesContainer-rt').classList.toggle('show'));
+        document.getElementById('toggleSpecificTablesBtn-rt').addEventListener('click', () => {
+            document.getElementById('specificTablesContainer-rt').classList.toggle('show');
+        });
+
+         document.getElementById('captureBtnRt').addEventListener('click', () => {
+            const dashboardBody = document.getElementById('dashboard-body-rt');
+            if (dashboardBody.style.display === 'none') {
+                showToast('Chưa có dữ liệu Realtime để chụp ảnh.', true);
+                return;
+            }
+            const specificTablesContainer = document.getElementById('specificTablesContainer-rt');
+            const tablesAreVisible = specificTablesContainer.classList.contains('show');
+            const captureElement = tablesAreVisible 
+                ? document.getElementById('capture-area-rt') 
+                : document.getElementById('capture-content-rt');
+
+            html2canvas(captureElement, { useCORS: true, backgroundColor: '#eef2f7', scale: 2.5 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `báo cáo realtime ${new Date().toLocaleTimeString('vi-VN')}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }).catch(err => { showToast('Lỗi khi chụp ảnh.', true); });
+        });
+
+        function parseRealtimeData(text) {
+            const lines = text.trim().split('\n').filter(l => l.trim() !== '');
+            if (lines.length < 1) {
+                return []; 
+            }
+            const headers = lines[0].split('\t').map(h => h.trim().toLowerCase());
+            
+            const nameIndex = headers.findIndex(h => h.includes("ngành hàng"));
+            const actualIndex = headers.findIndex(h => h.includes("dt realtime") || h.includes('thực hiện') || h.includes('dtqđ') || h.includes('sllk') || h.includes('dtlk'));
+            const targetIndex = headers.findIndex(h => h.includes("target ngày") || h.includes('target'));
+            const percentIndex = headers.findIndex(h => h.includes("% ht target ngày") || h.includes('% ht'));
+            const installmentIndex = headers.findIndex(h => h.includes("dt trả góp"));
+            const installmentPercentIndex = headers.findIndex(h => h.includes("tỷ trọng trả góp"));
+            const quantityIndex = headers.findIndex(h => h.includes("sl realtime") || h.includes("số lượng"));
+
+            if (nameIndex === -1 || actualIndex === -1 || targetIndex === -1) {
+                throw new Error("Dữ liệu Realtime thiếu các cột bắt buộc. Vui lòng kiểm tra lại tiêu đề các cột, cần có: 'Ngành hàng', 'Thực hiện' (hoặc 'DT Realtime'), và 'Target' (hoặc 'Target Ngày').");
+            }
+
+            const dataRows = lines.slice(1);
+            return dataRows.map(line => {
+                const values = line.split('\t');
+                
+                const getFloatValue = (index) => {
+                    if (index === -1 || index >= values.length || !values[index]) return 0;
+                    const cleanedValueStr = values[index].replace(/,/g, '').replace(/%/, '');
+                    return parseFloat(cleanedValueStr) || 0;
+                }
+                
+                return {
+                    "Nhóm ngành hàng": values[nameIndex] || '',
+                    "DT Realtime (QĐ)": getFloatValue(actualIndex),
+                    "Target Ngày (QĐ)": getFloatValue(targetIndex),
+                    "% HT Target Ngày (QĐ)": getFloatValue(percentIndex),
+                    "DT Trả Góp": getFloatValue(installmentIndex),
+                    "Tỷ trọng trả góp": getFloatValue(installmentPercentIndex),
+                    "Số lượng": getFloatValue(quantityIndex)
+                };
+            });
+        }
+        
+        function parseEmployeeSalesData(text) {
+            const lines = text.trim().split('\n');
+            const data = [];
+            
+            lines.forEach(line => {
+                line = line.trim();
+                // Bỏ qua các dòng trống hoặc dòng tiêu đề/chân trang
+                if (!line || line.toLowerCase().startsWith('nhân viên') || line.toLowerCase().startsWith('tổng')) return;
+
+                // Regex để lấy hạng, tên, và doanh thu (có thể có hoặc không, có thể âm)
+                const regex = /^(\d+)\s*-\s*(.+?)(?:\s+(-?[\d,.]+))?$/;
+                const match = line.match(regex);
+
+                if (match) {
+                    const name = match[2].trim();
+                    // Lấy chuỗi doanh thu đã khớp hoặc mặc định là '0' nếu không có
+                    const revenueStr = match[3] || '0'; 
+                    const revenue = parseFloat(revenueStr.replace(/,/g, '')) || 0;
+                    data.push({ name, revenue });
+                }
+            });
+            
+            // Việc sắp xếp sẽ được thực hiện trong hàm render biểu đồ để đảm bảo huy chương được trao đúng
+            return data;
+        }
+        
+        function displayRealtimeDashboard(mainData, contestData, employeeData) {
+            document.getElementById('dashboard-body-rt').style.display = 'block';
+            if(timeInterval) clearInterval(timeInterval);
+            if(employeeChart) employeeChart.destroy();
+            if(installmentChart) installmentChart.destroy();
+
+            renderTimeProgressBar();
+            timeInterval = setInterval(renderTimeProgressBar, 60000);
+
+            const totalRow = mainData.find(row => row["Nhóm ngành hàng"].toLowerCase() === "tổng");
+            if (!totalRow) throw new Error("Không tìm thấy dòng 'Tổng' trong dữ liệu Realtime.");
+            
+            const processedContestData = processRealtimeContestData(contestData); 
+
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute:'2-digit' });
+            document.getElementById('reportTitleRt').textContent = `Báo cáo doanh thu siêu thị đến ${timeString}`;
+            
+            renderRealtimeKPIs(totalRow, processedContestData);
+            renderRealtimeTargetProgress(totalRow);
+            renderEmployeeSalesChart(employeeData);
+            renderRealtimeContestTable(processedContestData);
+            renderRealtimeCategoryTable(mainData);
+            renderRealtimeContestResults(processedContestData);
+            renderRealtimeSummary(totalRow, processedContestData);
+            displayRealtimeHiddenTables(mainData, contestData);
+        }
+
+        function getTimePassedFraction() {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0);
+            const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 0, 0);
+            if (now <= start) return 0.001; 
+            if (now >= end) return 1;
+            const totalMinutes = (end - start) / 60000;
+            const elapsedMinutes = (now - start) / 60000;
+            return elapsedMinutes / totalMinutes;
+        }
+
+        function processRealtimeContestData(contestData) {
+            if (!contestData || contestData.length === 0) return { all: [], onTrack: [], behind: [], canCoGang: [], canTapTrung: [] };
+            const timeFraction = getTimePassedFraction();
+            
+            const items = contestData
+                .filter(row => row["Nhóm ngành hàng"].toLowerCase() !== 'tổng' && row["Nhóm ngành hàng"].toLowerCase() !== 'ngành hàng')
+                .map(row => {
+                    const actual = row['DT Realtime (QĐ)'];
+                    const target = row['Target Ngày (QĐ)'];
+                    const projectedSales = timeFraction > 0 && timeFraction < 1 ? (actual / timeFraction) : actual;
+                    const percentProjected = target > 0 ? (projectedSales / target * 100) : 0;
+                    return {
+                        name: row['Nhóm ngành hàng'],
+                        actual: actual,
+                        target: target,
+                        remaining: target - actual,
+                        percentProjected: percentProjected,
+                        percentActual: row['% HT Target Ngày (QĐ)']
+                    };
+                })
+                .sort((a,b) => b.percentProjected - a.percentProjected);
+
+            return {
+                all: items,
+                onTrack: items.filter(p => p.percentProjected >= 100),
+                behind: items.filter(p => p.percentProjected < 100),
+                canCoGang: items.filter(p => p.percentProjected >= 80 && p.percentProjected < 100),
+                canTapTrung: items.filter(p => p.percentProjected < 80)
+            };
+        }
+
+        function renderTimeProgressBar() {
+            const percent = getTimePassedFraction() * 100;
+            const now = new Date();
+            document.getElementById('progress-fill-time').style.width = `${percent}%`;
+            document.getElementById('progress-text-time').textContent = `Đã qua ${formatNumber(percent,1)}% thời gian`;
+            document.getElementById('progress-summary-time').textContent = now.toLocaleTimeString('vi-VN');
+        }
+
+        function renderRealtimeTargetProgress(totalRow) {
+            const htThuc = totalRow['% HT Target Ngày (QĐ)'];
+            const progressFill = document.getElementById('progress-fill-target-rt');
+            progressFill.style.width = `${htThuc > 100 ? 100 : htThuc}%`;
+            progressFill.style.backgroundColor = getColor(htThuc);
+            document.getElementById('progress-text-target-rt').textContent = `Thực tế ${formatNumber(htThuc, 1)}%`;
+            document.getElementById('progress-summary-target-rt').textContent = `${formatNumber(totalRow['DT Realtime (QĐ)'])} / ${formatNumber(totalRow['Target Ngày (QĐ)'])}`;
+        }
+
+        function renderRealtimeKPIs(totalRow, contestData) {
+            const kpiPanel = document.getElementById('kpi-panel-rt');
+            const ht = totalRow['% HT Target Ngày (QĐ)'];
+            const timeFraction = getTimePassedFraction();
+            const projectedSales = timeFraction > 0 && timeFraction < 1 ? (totalRow['DT Realtime (QĐ)'] / timeFraction) : totalRow['DT Realtime (QĐ)'];
+            const projectedHt = totalRow['Target Ngày (QĐ)'] > 0 ? (projectedSales / totalRow['Target Ngày (QĐ)'] * 100) : 0;
+            const onTrackCount = contestData.onTrack.length;
+            const totalCount = contestData.all.length;
+            const remainingRevenue = totalRow['Target Ngày (QĐ)'] - totalRow['DT Realtime (QĐ)'];
+            const installmentPercent = totalRow['Tỷ trọng trả góp'];
+
+            const getInstallmentColor = (percent) => {
+                if (percent < 20) return '#dc3545'; // Dưới 20% là màu đỏ
+                if (percent < 30) return '#fd7e14'; // Từ 20% đến dưới 30% là màu cam
+                return '#28a745'; // Từ 30% trở lên là màu xanh
+            };
+
+            const kpis = [
+                { id: 'kpi-target', title: 'Target Ngày', value: formatNumber(totalRow['Target Ngày (QĐ)']), subtext: 'Mục tiêu hôm nay', icon: '<path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6Z"/>' },
+                { id: 'kpi-realtime', title: 'DT Realtime', value: formatNumber(totalRow['DT Realtime (QĐ)']), subtext: `${formatNumber(ht,1)}% HT`, color: getColor(ht), icon: '<path fill="currentColor" d="M9 14.5A2.5 2.5 0 0 1 6.5 12A2.5 2.5 0 0 1 9 9.5V14.5M9 16.5A4.5 4.5 0 0 0 13.5 12A4.5 4.5 0 0 0 9 7.5V16.5M22 12l-4-4v3H3v2h15v3l4-4Z"/>' },
+                { id: 'kpi-remaining', title: 'DT Còn lại', value: formatNumber(remainingRevenue), subtext: remainingRevenue <= 0 ? 'Hoàn thành! 🏆' : 'Cần đạt thêm', color: remainingRevenue <= 0 ? 'var(--dmx-green)' : 'var(--dmx-red)', icon: '<path fill="currentColor" d="M12,6A6,6 0 0,1 18,12C18,14.21 16.84,16.21 15,17.2V19A1,1 0 0,1 14,20H10A1,1 0 0,1 9,19V17.2C7.16,16.21 6,14.21 6,12A6,6 0 0,1 12,6M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/>' },
+                { id: 'kpi-projected', title: 'Dự kiến đạt', value: formatNumber(projectedSales), subtext: `${formatNumber(projectedHt, 1)}%`, color: getColor(projectedHt), icon: '<path fill="currentColor" d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/>' },
+                { id: 'kpi-contest', title: 'Thi đua đạt', value: `${onTrackCount}/${totalCount}`, subtext: 'Chương trình Về Đích', icon: '<path fill="currentColor" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>' },
+                { id: 'kpi-installment', title: 'Tỷ trọng Trả góp', value: `${formatNumber(installmentPercent, 2)}%`, subtext: "DT: " + formatNumber(totalRow['DT Trả Góp']), icon: '<path fill="currentColor" d="M21,11H12.42A3,3 0 0,1 12,11.58V13.42A3,3 0 0,1 12.42,14H21V16H12.42A3,3 0 0,1 10,18.42V20H8V18.42A3,3 0 0,1 5.58,16H3V14H5.58A3,3 0 0,1 8,11.58V10H10V11.58A3,3 0 0,1 12.42,14H15V12H12.42A3,3 0 0,1 10,9.58V8H8V9.58A3,3 0 0,1 5.58,12H3V10H5.58A3,3 0 0,1 8,7.58V6H10V7.58A3,3 0 0,1 12.42,10H21V11Z"/>' },
+            ];
+            kpiPanel.innerHTML = kpis.map(kpi => {
+                if(kpi.id === 'kpi-installment') {
+                    return `<div class="sub-kpi-card card kpi-installment-card">
+                                <div class="text-content">
+                                    <h4><svg class="title-icon" viewBox="0 0 24 24">${kpi.icon}</svg>${kpi.title}</h4>
+                                    <p class="sub-text">${kpi.subtext}</p>
+                                </div>
+                                <div class="chart-content">
+                                    <canvas id="installment-pie-chart-rt"></canvas>
+                                    <div id="installment-pie-text" class="chart-inner-text"></div>
+                                </div>
+                            </div>`;
+                }
+                return `<div class="sub-kpi-card card">
+                            <h4><svg class="title-icon" viewBox="0 0 24 24">${kpi.icon}</svg>${kpi.title}</h4>
+                            <p class="value" style="color: ${kpi.color || 'var(--dmx-blue)'}">${kpi.value}</p>
+                            <p class="sub-text">${kpi.subtext}</p>
+                        </div>`;
+            }).join('');
+
+            const installmentCtx = document.getElementById('installment-pie-chart-rt').getContext('2d');
+            document.getElementById('installment-pie-text').textContent = `${formatNumber(installmentPercent, 1)}%`;
+
+            installmentChart = new Chart(installmentCtx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [installmentPercent, 100 - installmentPercent],
+                        backgroundColor: [getInstallmentColor(installmentPercent), '#e9ecef'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { enabled: false },
+                        datalabels: { display: false }
+                    }
+                }
+            });
+        }
+        
+        function renderEmployeeSalesChart(data) {
+            const wrapper = document.getElementById('employee-sales-chart-wrapper');
+            if (!data || data.length === 0) {
+                wrapper.style.display = 'none';
+                return;
+            }
+            wrapper.style.display = 'block';
+            wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>Xếp hạng Doanh thu Nhân viên</h2><div class="chart-container" style="min-height: 300px; height: ${data.length * 45}px;"><canvas id="employeeSalesChart"></canvas></div>`;
+
+            const ctx = document.getElementById('employeeSalesChart').getContext('2d');
+            
+            // Sắp xếp dữ liệu để đảm bảo huy chương được trao đúng
+            const sortedData = data.sort((a, b) => b.revenue - a.revenue);
+
+            const labels = sortedData.map((d) => {
+                let icon = '';
+                // Logic trao huy chương chỉ áp dụng cho top 3 có doanh thu DƯƠNG
+                if (d.revenue > 0) {
+                    const positiveRank = sortedData.filter(item => item.revenue > 0).findIndex(item => item.name === d.name);
+                    if (positiveRank === 0) icon = '🥇 ';
+                    else if (positiveRank === 1) icon = '🥈 ';
+                    else if (positiveRank === 2) icon = '🥉 ';
+                } else if (d.revenue < 0) {
+                    icon = '📉 '; // Icon cho doanh thu âm
+                } else {
+                    icon = '💤 '; // Icon cho doanh thu bằng 0
+                }
+                return icon + d.name;
+            });
+            const revenues = sortedData.map(d => d.revenue);
+
+            employeeChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Doanh thu',
+                        data: revenues,
+                        backgroundColor: (context) => context.raw >= 0 ? 'rgba(0, 136, 255, 0.8)' : 'rgba(220, 53, 69, 0.8)',
+                        borderColor: (context) => context.raw >= 0 ? 'rgba(0, 136, 255, 1)' : 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1,
+                        borderRadius: 5,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            // Bỏ beginAtZero để trục x tự động điều chỉnh cho giá trị âm
+                            grid: {
+                                color: '#e0e0e0',
+                                borderDash: [2, 4],
+                            },
+                            ticks: {
+                                callback: (value) => formatNumber(value / 1000000, 1) + 'tr'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: { size: 14, weight: '600' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                             enabled: true,
+                             backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                             titleFont: { size: 14, weight: 'bold' },
+                             bodyFont: { size: 12 },
+                             callbacks: {
+                                 label: function(context) {
+                                     return ` Doanh thu: ${formatNumber(context.raw)} VNĐ`;
+                                 }
+                             }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: (context) => context.dataset.data[context.dataIndex] >= 0 ? 'right' : 'left',
+                            offset: 8,
+                            color: (context) => context.dataset.data[context.dataIndex] >= 0 ? '#1e3a8a' : 'var(--dmx-red)',
+                            font: { weight: 'bold', size: 13 },
+                            formatter: (value) => {
+                                if (value === 0) return 'Chưa có DT';
+                                return formatNumber(value / 1000000, 2) + 'tr';
+                            },
+                            textShadowColor: 'white',
+                            textShadowBlur: 4
+                        }
+                    }
+                }
+            });
+        }
+        
+        function renderRealtimeContestTable(processedContest) {
+            const wrapper = document.getElementById('contest-table-rt-wrapper');
+            if (!processedContest.all || processedContest.all.length === 0) {
+                wrapper.innerHTML = '<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M5,4H19A2,2 0 0,1 21,6V18A2,2 0 0,1 19,20H5A2,2 0 0,1 3,18V6A2,2 0 0,1 5,4M5,8V12H11V8H5M13,8V12H19V8H13M5,14V18H11V14H5M13,14V18H19V14H13Z" /></svg>Bảng chi tiết Thi đua Real-time</h2><p>Không có dữ liệu thi đua.</p>';
+                return;
+            }
+            wrapper.style.display = 'block';
+
+            const itemsWithRevenue = processedContest.all.filter(item => item.actual > 0);
+            const itemsWithoutRevenue = processedContest.all.filter(item => item.actual <= 0);
+
+            const completedItems = processedContest.onTrack.length;
+            const totalItems = processedContest.all.length;
+            const progressPercentContest = totalItems > 0 ? (completedItems / totalItems * 100) : 0;
+            const contestProgressColor = getColor(progressPercentContest);
+            const progressBarHtml = `
+                <div class="progress-bar-container" style="padding: 0 0 20px 0;">
+                    <div class="progress-labels">
+                        <span>Tiến độ Về Đích</span>
+                        <span>${completedItems} / ${totalItems} Nhóm</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: ${progressPercentContest}%; background-color: ${contestProgressColor};">
+                            <span class="progress-text">${formatNumber(progressPercentContest, 1)}%</span>
+                        </div>
+                    </div>
+                </div>`;
+            
+            let tableHtml = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M5,4H19A2,2 0 0,1 21,6V18A2,2 0 0,1 19,20H5A2,2 0 0,1 3,18V6A2,2 0 0,1 5,4M5,8V12H11V8H5M13,8V12H19V8H13M5,14V18H11V14H5M13,14V18H19V14H13Z" /></svg>Bảng chi tiết Thi đua Real-time</h2>
+                            ${progressBarHtml}
+                            <table id="contest-rt-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Ngành hàng</th>
+                                        <th>DT Realtime</th>
+                                        <th>Còn lại</th>
+                                        <th>Target Ngày</th>
+                                        <th>% HT</th>
+                                        <th>% HT Dự kiến</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+
+            const createRowHtml = (item, index, isHidden = false) => {
+                const remainingCell = item.remaining <= 0
+                    ? `<td><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="1.5" width="21" height="21" rx="2" stroke="#28a745" stroke-width="2.5"/><path d="M7 12.5L10.5 16L17 9.5" stroke="#28a745" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></td>`
+                    : `<td style="color: var(--dmx-red); font-weight: bold;">${formatNumber(item.remaining, 1)}</td>`;
+
+                const icon = item.percentProjected >= 100 ? ' <span title="Dự kiến hoàn thành xuất sắc!">🚀</span>' : '';
+                const progressBar = `
+                    <div class="contest-progress-track" style="height: 8px; margin-top: 5px; background-color: #e9ecef; border-radius: 4px; overflow: hidden;">
+                        <div class="progress-fill" style="width: ${Math.min(item.percentActual, 100)}%; background-color: ${getColor(item.percentActual)}; height: 100%;"></div>
+                    </div>
+                `;
+                
+                const rowClass = isHidden ? 'class="no-revenue-row" style="display: none;"' : '';
+
+                return `<tr ${rowClass}>
+                        <td style="text-align: center;">${index + 1}${icon}</td>
+                        <td>
+                            <div>${item.name}</div>
+                            ${progressBar}
+                        </td>
+                        <td>${formatNumber(item.actual)}</td>
+                        ${remainingCell}
+                        <td>${formatNumber(item.target)}</td>
+                        <td style="color: ${getColor(item.percentActual)}; font-weight: bold;">${formatNumber(item.percentActual, 1)}%</td>
+                        <td style="color: ${getColor(item.percentProjected)}; font-weight: bold;">${formatNumber(item.percentProjected, 1)}%</td>
+                    </tr>`;
+            };
+
+            itemsWithRevenue.forEach((item, index) => {
+                tableHtml += createRowHtml(item, index);
+            });
+            itemsWithoutRevenue.forEach((item, index) => {
+                tableHtml += createRowHtml(item, itemsWithRevenue.length + index, true);
+            });
+
+            tableHtml += '</tbody></table>';
+
+            if (itemsWithoutRevenue.length > 0) {
+                tableHtml += `
+                    <div class="details-toggle" style="margin-top: 15px;">
+                        <button id="toggle-contest-btn">
+                            Hiện ${itemsWithoutRevenue.length} nhóm chưa có DT trong bảng
+                        </button>
+                    </div>
+                    <div id="no-revenue-contest-list" class="card" style="margin-top: 15px; padding: 15px;">
+                        <h4 style="margin-top: 0; color: var(--text-muted);">Nhóm chưa phát sinh doanh thu (${itemsWithoutRevenue.length}):</h4>
+                        <ol style="padding-left: 20px; margin-bottom: 0; columns: 2; -webkit-columns: 2; -moz-columns: 2;">
+                            ${itemsWithoutRevenue.map(item => `<li>${item.name} - còn <b>${formatNumber(item.target)}</b></li>`).join('')}
+                        </ol>
+                    </div>
+                `;
+            }
+
+            wrapper.innerHTML = tableHtml;
+
+            if (itemsWithoutRevenue.length > 0) {
+                const toggleBtn = document.getElementById('toggle-contest-btn');
+                toggleBtn.addEventListener('click', () => toggleNoRevenueRows('contest-rt-table', toggleBtn));
+            }
+        }
+        
+        function renderRealtimeCategoryTable(mainData) {
+            const wrapper = document.getElementById('category-table-rt-wrapper');
+            if (!mainData || mainData.length === 0) {
+                wrapper.innerHTML = '';
+                wrapper.style.display = 'none';
+                return;
+            }
+            wrapper.style.display = 'block';
+
+            const totalRow = mainData.find(row => row["Nhóm ngành hàng"].toLowerCase() === "tổng");
+            const categoryData = mainData.filter(row => 
+                row["Nhóm ngành hàng"].toLowerCase() !== "tổng" && 
+                row["Target Ngày (QĐ)"] > 0
+            );
+
+            const categoriesWithRevenue = categoryData.filter(row => row["DT Realtime (QĐ)"] > 0);
+            const categoriesWithoutRevenue = categoryData.filter(row => row["DT Realtime (QĐ)"] <= 0);
+
+            if (!totalRow && categoryData.length === 0) {
+                wrapper.innerHTML = '<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3,4H21V6H3V4M3,7H21V9H3V7M3,10H21V12H3V10M3,13H21V15H3V13M3,16H21V18H3V16Z"/></svg>Bảng chi tiết Ngành hàng</h2><p style="text-align:center; color: var(--text-muted);">Không có dữ liệu ngành hàng để hiển thị.</p>';
+                return;
+            }
+            
+            let mainProgressBarHtml = '';
+            if (totalRow) {
+                const htThuc = totalRow['% HT Target Ngày (QĐ)'];
+                const htColor = getColor(htThuc);
+                mainProgressBarHtml = `
+                    <div class="progress-bar-container" style="padding: 0 0 20px 0;">
+                        <div class="progress-labels">
+                            <span>Tiến độ Target Ngày (Tổng)</span>
+                            <span>${formatNumber(totalRow['DT Realtime (QĐ)'])} / ${formatNumber(totalRow['Target Ngày (QĐ)'])}</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width: ${htThuc > 100 ? 100 : htThuc}%; background-color: ${htColor};">
+                                <span class="progress-text">${formatNumber(htThuc, 1)}%</span>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+
+            const headers = {
+                "Nhóm ngành hàng": "Ngành hàng", "Số lượng": "SL", "DT Realtime (QĐ)": "DT Realtime", "Target Ngày (QĐ)": "Target Ngày",
+                "% HT Target Ngày (QĐ)": "% HT", "DT Trả Góp": "DT Trả Góp", "Tỷ trọng trả góp": "% Trả Góp"
+            };
+            const headerKeys = Object.keys(headers);
+
+            let tableHtml = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3,4H21V6H3V4M3,7H21V9H3V7M3,10H21V12H3V10M3,13H21V15H3V13M3,16H21V18H3V16Z"/></svg>Bảng chi tiết Ngành hàng</h2>
+                            ${mainProgressBarHtml}
+                            <table id="category-rt-table">
+                                <thead>
+                                    <tr>${headerKeys.map(key => `<th>${headers[key]}</th>`).join('')}</tr>
+                                </thead>
+                                <tbody>`;
+            
+            const createCategoryRowHtml = (row, isHidden = false) => {
+                const htPercent = row["% HT Target Ngày (QĐ)"];
+                const progressBar = `
+                    <div class="contest-progress-track" style="height: 8px; margin-top: 5px; background-color: #e9ecef; border-radius: 4px; overflow: hidden;">
+                        <div class="progress-fill" style="width: ${Math.min(htPercent, 100)}%; background-color: ${getColor(htPercent)}; height: 100%;"></div>
+                    </div>`;
+                const rowClass = isHidden ? 'class="no-revenue-row" style="display: none;"' : '';
+                return `<tr ${rowClass}>
+                            <td><div>${row["Nhóm ngành hàng"]}</div>${progressBar}</td>
+                            <td>${formatNumber(row["Số lượng"])}</td>
+                            <td>${formatNumber(row["DT Realtime (QĐ)"])}</td>
+                            <td>${formatNumber(row["Target Ngày (QĐ)"])}</td>
+                            <td style="color: ${getColor(htPercent)}; font-weight: bold;">${formatNumber(htPercent, 1)}%</td>
+                            <td>${formatNumber(row["DT Trả Góp"])}</td>
+                            <td>${formatNumber(row["Tỷ trọng trả góp"], 2)}%</td>
+                        </tr>`;
+            };
+
+            if (totalRow) {
+                 tableHtml += `<tr style="font-weight:bold; background-color: #e9ecef;">
+                                <td>${totalRow["Nhóm ngành hàng"]}</td>
+                                <td>${formatNumber(totalRow["Số lượng"])}</td>
+                                <td>${formatNumber(totalRow["DT Realtime (QĐ)"])}</td>
+                                <td>${formatNumber(totalRow["Target Ngày (QĐ)"])}</td>
+                                <td style="color: ${getColor(totalRow["% HT Target Ngày (QĐ)"])};">${formatNumber(totalRow["% HT Target Ngày (QĐ)"], 1)}%</td>
+                                <td>${formatNumber(totalRow["DT Trả Góp"])}</td>
+                                <td>${formatNumber(totalRow["Tỷ trọng trả góp"], 2)}%</td>
+                            </tr>`;
+            }
+
+            categoriesWithRevenue.forEach(row => { tableHtml += createCategoryRowHtml(row); });
+            categoriesWithoutRevenue.forEach(row => { tableHtml += createCategoryRowHtml(row, true); });
+
+            tableHtml += '</tbody></table>';
+
+            if (categoriesWithoutRevenue.length > 0) {
+                tableHtml += `
+                    <div class="details-toggle" style="margin-top: 15px;">
+                        <button id="toggle-category-btn">
+                            Hiện ${categoriesWithoutRevenue.length} ngành hàng chưa có DT trong bảng
+                        </button>
+                    </div>
+                    <div id="no-revenue-category-list" class="card" style="margin-top: 15px; padding: 15px;">
+                        <h4 style="margin-top: 0; color: var(--text-muted);">Ngành hàng chưa phát sinh doanh thu (${categoriesWithoutRevenue.length}):</h4>
+                        <ol style="padding-left: 20px; margin-bottom: 0; columns: 2; -webkit-columns: 2; -moz-columns: 2;">
+                            ${categoriesWithoutRevenue.map(item => `<li>${item["Nhóm ngành hàng"]} - còn <b>${formatNumber(item["Target Ngày (QĐ)"])}</b></li>`).join('')}
+                        </ol>
+                    </div>
+                `;
+            }
+
+            wrapper.innerHTML = tableHtml;
+            if (categoriesWithoutRevenue.length > 0) {
+                const toggleBtn = document.getElementById('toggle-category-btn');
+                toggleBtn.addEventListener('click', () => toggleNoRevenueRows('category-rt-table', toggleBtn));
+            }
+        }
+
+        function renderRealtimeContestResults(processedContest) {
+            const container = document.getElementById('contest-results-container-rt');
+            container.innerHTML = ''; 
+            
+            if (!processedContest.all || processedContest.all.length === 0) {
+                container.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>Kết Quả Thi Đua</h2><div style="text-align:center; color: var(--text-muted);">Không có dữ liệu thi đua.</div>`;
+                return; 
+            }
+
+            const headerHtml = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"/></svg>Kết Quả Thi Đua</h2>`;
+            const contentGrid = document.createElement('div');
+            contentGrid.className = 'card-content';
+
+            const onTrackItems = processedContest.onTrack;
+            const behindItems = processedContest.behind;
+
+            if (onTrackItems.length > 0) {
+                const onTrackCol = document.createElement('div');
+                onTrackCol.className = 'contest-column-visual';
+                let onTrackHtml = onTrackItems.map((item, index) => createContestItem(item, index + 1, true)).join('');
+                onTrackCol.innerHTML = `
+                    <div class="status-icon-wrapper green">
+                        <svg fill="currentColor" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
+                    <h4 class="on-track">Dự kiến Về Đích (${onTrackItems.length})</h4>
+                    <div class="contest-list-new">${onTrackHtml}</div>
+                `;
+                contentGrid.appendChild(onTrackCol);
+            }
+
+            if (behindItems.length > 0) {
+                const behindCol = document.createElement('div');
+                behindCol.className = 'contest-column-visual';
+                let behindHtml = behindItems.map((item, index) => createContestItem(item, index + 1, true)).join('');
+                behindCol.innerHTML = `
+                    <div class="status-icon-wrapper red">
+                         <svg fill="currentColor" viewBox="0 0 24 24"><path d="M11,15H13V17H11V15M11,7H13V13H11V7M12,2C6.47,2 2,6.47 2,12C2,17.53 6.47,22 12,22C17.53,22 22,17.53 22,12C22,6.47 17.53,2 12,2Z"/></svg>
+                    </div>
+                    <h4 class="behind">Chậm Tiến Độ (${behindItems.length})</h4>
+                    <div class="contest-list-new">${behindHtml}</div>
+                `;
+                contentGrid.appendChild(behindCol);
+            }
+            
+            container.innerHTML = headerHtml;
+            container.appendChild(contentGrid);
+        }
+        
+        function renderRealtimeSummary(totalRow, contestData) {
+            const container = document.getElementById('summary-report-wrapper-rt');
+            container.style.display = 'block';
+            const now = new Date();
+            const timeFraction = getTimePassedFraction();
+            const projectedSales = timeFraction > 0 ? (totalRow['DT Realtime (QĐ)'] / timeFraction) : 0;
+            const onTrackCount = contestData.onTrack.length;
+            const totalCount = contestData.all.length;
+
+            const createSubListWithProjected = (items) => {
+                if (!items || items.length === 0) return '';
+                return items.map(item => `  - ${item.name} (${formatNumber(item.percentProjected, 1)}%)`).join('\n');
+            };
+
+            const createSimpleList = (items) => {
+                if (!items || items.length === 0) return '';
+                return items.map(item => `  - ${item.name}`).join('\n');
+            };
+
+            let contestSummarySections = [];
+            if (contestData.onTrack.length > 0) {
+                contestSummarySections.push(`✅ DỰ KIẾN VỀ ĐÍCH (${contestData.onTrack.length} nhóm):\n${createSubListWithProjected(contestData.onTrack)}`);
+            }
+            if (contestData.canCoGang.length > 0) {
+                contestSummarySections.push(`💪 CẦN CỐ GẮNG (${contestData.canCoGang.length} nhóm):\n${createSubListWithProjected(contestData.canCoGang)}`);
+            }
+            if (contestData.canTapTrung.length > 0) {
+                // CHANGE: Modified to display horizontally
+                const canTapTrungList = contestData.canTapTrung.map(item => item.name).join(', ');
+                contestSummarySections.push(`🚨 CẦN TẬP TRUNG (${contestData.canTapTrung.length} nhóm): ${canTapTrungList}`);
+            }
+
+            const summaryText = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ đến ${now.toLocaleTimeString('vi-VN')}
+-------------------
+- 🎯 Target Ngày: ${formatNumber(totalRow['Target Ngày (QĐ)'])}
+- 📈 Thực hiện: ${formatNumber(totalRow['DT Realtime (QĐ)'])} (${formatNumber(totalRow['% HT Target Ngày (QĐ)'], 1)}%)
+- 📉 DT còn lại: ${formatNumber(totalRow['Target Ngày (QĐ)'] - totalRow['DT Realtime (QĐ)'])}
+- 🚀 Dự kiến đạt: ${formatNumber(projectedSales)} (${formatNumber(projectedSales/totalRow['Target Ngày (QĐ)']*100, 1)}%)
+- 💳 Tỷ trọng trả góp: ${formatNumber(totalRow['Tỷ trọng trả góp'], 2)}%
+- 💵 Doanh thu trả góp: ${formatNumber(totalRow['DT Trả Góp'])}
+- 🏆 Số ngành hàng thi đua đạt: ${onTrackCount}/${totalCount}
+-------------------
+${contestSummarySections.join('\n-------------------\n')}`.trim();
+
+            const html = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z" /></svg>Nhận xét Real-time</h2>
+                          <textarea class="summary-textarea" readonly>${summaryText}</textarea>
+                          <button class="action-btn copySummaryBtn">
+                             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
+                             Sao chép Nhận xét
+                          </button>`;
+            container.innerHTML = html;
+            container.querySelector('.copySummaryBtn').addEventListener('click', (e) => {
+                const textarea = e.currentTarget.previousElementSibling;
+                textarea.select();
+                document.execCommand('copy');
+                showToast('Đã sao chép nhận xét!');
+            });
+        }
+
+        function displayRealtimeHiddenTables(mainData, contestData) { 
+            const mainWrapper = document.getElementById('realtime-main-table-wrapper'); 
+            const mainHeaders = Object.keys(mainData[0]);
+            let mainHtml = '<h2>Bảng 4: Realtime Ngành hàng</h2><table><thead><tr>' + mainHeaders.map(h => `<th>${h}</th>`).join('') + '</tr></thead><tbody>';
+            mainData.forEach(rowData => { mainHtml += '<tr>' + mainHeaders.map(h => `<td>${typeof rowData[h] === 'number' ? formatNumber(rowData[h], 2) : rowData[h]}</td>`).join('') + '</tr>'; });
+            mainHtml += '</tbody></table>';
+            mainWrapper.innerHTML = mainHtml;
+
+            const contestWrapper = document.getElementById('realtime-contest-tables-wrapper'); contestWrapper.innerHTML = ""; 
+            if(contestData && contestData.length > 0) { 
+                const tableContainer = document.createElement('div'); 
+                tableContainer.className = 'table-container'; 
+                const headers = Object.keys(contestData[0] || {});
+                tableContainer.innerHTML = `<h2 style="margin-top: 25px;">Bảng 5: Realtime Thi đua</h2><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${contestData.map(row => `<tr>${headers.map(h => `<td>${row[h] !== undefined ? (typeof row[h] === 'number' ? formatNumber(row[h], 2) : row[h]) : 'N/A'}</td>`).join('')}</tr>`).join('')}</tbody></table>`; 
+                contestWrapper.appendChild(tableContainer); 
+            }
+        }
+    }
+    </script>
+</body>
+</html>
