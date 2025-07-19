@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Báo Giá Chuyên Nghiệp - Điện Máy Xanh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thư viện html2canvas để chụp ảnh màn hình -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Thư viện jsPDF để xuất file PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .invoice-box {
+            max-width: 21cm; /* A4 width */
+            min-height: 29.7cm; /* A4 height */
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #eee;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .15);
+            font-size: 10px; /* Sửa: Giảm font chữ chung */
+            line-height: 1.5;
+            color: #555;
+            background-color: #fff;
+        }
+        .invoice-box .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .invoice-box .main-table th,
+        .invoice-box .main-table td {
+            padding: 6px; /* Giảm padding */
+            vertical-align: middle;
+            text-align: center;
+        }
+        .invoice-box .main-table thead th {
+            background: #eee;
+            font-weight: bold;
+            border: 1px solid #ddd;
+            font-size: 10px; /* Sửa: Giảm font chữ tiêu đề */
+            white-space: normal;
+            text-align: center; 
+        }
+        .invoice-box .main-table tbody td {
+            border: 1px solid #ddd;
+            word-wrap: break-word;
+        }
+        
+        /* --- Căn chỉnh và độ rộng cột --- */
+        .col-stt      { width: 4%; }
+        .col-img      { width: 8%; }
+        .col-desc     { width: 19%; }
+        .col-qty      { width: 7%; }
+        .col-price    { width: 12%; }
+        .col-total    { width: 13%; }
+        .col-warranty { width: 9%; }
+        .col-promo    { width: 18%; } 
+        
+        .invoice-box .main-table tr.item td.col-desc-content { text-align: left; }
+        .invoice-box .main-table td.col-price,
+        .invoice-box .main-table td.col-total {
+            text-align: right;
+            white-space: nowrap;
+        }
+        .invoice-box .main-table tfoot .total-row td {
+            font-weight: bold;
+            border-top: 2px solid #ddd;
+            text-align: right;
+        }
+        .invoice-box .main-table tfoot #grand-total {
+             padding-right: 8px;
+        }
+
+        .table-input {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            background-color: #fff;
+            text-align: center;
+            font-size: 10px;
+        }
+        .table-input.price-input {
+            text-align: right;
+        }
+        .table-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        .remove-row-btn {
+            color: #dc3545;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .actions {
+            max-width: 21cm;
+            margin: 0 auto 20px auto;
+            text-align: right;
+        }
+        .action-btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+
+        .image-upload-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border: 1px dashed #ccc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: auto;
+        }
+        .image-preview { width: 100%; height: 100%; object-fit: cover; }
+        .upload-label { cursor: pointer; text-align: center; font-size: 10px; color: #007bff; }
+        .upload-label i { display: block; font-size: 18px; margin-bottom: 2px; }
+        input[type="file"] { display: none; }
+
+        .contact-info-line { display: flex; align-items: center; margin-bottom: 4px; }
+        .contact-info-line i { width: 20px; text-align: center; margin-right: 8px; color: #888; }
+        .customer-info-row { display: flex; align-items: center; margin-bottom: 6px; }
+        .customer-info-row label { flex-shrink: 0; margin-right: 5px; }
+        
+        .staff-info-input {
+            text-align: center;
+        }
+
+        .export-view {
+            display: none;
+            padding: 4px 8px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .export-mode .staff-info-input + .export-view {
+            text-align: center;
+        }
+        .export-mode .table-input,
+        .export-mode .description-textarea {
+            display: none !important;
+        }
+        .export-mode .export-view {
+            display: block !important;
+        }
+        .export-mode #add-row-btn,
+        .export-mode .remove-row-btn,
+        .export-mode .upload-label {
+            display: none !important;
+        }
+        .export-mode .image-upload-container {
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <div class="actions">
+        <button id="export-pdf-btn" class="action-btn"><i class="fas fa-file-pdf mr-2"></i>Xuất PDF</button>
+        <button id="screenshot-btn" class="action-btn"><i class="fas fa-camera mr-2"></i>Chụp ảnh</button>
+    </div>
+
+    <div class="invoice-box" id="invoice-content">
+        <!-- Header -->
+        <table style="width: 100%; margin-bottom: 20px;">
+            <tr>
+                <td style="width: 100%; vertical-align: middle; text-align: left; border:none; padding: 0;">
+                    <p style="font-weight: bold; font-size: 16px;">CHI NHÁNH CÔNG TY CỔ PHẦN THẾ GIỚI DI ĐỘNG</p>
+                    <div class="contact-info-line"><i class="fas fa-map-marker-alt"></i><span>Địa chỉ: 128 Trần Quang Khải, P. Tân Định, TP. Hồ Chí Minh</span></div>
+                    <div class="contact-info-line"><i class="fas fa-phone"></i><span>Điện thoại: 1900 232 461</span></div>
+                    <div class="contact-info-line"><i class="fas fa-file-invoice"></i><span>Mã số thuế: 0303217354</span></div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Title and Date -->
+        <div style="text-align: center; padding: 15px 0;">
+            <h1 style="font-size: 24px; font-weight: bold; margin: 0; margin-bottom: 0.5rem;">BẢNG BÁO GIÁ</h1>
+            <div style="display: flex; justify-content: center; align-items: center; gap: 20px; flex-wrap: wrap;">
+                <div class="customer-info-row"><span>Ngày báo giá:</span> <input type="date" id="quote-date" class="table-input" style="width: auto;"></div>
+                <div class="customer-info-row"><span>Hiệu lực đến:</span> <input type="date" id="valid-until-date" class="table-input" style="width: auto;"></div>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div style="text-align: left; margin-bottom: 20px;">
+            <strong>Kính gửi Quý khách:</strong>
+            <div style="margin-top: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <div class="customer-info-row"><label for="customer-name">Anh/ Chị:</label><div class="w-full"><input type="text" id="customer-name" class="table-input"><span class="export-view"></span></div></div>
+                <div class="customer-info-row"><label for="customer-phone">Điện thoại:</label><div class="w-full"><input type="text" id="customer-phone" class="table-input"><span class="export-view"></span></div></div>
+                <div class="customer-info-row"><label for="customer-company">Tên công ty:</label><div class="w-full"><input type="text" id="customer-company" class="table-input"><span class="export-view"></span></div></div>
+                <div class="customer-info-row"><label for="customer-email">Email:</label><div class="w-full"><input type="email" id="customer-email" class="table-input"><span class="export-view"></span></div></div>
+                <div class="customer-info-row" style="grid-column: span 2;"><label for="customer-address">Địa chỉ:</label><div class="w-full"><input type="text" id="customer-address" class="table-input"><span class="export-view"></span></div></div>
+            </div>
+        </div>
+
+        <!-- Main Product Table -->
+        <table class="main-table">
+            <thead>
+                <tr>
+                    <th class="col-stt">STT</th>
+                    <th class="col-img">Hình ảnh</th>
+                    <th class="col-desc">Mô tả hàng hoá</th>
+                    <th class="col-qty">SL</th>
+                    <th class="col-price">Giá bán lẻ</th>
+                    <th class="col-price">Giá đã giảm</th>
+                    <th class="col-total">Thành tiền</th>
+                    <th class="col-warranty">Bảo hành</th>
+                    <th class="col-promo">Khuyến mãi</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <!-- Rows will be added dynamically here -->
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="7"><strong>Tổng cộng (VND):</strong></td>
+                    <td colspan="2" id="grand-total"><strong>0 VND</strong></td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <button id="add-row-btn" style="margin-top: 15px;" class="action-btn"><i class="fas fa-plus-circle mr-2"></i>Thêm Hàng</button>
+
+        <!-- Terms and Footer -->
+        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-top: 20px; text-align: left;">
+            <p style="font-weight: bold; margin-bottom: 10px;">Các điều khoản lưu ý</p>
+            <ol style="padding-left: 20px;">
+                <li>Giá trên đã bao gồm VAT.</li>
+                <li>Thanh toán bằng chuyển khoản hoặc tiền mặt trước khi nhận hàng.</li>
+                <li>Hàng hoá được bảo hành theo tiêu chuẩn nhà sản xuất và phân phối.</li>
+            </ol>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: left;">
+            <p style="font-weight: bold;">Nếu quý khách cần hỗ trợ thêm thông tin, vui lòng liên hệ với:</p>
+            <div style="display: flex; margin-top: 15px; gap: 20px; align-items: flex-start;">
+                <div style="flex: 2;">
+                    <p style="text-align: center; font-weight: bold; margin-bottom: 10px;">Siêu thị</p>
+                    <div class="contact-info-line"><i class="fas fa-map-marker-alt"></i><strong>Điện máy Xanh Savico, Số 7-9 Đường Nguyễn Văn Linh, P. Gia Thụy, Q. Long Biên, TP. Hà Nội</strong></div>
+                    <div class="contact-info-line"><i class="fas fa-phone"></i><strong>Điện thoại: 0986.751.063</strong></div>
+                </div>
+                <div style="flex: 1; padding-left: 15px; border-left: 1px solid #eee;">
+                    <p style="text-align: center; font-weight: bold; margin-bottom: 10px;">Nhân viên hỗ trợ</p>
+                    <div class="customer-info-row">
+                        <input type="text" id="staff-name" placeholder="Họ và tên" class="table-input w-full staff-info-input">
+                        <span class="export-view"></span>
+                    </div>
+                    <div class="customer-info-row">
+                         <input type="text" id="staff-phone" placeholder="Số điện thoại" class="table-input w-full staff-info-input">
+                         <span class="export-view"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p style="text-align: center; font-weight: bold; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">Cảm ơn Quý khách đã cộng tác với Thegioididong.com!</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var tableBody = document.getElementById('table-body');
+            var addRowBtn = document.getElementById('add-row-btn');
+            var invoiceContent = document.getElementById('invoice-content');
+
+            // --- UTILITY FUNCTIONS ---
+            function setDates() {
+                var today = new Date();
+                invoiceContent.querySelector('#quote-date').valueAsDate = today;
+                invoiceContent.querySelector('#valid-until-date').valueAsDate = today;
+            };
+
+            function formatCurrency(amount) {
+                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+            };
+
+            function parseCurrency(text) {
+                return parseFloat(String(text).replace(/[.VNDđ\s]/g, '')) || 0;
+            };
+
+            function formatInputAsCurrency(e) {
+                var input = e.target;
+                if (typeof input.value === 'undefined') return;
+                var value = input.value.replace(/[.đ\s]/g, '');
+                if (!isNaN(value) && value.length > 0) {
+                    input.value = parseInt(value, 10).toLocaleString('vi-VN');
+                } else if (value.length === 0) {
+                    input.value = '';
+                }
+            };
+
+            // --- TABLE MANIPULATION ---
+            function updateRowNumbers() {
+                tableBody.querySelectorAll('tr.item').forEach(function(row, index) {
+                    row.querySelector('.stt-cell').textContent = index + 1;
+                });
+            };
+
+            function updateGrandTotal() {
+                var grandTotal = 0;
+                tableBody.querySelectorAll('tr.item').forEach(function(row) {
+                    grandTotal += parseCurrency(row.querySelector('.col-total').textContent);
+                });
+                document.getElementById('grand-total').innerHTML = '<strong>' + formatCurrency(grandTotal) + '</strong>';
+            };
+
+            function calculateRowTotal(row) {
+                var quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+                var discountedPrice = parseCurrency(row.querySelector('.discounted-price').value);
+                var totalCell = row.querySelector('.col-total');
+                var rowTotal = quantity * discountedPrice;
+                totalCell.textContent = formatCurrency(rowTotal);
+                updateGrandTotal();
+            };
+            
+            function createNewRow(item) {
+                if (item === undefined) {
+                    item = {};
+                }
+                var row = document.createElement('tr');
+                row.className = 'item';
+                var rowId = 'row-' + Date.now();
+                row.innerHTML = `
+                    <td class="stt-cell"></td>
+                    <td class="col-img">
+                        <div class="image-upload-container">
+                            <img id="preview-${rowId}" class="image-preview" style="display:none;">
+                            <label for="upload-${rowId}" class="upload-label"><i class="fas fa-camera"></i> Tải ảnh</label>
+                            <input type="file" id="upload-${rowId}" accept="image/*" class="image-upload-input">
+                        </div>
+                    </td>
+                    <td class="col-desc col-desc-content">
+                        <textarea class="table-input description-textarea" rows="4" placeholder="Tên sản phẩm, mô tả...">${item.description || ''}</textarea>
+                        <span class="export-view"></span>
+                    </td>
+                    <td class="col-qty">
+                        <input type="number" min="1" value="${item.quantity || 1}" class="table-input quantity">
+                        <span class="export-view"></span>
+                    </td>
+                    <td class="col-price">
+                        <input type="text" value="${item.retailPrice || '0'}" class="table-input price-input retail-price">
+                        <span class="export-view"></span>
+                    </td>
+                    <td class="col-price">
+                        <input type="text" value="${item.discountedPrice || '0'}" class="table-input price-input discounted-price">
+                        <span class="export-view"></span>
+                    </td>
+                    <td class="col-total">
+                    </td>
+                    <td class="col-warranty">
+                        <input type="text" class="table-input warranty" placeholder="12 tháng">
+                        <span class="export-view"></span>
+                    </td>
+                    <td class="col-promo col-desc-content">
+                        <textarea class="table-input description-textarea" rows="4" placeholder="Nhập khuyến mãi...">${item.promo || ''}</textarea>
+                        <span class="export-view"></span>
+                        <button class="remove-row-btn mt-2"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+
+                // Add event listeners
+                row.querySelector('.quantity').addEventListener('input', function() { calculateRowTotal(row); });
+                row.querySelectorAll('.price-input').forEach(function(input) {
+                    input.addEventListener('input', formatInputAsCurrency);
+                    input.addEventListener('input', function() { calculateRowTotal(row); });
+                });
+                
+                row.querySelector('.remove-row-btn').addEventListener('click', function() {
+                    row.remove();
+                    updateRowNumbers();
+                    updateGrandTotal();
+                });
+                
+                row.querySelector('.image-upload-input').addEventListener('change', function(event) {
+                    var preview = row.querySelector('.image-preview');
+                    var label = row.querySelector('.upload-label');
+                    var file = event.target.files[0];
+                    if (file) {
+                        var reader = new FileReader();
+                        reader.onload = function(e) {
+                            preview.src = e.target.result;
+                            preview.style.display = 'block';
+                            label.style.display = 'none';
+                        }
+                        reader.readAsDataURL(file);
+                    }
+                });
+                
+                // Initial formatting and calculation
+                row.querySelectorAll('.price-input').forEach(function(input) { formatInputAsCurrency({ target: input }); });
+                calculateRowTotal(row);
+                updateRowNumbers();
+            };
+
+            // --- EXPORT & SCREENSHOT FUNCTIONS ---
+            function captureFilename() {
+                return 'BaoGia_' + (invoiceContent.querySelector('#customer-name').value.trim().replace(/\s+/g, '_') || 'KhachHang');
+            };
+
+            function prepareForCapture() {
+                invoiceContent.querySelectorAll('input.table-input, textarea.description-textarea').forEach(function(input) {
+                    var exportView = input.nextElementSibling;
+                    if (exportView && exportView.classList.contains('export-view')) {
+                         exportView.textContent = input.value;
+                    }
+                });
+                invoiceContent.classList.add('export-mode');
+            };
+
+            function finishCapture() {
+                invoiceContent.classList.remove('export-mode');
+            };
+
+            function captureContent(callback) {
+                prepareForCapture();
+                setTimeout(function() {
+                    html2canvas(invoiceContent, { scale: 3, useCORS: true, logging: false }).then(function(canvas) {
+                        finishCapture();
+                        callback(canvas);
+                    }).catch(function(err) {
+                        console.error("Lỗi khi chụp ảnh báo giá:", err);
+                        alert("Đã xảy ra lỗi khi tạo ảnh. Vui lòng thử lại.");
+                        finishCapture();
+                    });
+                }, 150);
+            };
+
+            document.getElementById('screenshot-btn').addEventListener('click', function() { 
+                captureContent(function(canvas) {
+                    var link = document.createElement('a');
+                    link.download = captureFilename() + '.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                });
+            });
+
+            document.getElementById('export-pdf-btn').addEventListener('click', function() {
+                captureContent(function(canvas) {
+                    try {
+                        var jsPDF = window.jspdf.jsPDF;
+                        var imgData = canvas.toDataURL('image/png');
+                        var pdf = new jsPDF('p', 'mm', 'a4');
+                        var pdfWidth = pdf.internal.pageSize.getWidth();
+                        var pdfHeight = pdf.internal.pageSize.getHeight();
+                        var canvasAspectRatio = canvas.width / canvas.height;
+                        var finalWidth = pdfWidth;
+                        var finalHeight = pdfWidth / canvasAspectRatio;
+                        if (finalHeight > pdfHeight) {
+                            finalHeight = pdfHeight;
+                            finalWidth = finalHeight * canvasAspectRatio;
+                        }
+                        var x = (pdfWidth - finalWidth) / 2;
+                        pdf.addImage(imgData, 'PNG', x, 0, finalWidth, finalHeight);
+                        pdf.save(captureFilename() + '.pdf');
+                    } catch (err) {
+                        console.error("Lỗi khi xuất PDF:", err);
+                        alert("Đã xảy ra lỗi khi xuất PDF. Vui lòng thử lại.");
+                    }
+                });
+            });
+
+            // --- INITIALIZATION ---
+            setDates();
+            addRowBtn.addEventListener('click', function() { createNewRow(); });
+            createNewRow({
+                description: `Smart Tivi Samsung 4K Crystal UHD 55 inch UA55AU8100\n- Độ phân giải: 4K Ultra HD\n- Hệ điều hành: Tizen OS 6.0\n- Kết nối: LAN, Wifi, Bluetooth, HDMI, USB`,
+                quantity: 1,
+                retailPrice: '15.990.000',
+                discountedPrice: '14.500.000',
+                promo: 'Tặng PMH 200,000đ'
+            });
+            createNewRow();
+        });
+    </script>
+</body>
+</html>
