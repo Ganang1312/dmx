@@ -23,7 +23,7 @@
             padding: 20px;
             border: 1px solid #eee;
             box-shadow: 0 0 10px rgba(0, 0, 0, .15);
-            font-size: 10px; /* Sửa: Giảm font chữ chung */
+            font-size: 10px;
             line-height: 1.5;
             color: #555;
             background-color: #fff;
@@ -35,7 +35,7 @@
         }
         .invoice-box .main-table th,
         .invoice-box .main-table td {
-            padding: 6px; /* Giảm padding */
+            padding: 6px;
             vertical-align: middle;
             text-align: center;
         }
@@ -43,7 +43,7 @@
             background: #eee;
             font-weight: bold;
             border: 1px solid #ddd;
-            font-size: 10px; /* Sửa: Giảm font chữ tiêu đề */
+            font-size: 10px;
             white-space: normal;
             text-align: center; 
         }
@@ -53,14 +53,13 @@
         }
         
         /* --- Căn chỉnh và độ rộng cột --- */
-        .col-stt      { width: 4%; }
-        .col-img      { width: 8%; }
-        .col-desc     { width: 19%; }
+        .col-stt      { width: 5%; }
+        .col-desc     { width: 27%; }
         .col-qty      { width: 7%; }
         .col-price    { width: 12%; }
         .col-total    { width: 13%; }
         .col-warranty { width: 9%; }
-        .col-promo    { width: 18%; } 
+        .col-promo    { width: 25%; } 
         
         .invoice-box .main-table tr.item td.col-desc-content { text-align: left; }
         .invoice-box .main-table td.col-price,
@@ -94,6 +93,13 @@
             outline: none;
             border-color: #007bff;
         }
+        /* Sửa: CSS cho textarea tự động co giãn */
+        .description-textarea {
+            resize: none;
+            overflow-y: hidden;
+            text-align: left;
+            min-height: 32px; /* Chiều cao tối thiểu ban đầu */
+        }
         .remove-row-btn {
             color: #dc3545;
             background: none;
@@ -116,23 +122,6 @@
             font-size: 14px;
             margin-left: 10px;
         }
-
-        .image-upload-container {
-            position: relative;
-            width: 100%;
-            aspect-ratio: 1 / 1;
-            border: 1px dashed #ccc;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 5px;
-            overflow: hidden;
-            margin: auto;
-        }
-        .image-preview { width: 100%; height: 100%; object-fit: cover; }
-        .upload-label { cursor: pointer; text-align: center; font-size: 10px; color: #007bff; }
-        .upload-label i { display: block; font-size: 18px; margin-bottom: 2px; }
-        input[type="file"] { display: none; }
 
         .contact-info-line { display: flex; align-items: center; margin-bottom: 4px; }
         .contact-info-line i { width: 20px; text-align: center; margin-right: 8px; color: #888; }
@@ -160,12 +149,8 @@
             display: block !important;
         }
         .export-mode #add-row-btn,
-        .export-mode .remove-row-btn,
-        .export-mode .upload-label {
+        .export-mode .remove-row-btn {
             display: none !important;
-        }
-        .export-mode .image-upload-container {
-            border: 1px solid #ddd;
         }
     </style>
 </head>
@@ -215,7 +200,6 @@
             <thead>
                 <tr>
                     <th class="col-stt">STT</th>
-                    <th class="col-img">Hình ảnh</th>
                     <th class="col-desc">Mô tả hàng hoá</th>
                     <th class="col-qty">SL</th>
                     <th class="col-price">Giá bán lẻ</th>
@@ -230,7 +214,7 @@
             </tbody>
             <tfoot>
                 <tr class="total-row">
-                    <td colspan="7"><strong>Tổng cộng (VND):</strong></td>
+                    <td colspan="6"><strong>Tổng cộng (VND):</strong></td>
                     <td colspan="2" id="grand-total"><strong>0 VND</strong></td>
                 </tr>
             </tfoot>
@@ -304,6 +288,12 @@
                     input.value = '';
                 }
             };
+            
+            // Sửa: Hàm tự động co giãn textarea
+            function autoResizeTextarea(element) {
+                element.style.height = 'auto';
+                element.style.height = (element.scrollHeight) + 'px';
+            }
 
             // --- TABLE MANIPULATION ---
             function updateRowNumbers() {
@@ -338,15 +328,8 @@
                 var rowId = 'row-' + Date.now();
                 row.innerHTML = `
                     <td class="stt-cell"></td>
-                    <td class="col-img">
-                        <div class="image-upload-container">
-                            <img id="preview-${rowId}" class="image-preview" style="display:none;">
-                            <label for="upload-${rowId}" class="upload-label"><i class="fas fa-camera"></i> Tải ảnh</label>
-                            <input type="file" id="upload-${rowId}" accept="image/*" class="image-upload-input">
-                        </div>
-                    </td>
                     <td class="col-desc col-desc-content">
-                        <textarea class="table-input description-textarea" rows="4" placeholder="Tên sản phẩm, mô tả...">${item.description || ''}</textarea>
+                        <textarea class="table-input description-textarea" placeholder="Tên sản phẩm, mô tả...">${item.description || ''}</textarea>
                         <span class="export-view"></span>
                     </td>
                     <td class="col-qty">
@@ -368,7 +351,7 @@
                         <span class="export-view"></span>
                     </td>
                     <td class="col-promo col-desc-content">
-                        <textarea class="table-input description-textarea" rows="4" placeholder="Nhập khuyến mãi...">${item.promo || ''}</textarea>
+                        <textarea class="table-input description-textarea" placeholder="Nhập khuyến mãi...">${item.promo || ''}</textarea>
                         <span class="export-view"></span>
                         <button class="remove-row-btn mt-2"><i class="fas fa-trash-alt"></i></button>
                     </td>
@@ -388,19 +371,11 @@
                     updateGrandTotal();
                 });
                 
-                row.querySelector('.image-upload-input').addEventListener('change', function(event) {
-                    var preview = row.querySelector('.image-preview');
-                    var label = row.querySelector('.upload-label');
-                    var file = event.target.files[0];
-                    if (file) {
-                        var reader = new FileReader();
-                        reader.onload = function(e) {
-                            preview.src = e.target.result;
-                            preview.style.display = 'block';
-                            label.style.display = 'none';
-                        }
-                        reader.readAsDataURL(file);
-                    }
+                // Sửa: Thêm event listener cho textarea để tự động co giãn
+                row.querySelectorAll('.description-textarea').forEach(function(textarea) {
+                    textarea.addEventListener('input', function() { autoResizeTextarea(this); });
+                    // Gọi lần đầu để tính chiều cao ban đầu
+                    setTimeout(function() { autoResizeTextarea(textarea); }, 0);
                 });
                 
                 // Initial formatting and calculation
