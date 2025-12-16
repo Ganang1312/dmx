@@ -142,15 +142,15 @@
             text-align: center;
         }
         .export-mode .table-input,
-        .export-mode .description-textarea {
+        .export-mode .description-textarea,
+        .export-mode #add-row-btn,
+        .export-mode .remove-row-btn,
+        .export-mode #add-term-btn,
+        .export-mode .term-item .remove-row-btn {
             display: none !important;
         }
         .export-mode .export-view {
             display: block !important;
-        }
-        .export-mode #add-row-btn,
-        .export-mode .remove-row-btn {
-            display: none !important;
         }
     </style>
 </head>
@@ -222,14 +222,13 @@
         
         <button id="add-row-btn" style="margin-top: 15px;" class="action-btn"><i class="fas fa-plus-circle mr-2"></i>Thêm Hàng</button>
 
-        <!-- Terms and Footer -->
-        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-top: 20px; text-align: left;">
+        <!-- Terms and Footer - Editable -->
+        <div style="border: 1px solid #ddd; padding: 15px; border-radius: 5px; margin-top: 20px; text-align: left;" id="terms-section">
             <p style="font-weight: bold; margin-bottom: 10px;">Các điều khoản lưu ý</p>
-            <ol style="padding-left: 20px;">
-                <li>Giá trên đã bao gồm VAT.</li>
-                <li>Thanh toán bằng chuyển khoản hoặc tiền mặt trước khi nhận hàng.</li>
-                <li>Hàng hoá được bảo hành theo tiêu chuẩn nhà sản xuất và phân phối.</li>
-            </ol>
+            <div id="terms-list-container">
+                <!-- Editable Term items will be added here -->
+            </div>
+            <button id="add-term-btn" style="margin-top: 10px; padding: 5px 10px; background-color: #f8f9fa; border: 1px solid #ddd; color: #333; border-radius: 4px; cursor: pointer; font-size: 10px;"><i class="fas fa-plus mr-1"></i>Thêm Điều Khoản</button>
         </div>
         
         <div style="margin-top: 15px; text-align: left;">
@@ -262,6 +261,11 @@
             var tableBody = document.getElementById('table-body');
             var addRowBtn = document.getElementById('add-row-btn');
             var invoiceContent = document.getElementById('invoice-content');
+            
+            // NEW: Variables for terms manipulation
+            var termsListContainer = document.getElementById('terms-list-container');
+            var addTermBtn = document.getElementById('add-term-btn');
+
 
             // --- UTILITY FUNCTIONS ---
             function setDates() {
@@ -384,22 +388,94 @@
                 updateRowNumbers();
             };
 
+            // --- TERMS MANIPULATION (NEW) ---
+            function createTermItem(initialText = '') {
+                var termDiv = document.createElement('div');
+                termDiv.className = 'term-item flex items-start mb-2';
+                
+                // Textarea for editing
+                var textarea = document.createElement('textarea');
+                textarea.className = 'table-input description-textarea flex-grow mr-2';
+                textarea.placeholder = 'Nhập điều khoản lưu ý...';
+                textarea.value = initialText;
+                textarea.style.padding = '4px';
+                textarea.style.minHeight = '24px';
+                textarea.style.fontSize = '10px';
+                
+                // Remove button
+                var removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-row-btn mt-1';
+                removeBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                removeBtn.title = 'Xóa điều khoản';
+
+                removeBtn.addEventListener('click', function() {
+                    termDiv.remove();
+                });
+
+                textarea.addEventListener('input', function() { autoResizeTextarea(this); });
+                setTimeout(function() { autoResizeTextarea(textarea); }, 0);
+
+                // Export View (hidden in edit mode, used to temporarily store text for capture)
+                var exportView = document.createElement('span');
+                exportView.className = 'export-view text-left term-export-view';
+
+                termDiv.appendChild(textarea);
+                termDiv.appendChild(exportView);
+                termDiv.appendChild(removeBtn);
+                
+                termsListContainer.appendChild(termDiv);
+            }
+
+            function initializeTerms() {
+                var defaultTerms = [
+                    "Giá trên đã bao gồm VAT.",
+                    "Thanh toán bằng chuyển khoản hoặc tiền mặt trước khi nhận hàng.",
+                    "Hàng hoá được bảo hành theo tiêu chuẩn nhà sản xuất và phân phối."
+                ];
+                defaultTerms.forEach(term => createTermItem(term));
+            }
+
+
             // --- EXPORT & SCREENSHOT FUNCTIONS ---
             function captureFilename() {
                 return 'BaoGia_' + (invoiceContent.querySelector('#customer-name').value.trim().replace(/\s+/g, '_') || 'KhachHang');
             };
 
             function prepareForCapture() {
+                // 1. Update all input/textarea pairs for products and customer info
                 invoiceContent.querySelectorAll('input.table-input, textarea.description-textarea').forEach(function(input) {
                     var exportView = input.nextElementSibling;
                     if (exportView && exportView.classList.contains('export-view')) {
                          exportView.textContent = input.value;
                     }
                 });
+                
+                // 2. Prepare Terms List for static display (only for export mode)
+                // Create a temporary <ol> list based on the current term inputs
+                const olElement = document.createElement('ol');
+                olElement.style.paddingLeft = '20px';
+                olElement.className = 'export-term-list';
+                
+                document.querySelectorAll('.term-item textarea').forEach(textarea => {
+                    if (textarea.value.trim() !== '') {
+                         let li = document.createElement('li');
+                         li.textContent = textarea.value;
+                         olElement.appendChild(li);
+                    }
+                });
+                
+                // Append the static OL element. CSS handles hiding the editable inputs.
+                termsListContainer.appendChild(olElement);
+
                 invoiceContent.classList.add('export-mode');
             };
 
             function finishCapture() {
+                // Remove the static OL element created for export mode
+                const exportList = document.querySelector('.export-term-list');
+                if (exportList) {
+                    exportList.remove();
+                }
                 invoiceContent.classList.remove('export-mode');
             };
 
@@ -411,7 +487,8 @@
                         callback(canvas);
                     }).catch(function(err) {
                         console.error("Lỗi khi chụp ảnh báo giá:", err);
-                        alert("Đã xảy ra lỗi khi tạo ảnh. Vui lòng thử lại.");
+                        // Using custom message box instead of alert, as per guidelines.
+                        console.log("Đã xảy ra lỗi khi tạo ảnh. Vui lòng thử lại.");
                         finishCapture();
                     });
                 }, 150);
@@ -446,7 +523,8 @@
                         pdf.save(captureFilename() + '.pdf');
                     } catch (err) {
                         console.error("Lỗi khi xuất PDF:", err);
-                        alert("Đã xảy ra lỗi khi xuất PDF. Vui lòng thử lại.");
+                        // Using custom message box instead of alert, as per guidelines.
+                        console.log("Đã xảy ra lỗi khi xuất PDF. Vui lòng thử lại.");
                     }
                 });
             });
@@ -454,6 +532,9 @@
             // --- INITIALIZATION ---
             setDates();
             addRowBtn.addEventListener('click', function() { createNewRow(); });
+            addTermBtn.addEventListener('click', function() { createTermItem(); }); // Bổ sung event listener cho nút "Thêm Điều Khoản"
+            
+            // Initial Product Rows
             createNewRow({
                 description: `Smart Tivi Samsung 4K Crystal UHD 55 inch UA55AU8100\n- Độ phân giải: 4K Ultra HD\n- Hệ điều hành: Tizen OS 6.0\n- Kết nối: LAN, Wifi, Bluetooth, HDMI, USB`,
                 quantity: 1,
@@ -462,6 +543,9 @@
                 promo: 'Tặng PMH 200,000đ'
             });
             createNewRow();
+
+            // Initial Terms
+            initializeTerms(); // Khởi tạo các điều khoản mặc định
         });
     </script>
 </body>
