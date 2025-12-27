@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kiểm Hàng Nhập Kho (Auto Load nb.json)</title>
+    <title>Kiểm Hàng Nhập Kho (Nút tải nb.json)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -70,7 +70,8 @@
         };
 
         // --- COMPONENT: FileUpload ---
-        const FileUpload = ({ onFilesSelected, onJsonSelected, disabled }) => {
+        // Đã cập nhật: Thêm nút tải nb.json
+        const FileUpload = ({ onFilesSelected, onJsonSelected, onLoadNbJson, disabled }) => {
             const fileInputRef = useRef(null);
             const jsonInputRef = useRef(null);
 
@@ -89,6 +90,7 @@
 
             return (
                 <div className="w-full flex flex-col items-center space-y-4">
+                    {/* Nút Upload Excel */}
                     <div className="w-full">
                         <input
                             type="file"
@@ -107,9 +109,25 @@
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z" />
                             </svg>
-                            Tải Lên File Excel (Tự động lấy Mã Phiếu cột AI)
+                            Tải Lên File Excel (Từ máy tính)
                         </button>
                     </div>
+
+                    {/* Nút Load nb.json */}
+                    <div className="w-full">
+                        <button
+                            onClick={onLoadNbJson}
+                            disabled={disabled}
+                            className="w-full flex items-center justify-center gap-3 px-6 py-3 text-lg font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-orange-50 hover:border-orange-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-orange-500">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                            </svg>
+                            Tải dữ liệu có sẵn (nb.json)
+                        </button>
+                    </div>
+
+                    {/* Link Restore Backup */}
                     <div className="pt-2 border-t border-gray-200 w-full flex justify-center">
                         <input type="file" ref={jsonInputRef} onChange={handleJsonChange} className="hidden" accept=".json" disabled={disabled} />
                         <button onClick={() => jsonInputRef.current?.click()} disabled={disabled} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
@@ -426,47 +444,19 @@
             const [isLoading, setIsLoading] = useState(false);
             const messageTimeoutRef = useRef(null);
 
-            // --- AUTO LOAD nb.json Logic ---
+            // 1. Chỉ khôi phục dữ liệu từ LocalStorage khi khởi động
             useEffect(() => {
-                const loadInitialData = async () => {
-                    setIsLoading(true);
-                    let loadedFromUrl = false;
-
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
                     try {
-                        // Ưu tiên 1: Thử tải dữ liệu từ file nb.json
-                        const response = await fetch('./nb.json');
-                        if (response.ok) {
-                            const jsonData = await response.json();
-                            if (Array.isArray(jsonData) && jsonData.length > 0) {
-                                setProducts(jsonData);
-                                // Set thông báo trực tiếp vì showMessage chưa sẵn sàng hoặc để tránh phụ thuộc
-                                setMessage({ text: 'Đã tự động tải dữ liệu từ file nb.json', type: 1 }); // 1 = Success
-                                setTimeout(() => setMessage({ text: '', type: 0 }), 3000);
-                                loadedFromUrl = true;
-                            }
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setProducts(parsed);
                         }
-                    } catch (err) {
-                        // Bỏ qua lỗi nếu không có file hoặc lỗi mạng (dùng file://)
-                        console.log("Không tìm thấy nb.json hoặc không thể tải:", err);
+                    } catch (e) {
+                        console.error("Lỗi đọc localStorage:", e);
                     }
-
-                    // Ưu tiên 2: Nếu không tải được từ URL, dùng localStorage
-                    if (!loadedFromUrl) {
-                        const saved = localStorage.getItem(STORAGE_KEY);
-                        if (saved) {
-                            try {
-                                const parsed = JSON.parse(saved);
-                                if (Array.isArray(parsed)) setProducts(parsed);
-                            } catch (e) {
-                                console.error("Lỗi đọc localStorage:", e);
-                            }
-                        }
-                    }
-                    
-                    setIsLoading(false);
-                };
-
-                loadInitialData();
+                }
             }, []);
 
             // Lưu vào localStorage mỗi khi products thay đổi
@@ -486,6 +476,29 @@
                 reader.onload = (e) => resolve(e.target.result);
                 reader.readAsArrayBuffer(file);
             });
+
+            // 2. Hàm xử lý riêng cho nút tải nb.json
+            const handleLoadNbJson = async () => {
+                setIsLoading(true);
+                try {
+                    const response = await fetch('./nb.json');
+                    if (response.ok) {
+                        const jsonData = await response.json();
+                        if (Array.isArray(jsonData) && jsonData.length > 0) {
+                            setProducts(jsonData);
+                            showMessage(`Đã tải thành công ${jsonData.length} sản phẩm từ nb.json`, MessageType.Success);
+                        } else {
+                            showMessage('File nb.json không chứa dữ liệu hợp lệ', MessageType.Warning);
+                        }
+                    } else {
+                        showMessage('Không tìm thấy file nb.json trong thư mục', MessageType.Error);
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showMessage('Lỗi khi tải file: ' + err.message, MessageType.Error);
+                }
+                setIsLoading(false);
+            };
 
             const processFiles = async (files) => {
                 const newProducts = [];
@@ -632,7 +645,11 @@
                         {products.length === 0 ? (
                             isLoading ? <div className="text-center">Đang xử lý...</div> : 
                             <div className="bg-white p-8 rounded-lg shadow-md">
-                                <FileUpload onFilesSelected={handleFilesSelected} onJsonSelected={handleImportJSON} />
+                                <FileUpload 
+                                    onFilesSelected={handleFilesSelected} 
+                                    onJsonSelected={handleImportJSON} 
+                                    onLoadNbJson={handleLoadNbJson} // Truyền hàm xử lý vào component con
+                                />
                             </div>
                         ) : (
                             <div className="space-y-6">
