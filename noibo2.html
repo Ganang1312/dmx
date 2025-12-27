@@ -2,8 +2,8 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kiểm Hàng Nhập Kho (STT)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Kiểm Hàng Nhập Kho (Mobile Optimized)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,24 +22,37 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        .suggestions-list::-webkit-scrollbar { width: 8px; }
+        /* Tối ưu thanh cuộn */
+        .suggestions-list::-webkit-scrollbar { width: 6px; }
         .suggestions-list::-webkit-scrollbar-track { background: #f1f1f1; }
-        .suggestions-list::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
-        .suggestions-list::-webkit-scrollbar-thumb:hover { background: #555; }
+        .suggestions-list::-webkit-scrollbar-thumb { background: #bbb; border-radius: 4px; }
+        .suggestions-list::-webkit-scrollbar-thumb:hover { background: #888; }
         
-        /* Style cho khung Camera */
+        /* Camera Frame */
         #reader {
             width: 100%;
             height: 100%;
             overflow: hidden;
+            background: #000;
         }
         #reader video {
             object-fit: cover;
             border-radius: 8px;
         }
+
+        /* Sticky Header Fix cho Mobile */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            background-color: #f3f4f6; /* bg-gray-100 */
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 text-gray-800">
     <div id="root"></div>
 
     <script type="text/babel">
@@ -53,7 +66,7 @@
         const COL_STATUS = 11; // L
         const COL_RECEIPT_CODE = 34; // AI
 
-        const STORAGE_KEY = 'warehouse_check_data_ai_version_v2';
+        const STORAGE_KEY = 'warehouse_check_data_ai_version_v3_mobile';
         const MessageType = { None: 0, Success: 1, Warning: 2, Error: 3 };
 
         // --- HELPER: File Stats ---
@@ -97,7 +110,7 @@
             };
 
             return (
-                <div className="w-full flex flex-col items-center space-y-4">
+                <div className="w-full flex flex-col items-center space-y-4 p-4">
                     <div className="w-full">
                         <input
                             type="file"
@@ -111,12 +124,12 @@
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={disabled}
-                            className="w-full flex items-center justify-center gap-3 px-6 py-4 text-lg font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                            className="w-full flex items-center justify-center gap-3 px-6 py-4 text-lg font-semibold text-white bg-blue-600 rounded-xl shadow-md active:bg-blue-800 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z" />
                             </svg>
-                            Tải Lên File Excel (Từ máy tính)
+                            Tải Lên File Excel
                         </button>
                     </div>
 
@@ -124,7 +137,7 @@
                         <button
                             onClick={onLoadNbJson}
                             disabled={disabled}
-                            className="w-full flex items-center justify-center gap-3 px-6 py-3 text-lg font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-lg hover:bg-orange-50 hover:border-orange-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
+                            className="w-full flex items-center justify-center gap-3 px-6 py-3 text-lg font-semibold text-gray-700 bg-white border-2 border-gray-300 rounded-xl active:bg-gray-100 hover:border-orange-300 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all"
                         >
                              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-orange-500">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
@@ -133,9 +146,9 @@
                         </button>
                     </div>
 
-                    <div className="pt-2 border-t border-gray-200 w-full flex justify-center">
+                    <div className="pt-2 w-full flex justify-center">
                         <input type="file" ref={jsonInputRef} onChange={handleJsonChange} className="hidden" accept=".json" disabled={disabled} />
-                        <button onClick={() => jsonInputRef.current?.click()} disabled={disabled} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
+                        <button onClick={() => jsonInputRef.current?.click()} disabled={disabled} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline py-2">
                             Khôi phục dữ liệu từ file Backup (.json)
                         </button>
                     </div>
@@ -151,63 +164,37 @@
                 let html5QrCode;
                 const startScanner = async () => {
                     try {
-                        // Khởi tạo instance với ID của thẻ div
                         html5QrCode = new Html5Qrcode("reader");
-                        
-                        // Bắt đầu quét (Sử dụng camera sau - environment)
                         await html5QrCode.start(
                             { facingMode: "environment" }, 
-                            { 
-                                fps: 10, 
-                                qrbox: { width: 250, height: 250 }
-                            },
-                            (decodedText, decodedResult) => {
-                                // Khi quét thành công
-                                onScanSuccess(decodedText);
-                            },
-                            (errorMessage) => {
-                                // Lỗi khi đang quét từng frame (thường xuyên xảy ra, bỏ qua)
-                            }
+                            { fps: 10, qrbox: { width: 250, height: 250 } },
+                            (decodedText) => onScanSuccess(decodedText),
+                            (errorMessage) => {}
                         );
                     } catch (err) {
-                        console.error("Camera start error:", err);
-                        setError("Không thể mở camera. Hãy đảm bảo bạn đã cấp quyền truy cập hoặc thiết bị có camera.");
+                        console.error("Camera error:", err);
+                        setError("Không thể mở camera. Vui lòng cấp quyền hoặc kiểm tra thiết bị.");
                     }
                 };
-
-                // Delay nhỏ để đảm bảo div#reader đã render xong
-                const timer = setTimeout(startScanner, 100);
-
+                setTimeout(startScanner, 100);
                 return () => {
-                    clearTimeout(timer);
-                    if (html5QrCode) {
-                        html5QrCode.stop().then(() => {
-                            html5QrCode.clear();
-                        }).catch(err => {
-                            console.log("Stop failed (scan might not have started): ", err);
-                        });
-                    }
+                    if (html5QrCode) html5QrCode.stop().then(() => html5QrCode.clear()).catch(console.error);
                 };
             }, [onScanSuccess]);
 
             return (
-                <div className="fixed inset-0 z-[60] bg-black bg-opacity-75 flex flex-col items-center justify-center p-4">
-                    <div className="bg-white p-4 rounded-lg w-full max-w-md relative flex flex-col h-[500px]">
-                        <div className="flex justify-between items-center mb-4 flex-shrink-0">
-                            <h3 className="font-bold text-lg">Quét Mã (Camera)</h3>
-                            <button onClick={onClose} className="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded">Đóng</button>
+                <div className="fixed inset-0 z-[60] bg-black bg-opacity-90 flex flex-col items-center justify-center p-4">
+                    <div className="w-full max-w-md h-[80vh] bg-black flex flex-col relative rounded-xl overflow-hidden">
+                        <div className="absolute top-4 right-4 z-20">
+                            <button onClick={onClose} className="text-white bg-gray-800 bg-opacity-50 rounded-full p-2 hover:bg-red-600 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
-                        
-                        <div className="relative flex-grow bg-black rounded overflow-hidden flex items-center justify-center">
-                            <div id="reader" className="w-full h-full"></div>
-                            {error && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 p-6 text-center text-red-600 z-10">
-                                    <p>{error}</p>
-                                </div>
-                            )}
-                        </div>
-                        
-                        <p className="text-sm text-gray-500 mt-2 text-center flex-shrink-0">Đưa mã vào khung hình vuông để quét</p>
+                        <div id="reader" className="flex-grow"></div>
+                        {error && <div className="absolute inset-0 flex items-center justify-center p-4 text-center text-red-500 bg-black bg-opacity-80">{error}</div>}
+                        <p className="text-white text-center py-4 bg-black">Đưa mã vào khung để quét</p>
                     </div>
                 </div>
             );
@@ -218,7 +205,7 @@
             const [inputValue, setInputValue] = useState('');
             const [showSuggestions, setShowSuggestions] = useState(false);
             const [bulkQuantities, setBulkQuantities] = useState({});
-            const [showCamera, setShowCamera] = useState(false); // State bật tắt camera
+            const [showCamera, setShowCamera] = useState(false);
             
             const inputRef = useRef(null);
             const containerRef = useRef(null);
@@ -274,66 +261,53 @@
                 }
             };
 
-            // Xử lý khi quét được từ Camera
-            const handleCameraScan = (decodedText) => {
-                onScan(decodedText);
-                setShowCamera(false); // Đóng camera sau khi quét được 1 mã
-            };
-
             return (
                 <div className="w-full relative" ref={containerRef}>
-                    {/* Component Camera Overlay */}
-                    {showCamera && <CameraScanner onScanSuccess={handleCameraScan} onClose={() => setShowCamera(false)} />}
+                    {showCamera && <CameraScanner onScanSuccess={(txt) => { onScan(txt); setShowCamera(false); }} onClose={() => setShowCamera(false)} />}
 
-                    <div className="flex gap-2 mb-2">
+                    <div className="flex gap-2">
                         <form onSubmit={handleSubmit} className="flex-grow flex gap-2">
-                            <div className="relative flex-grow">
-                                <input
-                                    ref={inputRef}
-                                    type="text"
-                                    value={inputValue}
-                                    onChange={(e) => { setInputValue(e.target.value); setShowSuggestions(true); }}
-                                    onFocus={() => setShowSuggestions(true)}
-                                    disabled={disabled}
-                                    placeholder="Quét hoặc nhập Mã SP / IMEI / Tên..."
-                                    className="w-full pl-4 pr-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
-                                />
-                            </div>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => { setInputValue(e.target.value); setShowSuggestions(true); }}
+                                onFocus={() => setShowSuggestions(true)}
+                                disabled={disabled}
+                                placeholder="Nhập/Quét mã..."
+                                className="w-full pl-3 pr-3 py-2.5 text-base sm:text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
+                            />
                         </form>
                         
-                        {/* Nút bật Camera */}
                         <button 
                             type="button"
                             onClick={() => setShowCamera(true)}
-                            className="bg-teal-600 text-white px-4 py-3 rounded-lg hover:bg-teal-700 flex items-center gap-2 shadow-sm whitespace-nowrap"
-                            title="Quét bằng Camera"
+                            className="bg-teal-600 text-white px-3 sm:px-4 py-2.5 rounded-lg hover:bg-teal-700 active:bg-teal-800 flex items-center justify-center shadow-sm min-w-[50px]"
+                            title="Quét Camera"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                             </svg>
-                            <span className="hidden sm:inline">Quét Camera</span>
                         </button>
                     </div>
 
                     {showSuggestions && inputValue.length > 0 && (suggestions.individual.length > 0 || suggestions.grouped.length > 0) && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto suggestions-list">
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-[60vh] overflow-y-auto suggestions-list">
+                             {/* ... (Giữ nguyên logic render suggestions như cũ) ... */}
                             {suggestions.grouped.map((group) => {
                                 const remaining = group.quantity - group.scannedCount;
                                 return (
-                                    <div key={group.uniqueId} className="p-3 border-b hover:bg-gray-50 flex items-center justify-between gap-4">
+                                    <div key={group.uniqueId} className="p-3 border-b hover:bg-gray-50 flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
                                         <div className="flex-grow">
-                                            <p className="font-semibold text-gray-800">{group.productName}</p>
-                                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                                                <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{group.productCode}</span>
+                                            <p className="font-semibold text-gray-800 text-sm sm:text-base">{group.productName}</p>
+                                            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mt-1">
+                                                <span className="bg-gray-100 px-2 py-0.5 rounded font-mono">{group.productCode}</span>
                                                 <span className="text-blue-600 font-medium">Thiếu: {remaining}</span>
-                                                {group.receiptCode && group.receiptCode !== '-' && (
-                                                    <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs">PN: {group.receiptCode}</span>
-                                                )}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <button type="button" onClick={() => handleBulkFull(group.productCode, remaining)} className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 font-medium">Đủ ({remaining})</button>
+                                        <div className="flex items-center gap-2 self-end sm:self-auto">
+                                            <button type="button" onClick={() => handleBulkFull(group.productCode, remaining)} className="bg-green-600 text-white px-2 py-1.5 rounded text-xs hover:bg-green-700 font-medium whitespace-nowrap">Đủ ({remaining})</button>
                                             <input 
                                                 type="number" min="1" max={remaining}
                                                 value={bulkQuantities[group.productCode] || 1}
@@ -341,9 +315,9 @@
                                                     const val = parseInt(e.target.value);
                                                     setBulkQuantities(prev => ({...prev, [group.productCode]: isNaN(val) ? 1 : Math.min(Math.max(1, val), remaining)}));
                                                 }}
-                                                className="w-16 p-1 border rounded text-center"
+                                                className="w-12 py-1 border rounded text-center text-sm"
                                             />
-                                            <button type="button" onClick={() => handleBulkSubmit(group.productCode, remaining)} className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Nhập</button>
+                                            <button type="button" onClick={() => handleBulkSubmit(group.productCode, remaining)} className="bg-blue-600 text-white px-2 py-1.5 rounded text-xs hover:bg-blue-700 whitespace-nowrap">Nhập</button>
                                         </div>
                                     </div>
                                 );
@@ -351,10 +325,10 @@
                             {suggestions.individual.map((product) => (
                                 <div key={product.uniqueId} onClick={() => { onScan(product.imei || product.productCode); setInputValue(''); setShowSuggestions(false); }} className="p-3 border-b hover:bg-gray-50 cursor-pointer flex justify-between items-center group">
                                     <div>
-                                        <p className="font-medium text-gray-800 group-hover:text-blue-600">{product.productName}</p>
-                                        <div className="flex gap-2 text-sm text-gray-500 mt-1">
-                                            {product.imei && <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">IMEI: {product.imei}</span>}
-                                            <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">{product.productCode}</span>
+                                        <p className="font-medium text-gray-800 text-sm sm:text-base group-hover:text-blue-600">{product.productName}</p>
+                                        <div className="flex gap-2 text-xs text-gray-500 mt-1">
+                                            {product.imei && <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded">IMEI: {product.imei}</span>}
+                                            <span className="bg-gray-100 px-2 py-0.5 rounded">{product.productCode}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -365,8 +339,9 @@
             );
         };
 
-        // --- COMPONENT: Summary & Stats ---
-        const Summary = ({ products, onReset, onExport, onExportJSON, onImportJSON, onAddFiles, setFilter, currentFilter }) => {
+        // --- COMPONENT: Summary & Stats (COLLAPSIBLE - DEFAULT HIDDEN) ---
+        const Summary = ({ products, onReset, onExport, onExportJSON, onAddFiles, setFilter, currentFilter }) => {
+            const [isExpanded, setIsExpanded] = useState(false); // Mặc định ẩn
             const fileInputRef = useRef(null);
             
             const stats = useMemo(() => calculateFileStats(products), [products]);
@@ -382,93 +357,106 @@
             };
 
             return (
-                <div className="p-4 bg-white rounded-lg shadow-md w-full space-y-4 border border-gray-200">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-blue-600">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden mb-4">
+                    {/* Header - Always Visible - Click to toggle */}
+                    <div 
+                        className="p-3 sm:p-4 bg-gray-50 flex justify-between items-center cursor-pointer hover:bg-gray-100 transition-colors select-none"
+                        onClick={() => setIsExpanded(!isExpanded)}
+                    >
+                        <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-blue-600">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                             </svg>
-                            Tổng Quan
-                        </h3>
-                        <div className="flex flex-wrap gap-2">
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple accept=".xlsx, .xls" />
-                            <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">Thêm File</button>
-                            <button onClick={onExport} className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700">Xuất Excel</button>
-                            <button onClick={onExportJSON} className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">Backup JSON</button>
-                            <button onClick={onReset} className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700">Xóa Hết</button>
+                            <span className="font-bold text-gray-800 text-base">Tổng Quan & Thao Tác</span>
+                            {/* Mini Progress when collapsed */}
+                            {!isExpanded && (
+                                <span className="ml-2 text-xs font-mono bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                    {scannedItems}/{totalItems}
+                                </span>
+                            )}
                         </div>
+                        <button className="text-gray-500 focus:outline-none">
+                            {isExpanded ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                                </svg>
+                            )}
+                        </button>
                     </div>
 
-                    <div>
-                        <div className="flex justify-between mb-1 text-sm font-medium">
-                            <span className="text-blue-700">Tiến độ tổng thể</span>
-                            <span className="text-blue-700">{scannedItems} / {totalItems}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-4">
-                            <div className="bg-blue-600 h-4 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
-                        </div>
-                    </div>
+                    {/* Collapsible Content */}
+                    {isExpanded && (
+                        <div className="p-3 sm:p-4 border-t border-gray-200 space-y-4 animate-[fadeIn_0.2s_ease-in-out]">
+                            {/* Buttons */}
+                            <div className="flex flex-wrap gap-2">
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple accept=".xlsx, .xls" />
+                                <button onClick={() => fileInputRef.current?.click()} className="flex-1 min-w-[100px] px-3 py-2 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">Thêm File</button>
+                                <button onClick={onExport} className="flex-1 min-w-[100px] px-3 py-2 bg-green-600 text-white rounded text-sm hover:bg-green-700">Xuất Excel</button>
+                                <button onClick={onExportJSON} className="flex-1 min-w-[100px] px-3 py-2 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">Backup</button>
+                                <button onClick={onReset} className="flex-1 min-w-[80px] px-3 py-2 bg-red-600 text-white rounded text-sm hover:bg-red-700">Xóa Hết</button>
+                            </div>
 
-                    <div className="mt-4">
-                        <h4 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Thống kê theo File tải lên</h4>
-                        <div className="overflow-x-auto border rounded-lg">
-                            <table className="w-full text-sm text-left text-gray-500">
-                                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
-                                    <tr>
-                                        <th className="px-4 py-2 border-b">Tên File</th>
-                                        <th className="px-4 py-2 border-b text-blue-700">Mã phiếu nhận</th>
-                                        <th className="px-4 py-2 border-b text-center">Tổng SL</th>
-                                        <th className="px-4 py-2 border-b text-center">Đã Quét</th>
-                                        <th className="px-4 py-2 border-b">Trạng Thái</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {stats.map((file, idx) => {
-                                        const isDone = file.scannedQty >= file.totalQty;
-                                        return (
-                                            <tr key={idx} className="bg-white border-b hover:bg-gray-50">
-                                                <td className="px-4 py-2 font-medium text-gray-900">{file.fileName}</td>
-                                                <td className="px-4 py-2 font-mono text-blue-600 font-bold">{file.receiptCode}</td>
-                                                <td className="px-4 py-2 text-center font-bold">{file.totalQty}</td>
-                                                <td className="px-4 py-2 text-center">{file.scannedQty}</td>
-                                                <td className="px-4 py-2">
-                                                    {isDone ? 
-                                                        <span className="text-green-600 font-bold text-xs bg-green-100 px-2 py-0.5 rounded">Hoàn thành</span> : 
-                                                        <span className="text-yellow-600 font-bold text-xs bg-yellow-100 px-2 py-0.5 rounded">Đang kiểm</span>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                                <tfoot className="bg-gray-50 font-semibold text-gray-900">
-                                    <tr>
-                                        <td className="px-4 py-2" colSpan="2">TỔNG CỘNG</td>
-                                        <td className="px-4 py-2 text-center">{totalItems}</td>
-                                        <td className="px-4 py-2 text-center">{scannedItems}</td>
-                                        <td></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-                    </div>
+                            {/* Detailed Progress */}
+                            <div>
+                                <div className="flex justify-between mb-1 text-sm font-medium">
+                                    <span className="text-blue-700">Tiến độ tổng thể</span>
+                                    <span className="text-blue-700 font-mono">{scannedItems} / {totalItems}</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-3">
+                                    <div className="bg-blue-600 h-3 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                                </div>
+                            </div>
 
-                    <div className="flex items-center gap-4 pt-2">
-                        <span className="text-sm font-medium text-gray-700">Lọc danh sách:</span>
-                        <div className="flex gap-2">
-                            {['all', 'incomplete', 'completed'].map(f => (
-                                <button
-                                    key={f}
-                                    onClick={() => setFilter(f)}
-                                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
-                                        currentFilter === f ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    }`}
-                                >
-                                    {f === 'all' ? 'Tất cả' : f === 'incomplete' ? 'Chưa đủ' : 'Đã đủ'}
-                                </button>
-                            ))}
+                            {/* Stats Table */}
+                            <div className="overflow-x-auto border rounded-lg bg-gray-50">
+                                <table className="w-full text-xs sm:text-sm text-left text-gray-500">
+                                    <thead className="text-xs text-gray-700 uppercase bg-gray-100">
+                                        <tr>
+                                            <th className="px-3 py-2 border-b whitespace-nowrap">Tên File</th>
+                                            <th className="px-3 py-2 border-b text-center">Tổng</th>
+                                            <th className="px-3 py-2 border-b text-center">Đã Quét</th>
+                                            <th className="px-3 py-2 border-b">TT</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {stats.map((file, idx) => {
+                                            const isDone = file.scannedQty >= file.totalQty;
+                                            return (
+                                                <tr key={idx} className="bg-white border-b">
+                                                    <td className="px-3 py-2 font-medium text-gray-900 max-w-[120px] truncate" title={file.fileName}>{file.fileName}</td>
+                                                    <td className="px-3 py-2 text-center font-bold">{file.totalQty}</td>
+                                                    <td className="px-3 py-2 text-center">{file.scannedQty}</td>
+                                                    <td className="px-3 py-2">
+                                                        {isDone ? <span className="text-green-600 font-bold">✓</span> : <span className="text-yellow-600">...</span>}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Filters */}
+                            <div className="flex items-center gap-2 pt-2 overflow-x-auto pb-1">
+                                <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Lọc:</span>
+                                {['all', 'incomplete', 'completed'].map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => setFilter(f)}
+                                        className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-full transition-colors whitespace-nowrap ${
+                                            currentFilter === f ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        }`}
+                                    >
+                                        {f === 'all' ? 'Tất cả' : f === 'incomplete' ? 'Chưa đủ' : 'Đã đủ'}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
             );
         };
@@ -483,7 +471,7 @@
                 return [...filtered].sort((a, b) => {
                     const aDone = a.scannedCount >= a.quantity;
                     const bDone = b.scannedCount >= b.quantity;
-                    if (aDone !== bDone) return aDone ? 1 : -1;
+                    if (aDone !== bDone) return aDone ? 1 : -1; // Chưa xong lên trên
                     if (a.receiptCode !== b.receiptCode) return (a.receiptCode || '').localeCompare(b.receiptCode || '');
                     return 0;
                 });
@@ -492,17 +480,16 @@
             if (products.length === 0) return <div className="text-center py-10 text-gray-400">Chưa có dữ liệu</div>;
 
             return (
-                <div className="overflow-x-auto bg-white rounded-lg shadow-md mt-6">
+                <div className="overflow-x-auto bg-white rounded-lg shadow-sm border border-gray-200">
                     <table className="w-full text-sm text-left text-gray-500">
-                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
                             <tr>
-                                <th className="px-4 py-3 text-center w-10">STT</th>
-                                <th className="px-4 py-3">Mã SP</th>
-                                <th className="px-4 py-3">Tên Sản Phẩm</th>
-                                <th className="px-4 py-3">IMEI</th>
-                                <th className="px-4 py-3">Mã phiếu nhận</th>
-                                <th className="px-4 py-3">Tiến độ</th>
-                                <th className="px-4 py-3">Trạng thái</th>
+                                <th className="px-2 py-3 text-center w-8">STT</th>
+                                <th className="px-2 py-3 min-w-[80px]">Mã SP</th>
+                                <th className="px-2 py-3 min-w-[120px]">Tên SP</th>
+                                <th className="px-2 py-3 hidden sm:table-cell">IMEI</th>
+                                <th className="px-2 py-3 text-center min-w-[90px]">SL</th>
+                                <th className="px-2 py-3 hidden sm:table-cell">Trạng thái</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -510,21 +497,29 @@
                                 const isDone = p.scannedCount >= p.quantity;
                                 return (
                                     <tr key={p.uniqueId} id={`product-${p.uniqueId}`} className={`border-b ${isDone ? 'bg-green-50' : p.scannedCount > 0 ? 'bg-yellow-50' : 'bg-white'}`}>
-                                        <td className="px-4 py-2 text-center font-bold text-gray-600">
+                                        <td className="px-2 py-2 text-center text-xs font-bold text-gray-600">
                                             {index + 1}
                                         </td>
-                                        <td className="px-4 py-2 font-mono font-medium text-gray-900">{p.productCode}</td>
-                                        <td className="px-4 py-2">{p.productName}</td>
-                                        <td className="px-4 py-2 font-mono text-xs">{p.imei || '-'}</td>
-                                        <td className="px-4 py-2 font-mono text-xs text-blue-600">{p.receiptCode || '-'}</td>
-                                        <td className="px-4 py-2">
-                                            <div className="flex items-center gap-2">
-                                                <button onClick={() => onUpdateCount(p.uniqueId, p.scannedCount - 1)} disabled={p.scannedCount <= 0} className="w-6 h-6 bg-gray-100 rounded hover:bg-gray-200">-</button>
-                                                <span className={`font-bold ${isDone ? 'text-green-600' : 'text-gray-700'}`}>{p.scannedCount}/{p.quantity}</span>
-                                                <button onClick={() => onUpdateCount(p.uniqueId, p.scannedCount + 1)} disabled={isDone} className="w-6 h-6 bg-gray-100 rounded hover:bg-gray-200">+</button>
+                                        <td className="px-2 py-2 text-xs font-mono font-bold text-gray-900 break-words">
+                                            {p.productCode}
+                                            {/* Show IMEI on mobile here if needed, small text */}
+                                            {p.imei && <div className="sm:hidden text-[10px] font-normal text-gray-500 mt-0.5">{p.imei}</div>}
+                                        </td>
+                                        <td className="px-2 py-2 text-xs sm:text-sm">
+                                            <div className="line-clamp-2">{p.productName}</div>
+                                            {p.receiptCode && p.receiptCode !== '-' && (
+                                                <div className="text-[10px] text-blue-600 mt-0.5">PN: {p.receiptCode}</div>
+                                            )}
+                                        </td>
+                                        <td className="px-2 py-2 text-xs font-mono hidden sm:table-cell">{p.imei || '-'}</td>
+                                        <td className="px-2 py-2">
+                                            <div className="flex items-center justify-center gap-1">
+                                                <button onClick={() => onUpdateCount(p.uniqueId, p.scannedCount - 1)} disabled={p.scannedCount <= 0} className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-gray-200 rounded text-gray-700 active:bg-gray-300 font-bold">-</button>
+                                                <span className={`font-bold text-xs sm:text-sm min-w-[40px] text-center ${isDone ? 'text-green-600' : 'text-gray-700'}`}>{p.scannedCount}/{p.quantity}</span>
+                                                <button onClick={() => onUpdateCount(p.uniqueId, p.scannedCount + 1)} disabled={isDone} className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center bg-gray-200 rounded text-gray-700 active:bg-gray-300 font-bold">+</button>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 text-xs">{p.status}</td>
+                                        <td className="px-2 py-2 text-xs hidden sm:table-cell">{p.status}</td>
                                     </tr>
                                 );
                             })}
@@ -545,14 +540,8 @@
             useEffect(() => {
                 const saved = localStorage.getItem(STORAGE_KEY);
                 if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        if (Array.isArray(parsed) && parsed.length > 0) {
-                            setProducts(parsed);
-                        }
-                    } catch (e) {
-                        console.error("Lỗi đọc localStorage:", e);
-                    }
+                    try { setProducts(JSON.parse(saved) || []); } 
+                    catch (e) { console.error(e); }
                 }
             }, []);
 
@@ -581,17 +570,10 @@
                         const jsonData = await response.json();
                         if (Array.isArray(jsonData) && jsonData.length > 0) {
                             setProducts(jsonData);
-                            showMessage(`Đã tải thành công ${jsonData.length} sản phẩm từ nb.json`, MessageType.Success);
-                        } else {
-                            showMessage('File nb.json không chứa dữ liệu hợp lệ', MessageType.Warning);
-                        }
-                    } else {
-                        showMessage('Không tìm thấy file nb.json trong thư mục', MessageType.Error);
-                    }
-                } catch (err) {
-                    console.error(err);
-                    showMessage('Lỗi khi tải file: ' + err.message, MessageType.Error);
-                }
+                            showMessage(`Đã tải ${jsonData.length} SP từ nb.json`, MessageType.Success);
+                        } else showMessage('File nb.json lỗi', MessageType.Warning);
+                    } else showMessage('Không thấy file nb.json', MessageType.Error);
+                } catch (err) { showMessage('Lỗi tải file', MessageType.Error); }
                 setIsLoading(false);
             };
 
@@ -607,27 +589,19 @@
                         for (let i = 1; i < rows.length; i++) {
                             const row = rows[i];
                             if (!row || row.length === 0) continue;
-
                             const pCode = String(row[COL_PRODUCT_CODE] || '').trim();
                             const pName = String(row[COL_PRODUCT_NAME] || '').trim();
                             const imei = String(row[COL_IMEI] || '').trim();
                             const receiptCode = String(row[COL_RECEIPT_CODE] || '').trim();
-                            
                             let qty = parseInt(row[COL_QUANTITY]);
                             if (isNaN(qty)) qty = 0;
-
                             if (!pCode && !imei) continue;
 
                             newProducts.push({
                                 uniqueId: imei || `${file.name}-${i}-${pCode}-${Date.now()}`,
-                                productCode: pCode,
-                                productName: pName,
-                                imei: imei,
-                                quantity: qty || 1,
-                                scannedCount: 0,
-                                status: row[COL_STATUS] || '',
-                                sourceFile: file.name,
-                                receiptCode: receiptCode
+                                productCode: pCode, productName: pName, imei: imei,
+                                quantity: qty || 1, scannedCount: 0, status: row[COL_STATUS] || '',
+                                sourceFile: file.name, receiptCode: receiptCode
                             });
                         }
                     } catch (e) { console.error(e); }
@@ -638,20 +612,15 @@
             const handleFilesSelected = async (files) => {
                 setIsLoading(true);
                 const items = await processFiles(files);
-                if (items.length > 0) {
-                    setProducts(items);
-                    showMessage(`Đã tải ${items.length} sản phẩm.`, MessageType.Success);
-                } else showMessage("Không tìm thấy dữ liệu.", MessageType.Warning);
+                if (items.length > 0) { setProducts(items); showMessage(`Đã tải ${items.length} SP`, MessageType.Success); } 
+                else showMessage("Không có dữ liệu", MessageType.Warning);
                 setIsLoading(false);
             };
 
             const handleAppendFiles = async (files) => {
                 setIsLoading(true);
                 const items = await processFiles(files);
-                if (items.length > 0) {
-                    setProducts(prev => [...prev, ...items]);
-                    showMessage(`Đã thêm ${items.length} sản phẩm.`, MessageType.Success);
-                }
+                if (items.length > 0) { setProducts(p => [...p, ...items]); showMessage(`Thêm ${items.length} SP`, MessageType.Success); }
                 setIsLoading(false);
             };
 
@@ -660,14 +629,10 @@
                     const idx = prev.findIndex(p => (p.imei === val || p.productCode === val) && p.scannedCount < p.quantity);
                     if (idx === -1) {
                          const fullIdx = prev.findIndex(p => p.productCode === val);
-                         if(fullIdx !== -1) {
-                             showMessage(`Mã ${val} đã đủ số lượng!`, MessageType.Warning);
-                         } else {
-                             showMessage(`Không tìm thấy ${val}`, MessageType.Error);
-                         }
+                         if(fullIdx !== -1) showMessage(`Mã ${val} đã đủ!`, MessageType.Warning);
+                         else showMessage(`Không tìm thấy ${val}`, MessageType.Error);
                          return prev;
                     }
-                    
                     const newItem = { ...prev[idx], scannedCount: prev[idx].scannedCount + 1 };
                     const newArr = [...prev];
                     newArr[idx] = newItem;
@@ -695,14 +660,9 @@
 
             const handleExport = () => {
                 const data = products.map(p => ({
-                    'File Nguồn': p.sourceFile || '',
-                    'Mã phiếu nhận': p.receiptCode || '',
-                    'Mã SP': p.productCode,
-                    'Tên SP': p.productName,
-                    'IMEI': p.imei,
-                    'Tổng SL': p.quantity,
-                    'Đã Quét': p.scannedCount,
-                    'Còn Lại': p.quantity - p.scannedCount
+                    'File Nguồn': p.sourceFile, 'Mã phiếu nhận': p.receiptCode,
+                    'Mã SP': p.productCode, 'Tên SP': p.productName, 'IMEI': p.imei,
+                    'Tổng SL': p.quantity, 'Đã Quét': p.scannedCount, 'Còn Lại': p.quantity - p.scannedCount
                 }));
                 const ws = XLSX.utils.json_to_sheet(data);
                 const wb = XLSX.utils.book_new();
@@ -712,7 +672,7 @@
 
             const handleExportJSON = () => {
                 const a = document.createElement("a");
-                a.href = URL.createObjectURL(new Blob([JSON.stringify(products, null, 2)], { type: "application/json" }));
+                a.href = URL.createObjectURL(new Blob([JSON.stringify(products)], { type: "application/json" }));
                 a.download = `Backup_${Date.now()}.json`;
                 a.click();
             };
@@ -720,22 +680,25 @@
             const handleImportJSON = (file) => {
                 const r = new FileReader();
                 r.onload = (e) => {
-                    try { setProducts(JSON.parse(e.target.result)); showMessage("Khôi phục thành công", MessageType.Success); }
+                    try { setProducts(JSON.parse(e.target.result)); showMessage("Khôi phục OK", MessageType.Success); }
                     catch { showMessage("Lỗi file backup", MessageType.Error); }
                 };
                 r.readAsText(file);
             };
 
             return (
-                <div className="min-h-screen p-4 bg-gray-100 font-sans">
-                    <div className="max-w-6xl mx-auto space-y-6">
-                        <header className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-                            <h1 className="text-2xl font-bold text-gray-800">Kiểm Hàng Nhập Kho (Multi-File)</h1>
-                        </header>
+                <div className="min-h-screen bg-gray-100 font-sans pb-10">
+                    <div className="max-w-4xl mx-auto">
+                        {/* Header Title */}
+                        {products.length === 0 && (
+                             <header className="bg-white p-4 shadow-sm mb-4">
+                                <h1 className="text-xl font-bold text-gray-800 text-center">Kiểm Kho (Mobile)</h1>
+                            </header>
+                        )}
 
                         {products.length === 0 ? (
-                            isLoading ? <div className="text-center">Đang xử lý...</div> : 
-                            <div className="bg-white p-8 rounded-lg shadow-md">
+                            isLoading ? <div className="text-center p-10">Đang xử lý...</div> : 
+                            <div className="bg-white m-4 rounded-xl shadow-sm">
                                 <FileUpload 
                                     onFilesSelected={handleFilesSelected} 
                                     onJsonSelected={handleImportJSON} 
@@ -743,22 +706,32 @@
                                 />
                             </div>
                         ) : (
-                            <div className="space-y-6">
-                                <ScannerInput onScan={handleScan} onBulkScan={handleBulkScan} products={products} />
-                                <Summary 
-                                    products={products} onReset={() => window.confirm("Xóa hết?") && setProducts([])}
-                                    onExport={handleExport} onExportJSON={handleExportJSON} 
-                                    onAddFiles={handleAppendFiles} setFilter={setFilter} currentFilter={filter}
-                                />
-                                <ProductTable products={products} filter={filter} onUpdateCount={handleUpdateCount} />
+                            <div className="relative">
+                                {/* Sticky Scanner Header */}
+                                <div className="sticky-header px-4 shadow-md mb-4 -mx-0">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <h1 className="text-lg font-bold text-gray-800 truncate">Kiểm Kho</h1>
+                                        <button onClick={() => window.confirm("Thoát và xóa hết?") && setProducts([])} className="text-xs text-red-600 font-medium px-2 py-1 border border-red-200 rounded">Thoát</button>
+                                    </div>
+                                    <ScannerInput onScan={handleScan} onBulkScan={handleBulkScan} products={products} />
+                                </div>
+                                
+                                <div className="px-2 sm:px-4 space-y-4">
+                                    <Summary 
+                                        products={products} onReset={() => window.confirm("Xóa hết dữ liệu?") && setProducts([])}
+                                        onExport={handleExport} onExportJSON={handleExportJSON} 
+                                        onAddFiles={handleAppendFiles} setFilter={setFilter} currentFilter={filter}
+                                    />
+                                    <ProductTable products={products} filter={filter} onUpdateCount={handleUpdateCount} />
+                                </div>
                             </div>
                         )}
                         
                         {message.text && (
-                            <div className={`fixed top-5 right-5 z-50 px-6 py-3 rounded text-white shadow-lg ${
+                            <div className={`fixed bottom-10 left-1/2 transform -translate-x-1/2 z-[70] px-4 py-3 rounded-lg text-white shadow-xl text-sm font-medium whitespace-nowrap ${
                                 message.type === MessageType.Success ? 'bg-green-600' : 
                                 message.type === MessageType.Warning ? 'bg-yellow-600' : 
-                                message.type === MessageType.Error ? 'bg-red-600' : 'bg-blue-600'
+                                message.type === MessageType.Error ? 'bg-red-600' : 'bg-gray-800'
                             }`}>
                                 {message.text}
                             </div>
