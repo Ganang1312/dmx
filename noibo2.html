@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kiểm Hàng Nhập Kho (Cột AI)</title>
+    <title>Kiểm Hàng Nhập Kho (Auto Load nb.json)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -426,11 +426,50 @@
             const [isLoading, setIsLoading] = useState(false);
             const messageTimeoutRef = useRef(null);
 
+            // --- AUTO LOAD nb.json Logic ---
             useEffect(() => {
-                const saved = localStorage.getItem(STORAGE_KEY);
-                if (saved) setProducts(JSON.parse(saved));
+                const loadInitialData = async () => {
+                    setIsLoading(true);
+                    let loadedFromUrl = false;
+
+                    try {
+                        // Ưu tiên 1: Thử tải dữ liệu từ file nb.json
+                        const response = await fetch('./nb.json');
+                        if (response.ok) {
+                            const jsonData = await response.json();
+                            if (Array.isArray(jsonData) && jsonData.length > 0) {
+                                setProducts(jsonData);
+                                // Set thông báo trực tiếp vì showMessage chưa sẵn sàng hoặc để tránh phụ thuộc
+                                setMessage({ text: 'Đã tự động tải dữ liệu từ file nb.json', type: 1 }); // 1 = Success
+                                setTimeout(() => setMessage({ text: '', type: 0 }), 3000);
+                                loadedFromUrl = true;
+                            }
+                        }
+                    } catch (err) {
+                        // Bỏ qua lỗi nếu không có file hoặc lỗi mạng (dùng file://)
+                        console.log("Không tìm thấy nb.json hoặc không thể tải:", err);
+                    }
+
+                    // Ưu tiên 2: Nếu không tải được từ URL, dùng localStorage
+                    if (!loadedFromUrl) {
+                        const saved = localStorage.getItem(STORAGE_KEY);
+                        if (saved) {
+                            try {
+                                const parsed = JSON.parse(saved);
+                                if (Array.isArray(parsed)) setProducts(parsed);
+                            } catch (e) {
+                                console.error("Lỗi đọc localStorage:", e);
+                            }
+                        }
+                    }
+                    
+                    setIsLoading(false);
+                };
+
+                loadInitialData();
             }, []);
 
+            // Lưu vào localStorage mỗi khi products thay đổi
             useEffect(() => {
                 if (products.length > 0) localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
                 else localStorage.removeItem(STORAGE_KEY);
