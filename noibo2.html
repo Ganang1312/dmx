@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kiểm Hàng Nhập Kho (Camera Auto-Start)</title>
+    <title>Kiểm Hàng Nhập Kho (STT)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -496,7 +496,7 @@
                     <table className="w-full text-sm text-left text-gray-500">
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
                             <tr>
-                                <th className="px-4 py-3 text-center w-10">#</th>
+                                <th className="px-4 py-3 text-center w-10">STT</th>
                                 <th className="px-4 py-3">Mã SP</th>
                                 <th className="px-4 py-3">Tên Sản Phẩm</th>
                                 <th className="px-4 py-3">IMEI</th>
@@ -506,12 +506,12 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {sortedProducts.map((p) => {
+                            {sortedProducts.map((p, index) => {
                                 const isDone = p.scannedCount >= p.quantity;
                                 return (
                                     <tr key={p.uniqueId} id={`product-${p.uniqueId}`} className={`border-b ${isDone ? 'bg-green-50' : p.scannedCount > 0 ? 'bg-yellow-50' : 'bg-white'}`}>
-                                        <td className="px-4 py-2 text-center">
-                                            {isDone ? <span className="text-green-500 font-bold">✓</span> : <span className="w-2 h-2 bg-gray-300 rounded-full inline-block"></span>}
+                                        <td className="px-4 py-2 text-center font-bold text-gray-600">
+                                            {index + 1}
                                         </td>
                                         <td className="px-4 py-2 font-mono font-medium text-gray-900">{p.productCode}</td>
                                         <td className="px-4 py-2">{p.productName}</td>
