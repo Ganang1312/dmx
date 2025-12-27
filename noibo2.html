@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kiểm Hàng Nhập Kho (Camera & Fix Scroll)</title>
+    <title>Kiểm Hàng Nhập Kho (Camera Auto-Start)</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,8 +11,8 @@
     <!-- SheetJS (Excel) -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     
-    <!-- HTML5-QRCode (Quét mã vạch bằng camera) -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- HTML5-QRCode (Phiên bản ổn định) -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
     
     <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -30,12 +30,12 @@
         /* Style cho khung Camera */
         #reader {
             width: 100%;
-            border-radius: 8px;
+            height: 100%;
             overflow: hidden;
-            background: #000;
         }
-        #reader__scan_region {
-            background: white;
+        #reader video {
+            object-fit: cover;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -143,35 +143,71 @@
             );
         };
 
-        // --- COMPONENT: CameraScanner ---
+        // --- COMPONENT: CameraScanner (AUTO START) ---
         const CameraScanner = ({ onScanSuccess, onClose }) => {
+            const [error, setError] = useState(null);
+            
             useEffect(() => {
-                const onScanSuccessCallback = (decodedText, decodedResult) => {
-                    // Dừng âm thanh tít của thư viện nếu có (mặc định không có, nhưng xử lý để chắc chắn)
-                    onScanSuccess(decodedText);
+                let html5QrCode;
+                const startScanner = async () => {
+                    try {
+                        // Khởi tạo instance với ID của thẻ div
+                        html5QrCode = new Html5Qrcode("reader");
+                        
+                        // Bắt đầu quét (Sử dụng camera sau - environment)
+                        await html5QrCode.start(
+                            { facingMode: "environment" }, 
+                            { 
+                                fps: 10, 
+                                qrbox: { width: 250, height: 250 }
+                            },
+                            (decodedText, decodedResult) => {
+                                // Khi quét thành công
+                                onScanSuccess(decodedText);
+                            },
+                            (errorMessage) => {
+                                // Lỗi khi đang quét từng frame (thường xuyên xảy ra, bỏ qua)
+                            }
+                        );
+                    } catch (err) {
+                        console.error("Camera start error:", err);
+                        setError("Không thể mở camera. Hãy đảm bảo bạn đã cấp quyền truy cập hoặc thiết bị có camera.");
+                    }
                 };
 
-                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-                const html5QrcodeScanner = new Html5QrcodeScanner("reader", config, /* verbose= */ false);
-                
-                html5QrcodeScanner.render(onScanSuccessCallback, (error) => {
-                    // console.warn(error); // Bỏ qua lỗi quét liên tục để đỡ rác console
-                });
+                // Delay nhỏ để đảm bảo div#reader đã render xong
+                const timer = setTimeout(startScanner, 100);
 
                 return () => {
-                    html5QrcodeScanner.clear().catch(error => console.error("Failed to clear html5QrcodeScanner. ", error));
+                    clearTimeout(timer);
+                    if (html5QrCode) {
+                        html5QrCode.stop().then(() => {
+                            html5QrCode.clear();
+                        }).catch(err => {
+                            console.log("Stop failed (scan might not have started): ", err);
+                        });
+                    }
                 };
             }, [onScanSuccess]);
 
             return (
                 <div className="fixed inset-0 z-[60] bg-black bg-opacity-75 flex flex-col items-center justify-center p-4">
-                    <div className="bg-white p-4 rounded-lg w-full max-w-md">
-                        <div className="flex justify-between items-center mb-4">
+                    <div className="bg-white p-4 rounded-lg w-full max-w-md relative flex flex-col h-[500px]">
+                        <div className="flex justify-between items-center mb-4 flex-shrink-0">
                             <h3 className="font-bold text-lg">Quét Mã (Camera)</h3>
                             <button onClick={onClose} className="text-red-500 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded">Đóng</button>
                         </div>
-                        <div id="reader"></div>
-                        <p className="text-sm text-gray-500 mt-2 text-center">Đưa mã vào khung hình vuông để quét</p>
+                        
+                        <div className="relative flex-grow bg-black rounded overflow-hidden flex items-center justify-center">
+                            <div id="reader" className="w-full h-full"></div>
+                            {error && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-gray-100 p-6 text-center text-red-600 z-10">
+                                    <p>{error}</p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        <p className="text-sm text-gray-500 mt-2 text-center flex-shrink-0">Đưa mã vào khung hình vuông để quét</p>
                     </div>
                 </div>
             );
@@ -240,8 +276,6 @@
 
             // Xử lý khi quét được từ Camera
             const handleCameraScan = (decodedText) => {
-                // Tự động đóng camera sau khi quét thành công để tránh quét lặp lại quá nhanh (hoặc có thể giữ tùy nhu cầu)
-                // Ở đây mình giữ camera nhưng thêm delay hoặc chỉ báo
                 onScan(decodedText);
                 setShowCamera(false); // Đóng camera sau khi quét được 1 mã
             };
