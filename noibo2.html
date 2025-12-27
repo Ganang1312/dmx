@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kiểm Hàng Nhập Kho (Cột AI)</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- SheetJS (Excel) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <style>
+        .suggestions-list::-webkit-scrollbar { width: 8px; }
+        .suggestions-list::-webkit-scrollbar-track { background: #f1f1f1; }
+        .suggestions-list::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+        .suggestions-list::-webkit-scrollbar-thumb:hover { background: #555; }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // --- CẤU HÌNH CỘT EXCEL ---
+        const COL_PRODUCT_CODE = 2; // C
+        const COL_PRODUCT_NAME = 3; // D
+        const COL_IMEI = 4; // E
+        const COL_QUANTITY = 8; // I
+        const COL_STATUS = 11; // L
+        
+        // CỘT AI là cột thứ 35 (A=0 ... Z=25 ... AA=26 ... AI=34)
+        const COL_RECEIPT_CODE = 34; // AI - Mã phiếu nhận
+
+        const STORAGE_KEY = 'warehouse_check_data_ai_version_v2';
+
+        const MessageType = { None: 0, Success: 1, Warning: 2, Error: 3 };
+
+        // --- HELPER: File Stats ---
+        const calculateFileStats = (products) => {
+            const stats = {};
+            products.forEach(p => {
+                const fName = p.sourceFile || 'Không xác định';
+                if (!stats[fName]) {
+                    stats[fName] = {
+                        fileName: fName,
+                        receiptCode: p.receiptCode || '-',
+                        totalQty: 0,
+                        scannedQty: 0
+                    };
+                }
+                stats[fName].totalQty += p.quantity;
+                stats[fName].scannedQty += p.scannedCount;
+                
+                // Cập nhật mã phiếu nếu ban đầu chưa có mà dòng này lại có
+                if (stats[fName].receiptCode === '-' && p.receiptCode) {
+                    stats[fName].receiptCode = p.receiptCode;
+                }
+            });
+            return Object.values(stats);
+        };
+
+        // --- COMPONENT: FileUpload ---
+        const FileUpload = ({ onFilesSelected, onJsonSelected, disabled }) => {
+            const fileInputRef = useRef(null);
+            const jsonInputRef = useRef(null);
+
+            const handleFileChange = (event) => {
+                if (event.target.files?.length > 0) {
+                    onFilesSelected(Array.from(event.target.files));
+                }
+                if (fileInputRef.current) fileInputRef.current.value = '';
+            };
+
+            const handleJsonChange = (event) => {
+                const file = event.target.files?.[0];
+                if (file) onJsonSelected(file);
+                if (jsonInputRef.current) jsonInputRef.current.value = '';
+            };
+
+            return (
+                <div className="w-full flex flex-col items-center space-y-4">
+                    <div className="w-full">
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            className="hidden"
+                            accept=".csv, .xls, .xlsx, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                            multiple
+                            disabled={disabled}
+                        />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={disabled}
+                            className="w-full flex items-center justify-center gap-3 px-6 py-4 text-lg font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l-3.75 3.75M12 9.75l3.75 3.75M3 17.25V6.75A2.25 2.25 0 015.25 4.5h13.5A2.25 2.25 0 0121 6.75v10.5A2.25 2.25 0 0118.75 19.5H5.25A2.25 2.25 0 013 17.25z" />
+                            </svg>
+                            Tải Lên File Excel (Tự động lấy Mã Phiếu cột AI)
+                        </button>
+                    </div>
+                    <div className="pt-2 border-t border-gray-200 w-full flex justify-center">
+                        <input type="file" ref={jsonInputRef} onChange={handleJsonChange} className="hidden" accept=".json" disabled={disabled} />
+                        <button onClick={() => jsonInputRef.current?.click()} disabled={disabled} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
+                            Khôi phục dữ liệu từ file Backup (.json)
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- COMPONENT: ScannerInput ---
+        const ScannerInput = ({ onScan, onBulkScan, products, disabled }) => {
+            const [inputValue, setInputValue] = useState('');
+            const [showSuggestions, setShowSuggestions] = useState(false);
+            const [bulkQuantities, setBulkQuantities] = useState({});
+            const inputRef = useRef(null);
+            const containerRef = useRef(null);
+
+            useEffect(() => { if (!disabled) inputRef.current?.focus(); }, [disabled]);
+            
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (containerRef.current && !containerRef.current.contains(event.target)) setShowSuggestions(false);
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+            
+            const suggestions = useMemo(() => {
+                if (!inputValue || inputValue.length < 1) return { individual: [], grouped: [] };
+                const lowerInput = inputValue.toLowerCase();
+                const matches = products.filter(p => 
+                    (p.scannedCount < p.quantity) &&
+                    (p.productCode.toLowerCase().includes(lowerInput) ||
+                    p.productName.toLowerCase().includes(lowerInput) ||
+                    p.imei.toLowerCase().includes(lowerInput))
+                );
+                const individual = [], grouped = [];
+                matches.forEach(p => p.imei ? individual.push(p) : grouped.push(p));
+                return { individual: individual.slice(0, 10), grouped: grouped.slice(0, 10) };
+            }, [inputValue, products]);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                if (inputValue.trim()) {
+                    onScan(inputValue.trim());
+                    setInputValue('');
+                    setShowSuggestions(false);
+                }
+            };
+
+            const handleBulkFull = (productCode, remaining) => {
+                onBulkScan(productCode, remaining);
+                setInputValue('');
+                setShowSuggestions(false);
+                inputRef.current?.focus();
+            };
+
+            const handleBulkSubmit = (productCode, maxQty) => {
+                const qty = bulkQuantities[productCode] || 1;
+                if (qty > 0) {
+                    onBulkScan(productCode, qty);
+                    setInputValue('');
+                    setShowSuggestions(false);
+                    setBulkQuantities(prev => ({...prev, [productCode]: 1}));
+                    inputRef.current?.focus();
+                }
+            };
+
+            return (
+                <div className="w-full relative" ref={containerRef}>
+                    <form onSubmit={handleSubmit} className="w-full flex gap-2">
+                        <div className="relative flex-grow">
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={inputValue}
+                                onChange={(e) => { setInputValue(e.target.value); setShowSuggestions(true); }}
+                                onFocus={() => setShowSuggestions(true)}
+                                disabled={disabled}
+                                placeholder="Quét hoặc nhập Mã SP / IMEI / Tên..."
+                                className="w-full pl-4 pr-4 py-3 text-lg border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition-all"
+                            />
+                        </div>
+                    </form>
+
+                    {showSuggestions && inputValue.length > 0 && (suggestions.individual.length > 0 || suggestions.grouped.length > 0) && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto suggestions-list">
+                            {suggestions.grouped.map((group) => {
+                                const remaining = group.quantity - group.scannedCount;
+                                return (
+                                    <div key={group.uniqueId} className="p-3 border-b hover:bg-gray-50 flex items-center justify-between gap-4">
+                                        <div className="flex-grow">
+                                            <p className="font-semibold text-gray-800">{group.productName}</p>
+                                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                                                <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-mono">{group.productCode}</span>
+                                                <span className="text-blue-600 font-medium">Thiếu: {remaining}</span>
+                                                {group.receiptCode && group.receiptCode !== '-' && (
+                                                    <span className="bg-purple-100 text-purple-800 px-2 py-0.5 rounded text-xs">PN: {group.receiptCode}</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <button type="button" onClick={() => handleBulkFull(group.productCode, remaining)} className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 font-medium">Đủ ({remaining})</button>
+                                            <input 
+                                                type="number" min="1" max={remaining}
+                                                value={bulkQuantities[group.productCode] || 1}
+                                                onChange={(e) => {
+                                                    const val = parseInt(e.target.value);
+                                                    setBulkQuantities(prev => ({...prev, [group.productCode]: isNaN(val) ? 1 : Math.min(Math.max(1, val), remaining)}));
+                                                }}
+                                                className="w-16 p-1 border rounded text-center"
+                                            />
+                                            <button type="button" onClick={() => handleBulkSubmit(group.productCode, remaining)} className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">Nhập</button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {suggestions.individual.map((product) => (
+                                <div key={product.uniqueId} onClick={() => { onScan(product.imei || product.productCode); setInputValue(''); setShowSuggestions(false); }} className="p-3 border-b hover:bg-gray-50 cursor-pointer flex justify-between items-center group">
+                                    <div>
+                                        <p className="font-medium text-gray-800 group-hover:text-blue-600">{product.productName}</p>
+                                        <div className="flex gap-2 text-sm text-gray-500 mt-1">
+                                            {product.imei && <span className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded text-xs">IMEI: {product.imei}</span>}
+                                            <span className="bg-gray-100 px-2 py-0.5 rounded text-xs">{product.productCode}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- COMPONENT: Summary & Stats ---
+        const Summary = ({ products, onReset, onExport, onExportJSON, onImportJSON, onAddFiles, setFilter, currentFilter }) => {
+            const fileInputRef = useRef(null);
+            
+            const stats = useMemo(() => calculateFileStats(products), [products]);
+            const totalItems = products.reduce((acc, p) => acc + p.quantity, 0);
+            const scannedItems = products.reduce((acc, p) => acc + p.scannedCount, 0);
+            const progress = totalItems > 0 ? (scannedItems / totalItems) * 100 : 0;
+
+            const handleFileChange = (event) => {
+                if (event.target.files?.length > 0) {
+                    onAddFiles(Array.from(event.target.files));
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+            };
+
+            return (
+                <div className="p-4 bg-white rounded-lg shadow-md w-full space-y-4 border border-gray-200">
+                    {/* Header & Buttons */}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <h3 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6 text-blue-600">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                            </svg>
+                            Tổng Quan
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" multiple accept=".xlsx, .xls" />
+                            <button onClick={() => fileInputRef.current?.click()} className="px-3 py-1.5 bg-indigo-600 text-white rounded text-sm hover:bg-indigo-700">Thêm File</button>
+                            <button onClick={onExport} className="px-3 py-1.5 bg-green-600 text-white rounded text-sm hover:bg-green-700">Xuất Excel</button>
+                            <button onClick={onExportJSON} className="px-3 py-1.5 bg-purple-600 text-white rounded text-sm hover:bg-purple-700">Backup JSON</button>
+                            <button onClick={onReset} className="px-3 py-1.5 bg-red-600 text-white rounded text-sm hover:bg-red-700">Xóa Hết</button>
+                        </div>
+                    </div>
+
+                    {/* Progress Bar */}
+                    <div>
+                        <div className="flex justify-between mb-1 text-sm font-medium">
+                            <span className="text-blue-700">Tiến độ tổng thể</span>
+                            <span className="text-blue-700">{scannedItems} / {totalItems}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-4">
+                            <div className="bg-blue-600 h-4 rounded-full transition-all duration-500" style={{ width: `${progress}%` }}></div>
+                        </div>
+                    </div>
+
+                    {/* File Statistics Table */}
+                    <div className="mt-4">
+                        <h4 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">Thống kê theo File tải lên</h4>
+                        <div className="overflow-x-auto border rounded-lg">
+                            <table className="w-full text-sm text-left text-gray-500">
+                                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-2 border-b">Tên File</th>
+                                        <th className="px-4 py-2 border-b text-blue-700">Mã phiếu nhận</th>
+                                        <th className="px-4 py-2 border-b text-center">Tổng SL</th>
+                                        <th className="px-4 py-2 border-b text-center">Đã Quét</th>
+                                        <th className="px-4 py-2 border-b">Trạng Thái</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {stats.map((file, idx) => {
+                                        const isDone = file.scannedQty >= file.totalQty;
+                                        return (
+                                            <tr key={idx} className="bg-white border-b hover:bg-gray-50">
+                                                <td className="px-4 py-2 font-medium text-gray-900">{file.fileName}</td>
+                                                <td className="px-4 py-2 font-mono text-blue-600 font-bold">{file.receiptCode}</td>
+                                                <td className="px-4 py-2 text-center font-bold">{file.totalQty}</td>
+                                                <td className="px-4 py-2 text-center">{file.scannedQty}</td>
+                                                <td className="px-4 py-2">
+                                                    {isDone ? 
+                                                        <span className="text-green-600 font-bold text-xs bg-green-100 px-2 py-0.5 rounded">Hoàn thành</span> : 
+                                                        <span className="text-yellow-600 font-bold text-xs bg-yellow-100 px-2 py-0.5 rounded">Đang kiểm</span>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                                <tfoot className="bg-gray-50 font-semibold text-gray-900">
+                                    <tr>
+                                        <td className="px-4 py-2" colSpan="2">TỔNG CỘNG</td>
+                                        <td className="px-4 py-2 text-center">{totalItems}</td>
+                                        <td className="px-4 py-2 text-center">{scannedItems}</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    {/* Filters */}
+                    <div className="flex items-center gap-4 pt-2">
+                        <span className="text-sm font-medium text-gray-700">Lọc danh sách:</span>
+                        <div className="flex gap-2">
+                            {['all', 'incomplete', 'completed'].map(f => (
+                                <button
+                                    key={f}
+                                    onClick={() => setFilter(f)}
+                                    className={`px-3 py-1 text-sm font-medium rounded-md transition-colors ${
+                                        currentFilter === f ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                    }`}
+                                >
+                                    {f === 'all' ? 'Tất cả' : f === 'incomplete' ? 'Chưa đủ' : 'Đã đủ'}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- COMPONENT: ProductTable ---
+        const ProductTable = ({ products, filter, onUpdateCount }) => {
+            const sortedProducts = useMemo(() => {
+                let filtered = products;
+                if (filter === 'completed') filtered = products.filter(p => p.scannedCount >= p.quantity);
+                else if (filter === 'incomplete') filtered = products.filter(p => p.scannedCount < p.quantity);
+
+                return [...filtered].sort((a, b) => {
+                    const aDone = a.scannedCount >= a.quantity;
+                    const bDone = b.scannedCount >= b.quantity;
+                    if (aDone !== bDone) return aDone ? 1 : -1;
+                    if (a.receiptCode !== b.receiptCode) return (a.receiptCode || '').localeCompare(b.receiptCode || '');
+                    return 0;
+                });
+            }, [products, filter]);
+
+            if (products.length === 0) return <div className="text-center py-10 text-gray-400">Chưa có dữ liệu</div>;
+
+            return (
+                <div className="overflow-x-auto bg-white rounded-lg shadow-md mt-6">
+                    <table className="w-full text-sm text-left text-gray-500">
+                        <thead className="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0 z-10">
+                            <tr>
+                                <th className="px-4 py-3 text-center w-10">#</th>
+                                <th className="px-4 py-3">Mã SP</th>
+                                <th className="px-4 py-3">Tên Sản Phẩm</th>
+                                <th className="px-4 py-3">IMEI</th>
+                                <th className="px-4 py-3">Mã phiếu nhận</th>
+                                <th className="px-4 py-3">Tiến độ</th>
+                                <th className="px-4 py-3">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {sortedProducts.map((p) => {
+                                const isDone = p.scannedCount >= p.quantity;
+                                return (
+                                    <tr key={p.uniqueId} id={`product-${p.uniqueId}`} className={`border-b ${isDone ? 'bg-green-50' : p.scannedCount > 0 ? 'bg-yellow-50' : 'bg-white'}`}>
+                                        <td className="px-4 py-2 text-center">
+                                            {isDone ? <span className="text-green-500 font-bold">✓</span> : <span className="w-2 h-2 bg-gray-300 rounded-full inline-block"></span>}
+                                        </td>
+                                        <td className="px-4 py-2 font-mono font-medium text-gray-900">{p.productCode}</td>
+                                        <td className="px-4 py-2">{p.productName}</td>
+                                        <td className="px-4 py-2 font-mono text-xs">{p.imei || '-'}</td>
+                                        <td className="px-4 py-2 font-mono text-xs text-blue-600">{p.receiptCode || '-'}</td>
+                                        <td className="px-4 py-2">
+                                            <div className="flex items-center gap-2">
+                                                <button onClick={() => onUpdateCount(p.uniqueId, p.scannedCount - 1)} disabled={p.scannedCount <= 0} className="w-6 h-6 bg-gray-100 rounded hover:bg-gray-200">-</button>
+                                                <span className={`font-bold ${isDone ? 'text-green-600' : 'text-gray-700'}`}>{p.scannedCount}/{p.quantity}</span>
+                                                <button onClick={() => onUpdateCount(p.uniqueId, p.scannedCount + 1)} disabled={isDone} className="w-6 h-6 bg-gray-100 rounded hover:bg-gray-200">+</button>
+                                            </div>
+                                        </td>
+                                        <td className="px-4 py-2 text-xs">{p.status}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+        const App = () => {
+            const [products, setProducts] = useState([]);
+            const [message, setMessage] = useState({ text: '', type: MessageType.None });
+            const [filter, setFilter] = useState('all');
+            const [isLoading, setIsLoading] = useState(false);
+            const messageTimeoutRef = useRef(null);
+
+            useEffect(() => {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) setProducts(JSON.parse(saved));
+            }, []);
+
+            useEffect(() => {
+                if (products.length > 0) localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+                else localStorage.removeItem(STORAGE_KEY);
+            }, [products]);
+
+            const showMessage = (text, type) => {
+                if (messageTimeoutRef.current) clearTimeout(messageTimeoutRef.current);
+                setMessage({ text, type });
+                messageTimeoutRef.current = setTimeout(() => setMessage({ text: '', type: MessageType.None }), 3000);
+            };
+
+            const readFile = (file) => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsArrayBuffer(file);
+            });
+
+            const processFiles = async (files) => {
+                const newProducts = [];
+                for (const file of files) {
+                    try {
+                        const data = await readFile(file);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                        
+                        // Start from row index 1 (skip header)
+                        for (let i = 1; i < rows.length; i++) {
+                            const row = rows[i];
+                            if (!row || row.length === 0) continue;
+
+                            const pCode = String(row[COL_PRODUCT_CODE] || '').trim();
+                            const pName = String(row[COL_PRODUCT_NAME] || '').trim();
+                            const imei = String(row[COL_IMEI] || '').trim();
+                            // Lấy dữ liệu cột AI (index 34)
+                            const receiptCode = String(row[COL_RECEIPT_CODE] || '').trim();
+                            
+                            let qty = parseInt(row[COL_QUANTITY]);
+                            if (isNaN(qty)) qty = 0;
+
+                            if (!pCode && !imei) continue;
+
+                            newProducts.push({
+                                uniqueId: imei || `${file.name}-${i}-${pCode}-${Date.now()}`,
+                                productCode: pCode,
+                                productName: pName,
+                                imei: imei,
+                                quantity: qty || 1,
+                                scannedCount: 0,
+                                status: row[COL_STATUS] || '',
+                                sourceFile: file.name,      // Lưu tên file
+                                receiptCode: receiptCode    // Lưu mã phiếu nhận
+                            });
+                        }
+                    } catch (e) { console.error(e); }
+                }
+                return newProducts;
+            };
+
+            const handleFilesSelected = async (files) => {
+                setIsLoading(true);
+                const items = await processFiles(files);
+                if (items.length > 0) {
+                    setProducts(items);
+                    showMessage(`Đã tải ${items.length} sản phẩm.`, MessageType.Success);
+                } else showMessage("Không tìm thấy dữ liệu.", MessageType.Warning);
+                setIsLoading(false);
+            };
+
+            const handleAppendFiles = async (files) => {
+                setIsLoading(true);
+                const items = await processFiles(files);
+                if (items.length > 0) {
+                    setProducts(prev => [...prev, ...items]);
+                    showMessage(`Đã thêm ${items.length} sản phẩm.`, MessageType.Success);
+                }
+                setIsLoading(false);
+            };
+
+            const handleScan = (val) => {
+                setProducts(prev => {
+                    const idx = prev.findIndex(p => (p.imei === val || p.productCode === val) && p.scannedCount < p.quantity);
+                    if (idx === -1) {
+                         const fullIdx = prev.findIndex(p => p.productCode === val);
+                         if(fullIdx !== -1) {
+                             showMessage(`Mã ${val} đã đủ số lượng!`, MessageType.Warning);
+                             setTimeout(() => document.getElementById(`product-${prev[fullIdx].uniqueId}`)?.scrollIntoView({block: 'center'}), 100);
+                         } else {
+                             showMessage(`Không tìm thấy ${val}`, MessageType.Error);
+                         }
+                         return prev;
+                    }
+                    
+                    const newItem = { ...prev[idx], scannedCount: prev[idx].scannedCount + 1 };
+                    const newArr = [...prev];
+                    newArr[idx] = newItem;
+                    showMessage(`OK: ${newItem.productName}`, newItem.scannedCount >= newItem.quantity ? MessageType.Success : MessageType.None);
+                    setTimeout(() => document.getElementById(`product-${newItem.uniqueId}`)?.scrollIntoView({block: 'center'}), 100);
+                    return newArr;
+                });
+            };
+
+            const handleBulkScan = (code, qty) => {
+                setProducts(prev => {
+                    const idx = prev.findIndex(p => p.productCode === code && p.scannedCount < p.quantity);
+                    if (idx === -1) return prev;
+                    const item = prev[idx];
+                    const add = Math.min(qty, item.quantity - item.scannedCount);
+                    const newArr = [...prev];
+                    newArr[idx] = { ...item, scannedCount: item.scannedCount + add };
+                    showMessage(`Đã nhập +${add} cho ${item.productCode}`, MessageType.Success);
+                    return newArr;
+                });
+            };
+
+            const handleUpdateCount = (id, count) => {
+                setProducts(prev => prev.map(p => p.uniqueId === id ? { ...p, scannedCount: count } : p));
+            };
+
+            const handleExport = () => {
+                const data = products.map(p => ({
+                    'File Nguồn': p.sourceFile || '',
+                    'Mã phiếu nhận': p.receiptCode || '',
+                    'Mã SP': p.productCode,
+                    'Tên SP': p.productName,
+                    'IMEI': p.imei,
+                    'Tổng SL': p.quantity,
+                    'Đã Quét': p.scannedCount,
+                    'Còn Lại': p.quantity - p.scannedCount
+                }));
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "KiemKe");
+                XLSX.writeFile(wb, `KetQua_KiemKho_${Date.now()}.xlsx`);
+            };
+
+            const handleExportJSON = () => {
+                const a = document.createElement("a");
+                a.href = URL.createObjectURL(new Blob([JSON.stringify(products, null, 2)], { type: "application/json" }));
+                a.download = `Backup_${Date.now()}.json`;
+                a.click();
+            };
+
+            const handleImportJSON = (file) => {
+                const r = new FileReader();
+                r.onload = (e) => {
+                    try { setProducts(JSON.parse(e.target.result)); showMessage("Khôi phục thành công", MessageType.Success); }
+                    catch { showMessage("Lỗi file backup", MessageType.Error); }
+                };
+                r.readAsText(file);
+            };
+
+            return (
+                <div className="min-h-screen p-4 bg-gray-100 font-sans">
+                    <div className="max-w-6xl mx-auto space-y-6">
+                        <header className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
+                            <h1 className="text-2xl font-bold text-gray-800">Kiểm Hàng Nhập Kho (Multi-File)</h1>
+                        </header>
+
+                        {products.length === 0 ? (
+                            isLoading ? <div className="text-center">Đang xử lý...</div> : 
+                            <div className="bg-white p-8 rounded-lg shadow-md">
+                                <FileUpload onFilesSelected={handleFilesSelected} onJsonSelected={handleImportJSON} />
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                <ScannerInput onScan={handleScan} onBulkScan={handleBulkScan} products={products} />
+                                <Summary 
+                                    products={products} onReset={() => window.confirm("Xóa hết?") && setProducts([])}
+                                    onExport={handleExport} onExportJSON={handleExportJSON} 
+                                    onAddFiles={handleAppendFiles} setFilter={setFilter} currentFilter={filter}
+                                />
+                                <ProductTable products={products} filter={filter} onUpdateCount={handleUpdateCount} />
+                            </div>
+                        )}
+                        
+                        {message.text && (
+                            <div className={`fixed top-5 right-5 z-50 px-6 py-3 rounded text-white shadow-lg ${
+                                message.type === MessageType.Success ? 'bg-green-600' : 
+                                message.type === MessageType.Warning ? 'bg-yellow-600' : 
+                                message.type === MessageType.Error ? 'bg-red-600' : 'bg-blue-600'
+                            }`}>
+                                {message.text}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
