@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Phân Tích Kết Quả Kinh Doanh - Điện Máy Xanh</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" xintegrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- SheetJS (for reading Excel files) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <!-- html2canvas (for taking screenshots) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <!-- Slim Select for multi-select dropdowns -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/slim-select/2.8.2/slimselect.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/slim-select/2.8.2/slimselect.min.css" rel="stylesheet">
+    
+    <!-- Chart.js for charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .tab-btn.active { 
+            background-color: #2563eb; /* blue-600 */
+            color: white; 
+            border-bottom-color: transparent;
+        }
+        .comparison-up { color: #16a34a; /* green-600 */ }
+        .comparison-down { color: #dc2626; /* red-600 */ }
+        button:disabled {
+            background-color: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+        .report-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .report-table th, .report-table td {
+            border-right: 1px solid #e5e7eb; /* gray-200 */
+            border-top: 1px solid #e5e7eb;
+        }
+        .report-table th:last-child, .report-table td:last-child {
+            border-right: none;
+        }
+        .report-table thead th {
+            border-right: 1px solid #d1d5db; /* gray-300 */
+        }
+        .subgroup-row {
+            background-color: #f9fafb; /* gray-50 */
+        }
+        .subgroup-row td:first-child {
+            padding-left: 2.5rem !important;
+        }
+        .toggle-subgroup {
+            cursor: pointer;
+            margin-right: 8px;
+            color: #3b82f6; /* blue-500 */
+            transition: transform 0.2s;
+            display: inline-block;
+            width: 14px;
+        }
+        .toggle-subgroup.expanded {
+            transform: rotate(90deg);
+        }
+        .brand-row { cursor: pointer; }
+        .brand-product-row { background-color: #fdfdff; }
+        .brand-product-row td {
+            border-top: 1px solid #f3f4f6;
+        }
+        /* Slim-select custom styles */
+        .ss-main {
+            min-height: 42px;
+        }
+        .ss-main .ss-values .ss-value {
+             background-color: #2563eb;
+             color: white;
+        }
+        .ss-main .ss-values .ss-value .ss-value-delete {
+            color: white !important;
+        }
+        
+        /* Custom Header Colors */
+        .header-ky-nay { background-color: #3b82f6 !important; } /* blue-500 */
+        .header-ky-truoc { background-color: #22c55e !important; } /* green-500 */
+        .header-nam-ngoai { background-color: #f97316 !important; } /* orange-500 */
+        .header-ss-thang { background-color: #14b8a6 !important; } /* teal-500 */
+        .header-ss-nam { background-color: #a855f7 !important; } /* purple-500 */
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div id="report-container" class="container mx-auto p-4 md:p-8 max-w-screen-2xl">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-600 uppercase tracking-wider">Bảng Phân Tích Kết Quả Kinh Doanh</h1>
+            <p class="text-gray-500 mt-2">Công cụ trực quan hóa dữ liệu bán hàng từ file Excel</p>
+        </header>
+
+        <!-- Upload Card Section -->
+        <section class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-xl font-semibold text-blue-600 mb-4 border-b pb-2">Tải Dữ Liệu Lên</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="text-center">
+                    <label for="this-month-upload" class="cursor-pointer bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                        <i class="fas fa-upload"></i><span>Dữ liệu Tháng Này</span>
+                    </label>
+                    <input id="this-month-upload" type="file" class="hidden" accept=".xlsx, .xls, .csv">
+                    <div id="this-month-info" class="mt-2 text-gray-500 text-sm h-5"></div>
+                </div>
+                <div class="text-center">
+                    <label for="this-year-upload" class="cursor-pointer bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                        <i class="fas fa-upload"></i><span>Dữ liệu Năm Nay</span>
+                    </label>
+                    <input id="this-year-upload" type="file" class="hidden" accept=".xlsx, .xls, .csv">
+                     <div id="this-year-info" class="mt-2 text-gray-500 text-sm h-5"></div>
+                </div>
+                <div class="text-center">
+                    <label for="last-year-upload" class="cursor-pointer bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 ease-in-out flex items-center justify-center gap-2 shadow-md hover:shadow-lg">
+                        <i class="fas fa-upload"></i><span>Dữ liệu Năm Ngoái</span>
+                    </label>
+                    <input id="last-year-upload" type="file" class="hidden" accept=".xlsx, .xls, .csv">
+                     <div id="last-year-info" class="mt-2 text-gray-500 text-sm h-5"></div>
+                </div>
+            </div>
+             <div class="text-center mt-6">
+                <button id="export-btn" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out flex items-center gap-2 mx-auto shadow-md hover:shadow-lg">
+                    <i class="fas fa-camera"></i><span>Chụp Báo Cáo</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Main Content: Tabs -->
+        <main id="main-content">
+            <div id="tab-nav" class="mb-6 flex flex-wrap items-center gap-2 border-b-2 border-gray-300">
+                <button data-tab="tab-1" class="tab-btn active font-semibold py-2 px-4 rounded-t-lg border-2 border-b-0 border-transparent">1. DT Ngành Hàng</button>
+                <button data-tab="tab-2" class="tab-btn font-semibold py-2 px-4 rounded-t-lg border-2 border-b-0 border-transparent">2. DT Nhóm Hàng</button>
+                <button data-tab="tab-3" class="tab-btn font-semibold py-2 px-4 rounded-t-lg border-2 border-b-0 border-transparent">3. DT Nhân Viên</button>
+                
+            </div>
+            <div id="tab-content">
+                <div id="tab-1" class="tab-pane space-y-8"></div>
+                <div id="tab-2" class="tab-pane hidden space-y-8"></div>
+                <div id="tab-3" class="tab-pane hidden space-y-8"></div>
+                <div id="tab-4" class="tab-pane hidden"><p class="text-center p-4">Chức năng đang được phát triển.</p></div>
+            </div>
+        </main>
+
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>🏆NH.Dương-32859🏆</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Business Rules ---
+        const HE_SO_QUY_DOI = { "SIM ONLINE": 5.45, "BẢO HIỂM": 4.18, "PHỤ KIỆN TIỆN ÍCH": 3.37, "PHỤ KIỆN TRANG TRÍ": 3.37, "LOA VI TÍNH": 3.37, "ĐỒNG HỒ THỜI TRANG": 3.00, "WEARABLE": 3.00, "IT": 2.00, "DỤNG CỤ NHÀ BẾP": 1.92, "MÁY LỌC NƯỚC": 1.85, "ĐIỆN GIA DỤNG": 1.85, "GIA DỤNG LẮP ĐẶT": 1.85, "LOA KARAOKE": 1.29, "LAPTOP": 1.20, "TABLET": 1.20 };
+        const HINH_THUC_XUAT_KHONG_HOP_LE = new Set(['Xuất dịch vụ thu hộ qua Epay', 'Xuất dịch vụ thu hộ nạp tiền vào ví', 'Xuất dịch vụ thu hộ cước Payoo']);
+        const NHAN_VIEN_BI_LOAI = new Set(['online - Online - 18001060', 'administrator - Admin', '62301 - Nguyễn Quang Dũng', '32859 - Nguyễn Hoàng Dương']);
+        
+        // --- Global State ---
+        let dataThangNay = [], dataNamNay = [], dataNamNgoai = [];
+        let chartInstances = {}; // To keep track of chart instances and destroy them before re-rendering
+        
+        function getDefaultAppState() {
+            return {
+                tab1: {
+                    startDate: null,
+                    endDate: null,
+                    showDtThuc: true,
+                    showDtQd: true,
+                },
+                tab2: {
+                    // These will now be dynamically overwritten on file load, but serve as a fallback.
+                    selectedCategories: [],
+                    groupSelections: {
+                        '1491 - Smartphone': { selected: true, gop: 0 },
+                        '1094 - Tivi LED (IMEI)': { selected: true, gop: 0 }
+                    },
+                    categoryGroping: {}
+                },
+                tab3: {
+                    selectedEmployees: [], // Will be populated after file load
+                    showDtThuc: false,
+                    showDtQd: true,
+                    sevenDayCategories: ['22 - Laptop', '16 - Phụ kiện tiện ích', '1116 - Máy lọc nước'],
+                    sevenDayGroupSelections: {
+                        '6479 - Camera IP Trong nhà': { selected: true, gop: 1 },
+                        '4219 - Camera IP Ngoài trời': { selected: true, gop: 1 }
+                    },
+                    sevenDayCategoryGroping: {
+                        '22 - Laptop': true,
+                        '1116 - Máy lọc nước': true
+                    },
+                    showInsuranceReport7Day: true,
+                    sevenDayMetrics: {} // { [groupName]: 'sl' | 'dt_thuc' | 'dt_qd' }
+                }
+            };
+        }
+
+        let appState = getDefaultAppState();
+
+        let slimSelectInstances = {
+            category: null,
+            employee: null,
+            sevenDayCategory: null
+        };
+
+        // --- DOM Elements ---
+        const fileInputs = { 'this-month': document.getElementById('this-month-upload'), 'this-year': document.getElementById('this-year-upload'), 'last-year': document.getElementById('last-year-upload') };
+        const infoDivs = { 'this-month': document.getElementById('this-month-info'), 'this-year': document.getElementById('this-year-info'), 'last-year': document.getElementById('last-year-info') };
+        
+        // --- Event Listeners ---
+        Object.keys(fileInputs).forEach(key => fileInputs[key].addEventListener('change', (e) => handleFile(e, key)));
+        document.getElementById('export-btn').addEventListener('click', takeScreenshot);
+        document.getElementById('tab-nav').addEventListener('click', handleTabClick);
+
+        // --- Utility Functions ---
+        function parseDate(dateValue) {
+            if (!dateValue) return null;
+            if (dateValue instanceof Date && !isNaN(dateValue)) return dateValue;
+            if (typeof dateValue === 'number') { // Excel date
+                const utc_days  = Math.floor(dateValue - 25569);
+                const utc_value = utc_days * 86400;                                        
+                const date_info = new Date(utc_value * 1000);
+                const fractional_day = dateValue - Math.floor(dateValue) + 0.0000001;
+                let total_seconds = Math.floor(86400 * fractional_day);
+                const seconds = total_seconds % 60;
+                total_seconds -= seconds;
+                const hours = Math.floor(total_seconds / (60 * 60));
+                const minutes = Math.floor(total_seconds / 60) % 60;
+                return new Date(date_info.getFullYear(), date_info.getMonth(), date_info.getDate(), hours, minutes, seconds);
+            }
+            if (typeof dateValue === 'string') {
+                const d = new Date(dateValue);
+                if (!isNaN(d.getTime())) return d;
+                const parts = dateValue.split(/[/ :-]/);
+                if (parts.length >= 3) {
+                    const day = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10);
+                    let year = parseInt(parts[2], 10);
+                    if (String(year).length === 2) year += 2000;
+                    if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+                        const d2 = new Date(year, month - 1, day);
+                        if (d2.getFullYear() === year && d2.getMonth() === month - 1 && d2.getDate() === day) return d2;
+                    }
+                }
+            }
+            return null;
+        }
+        
+        function toSafeISODateString(date) {
+            if (!date || isNaN(date)) return null;
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        function formatToMillions(value) {
+            if (typeof value !== 'number' || isNaN(value)) return '0';
+            return Math.floor(value / 1000000).toLocaleString('vi-VN');
+        }
+        
+        function getColorForPercentageText(percentage) {
+            if (percentage < 0) percentage = 0;
+            if (percentage > 100) percentage = 100;
+            if (percentage < 10) return 'text-red-600';
+            if (percentage < 30) return 'text-orange-500';
+            return 'text-green-600';
+        }
+        
+        function formatChangeIndicator(current, previous, isMoney = false) {
+            if (previous === undefined || previous === null) {
+                return '';
+            }
+            const diff = current - previous;
+            if (diff === 0) return '';
+
+            const className = diff > 0 ? 'comparison-up' : 'comparison-down';
+            const sign = diff > 0 ? '+' : '';
+            const formattedDiff = isMoney ? formatToMillions(diff) : diff.toLocaleString('vi-VN');
+
+            return `<span class="text-xs font-semibold ml-1 ${className}">(${sign}${formattedDiff})</span>`;
+        }
+
+
+        // --- Data Processing ---
+        function processData(dataArray) {
+            return dataArray.map(row => {
+                let doanhThuThuc = 0;
+                let soLuongHopLe = 0;
+                const isExported = row['Trạng thái xuất'] === 'Đã xuất';
+                const isNotCancelled = !row['Trạng Thái huỷ'] || row['Trạng Thái huỷ'] === 'Chưa huỷ';
+                const isValidExportType = !HINH_THUC_XUAT_KHONG_HOP_LE.has(row['Hình thức xuất']);
+
+                if (isExported && isNotCancelled && isValidExportType) {
+                    soLuongHopLe = parseFloat(row['Số lượng']) || 0;
+                    doanhThuThuc = soLuongHopLe * (parseFloat(row['Giá bán_1']) || 0);
+                }
+
+                let heSo = 1;
+                // Trim string fields to ensure consistency and correct matching.
+                const nganhHangTrimmed = row['Ngành hàng'] ? String(row['Ngành hàng']).trim() : '';
+                
+                if (nganhHangTrimmed) {
+                    const parts = nganhHangTrimmed.split(' - ');
+                    const lookupKey = parts[parts.length - 1].trim().toUpperCase();
+                    if (HE_SO_QUY_DOI[lookupKey]) heSo = HE_SO_QUY_DOI[lookupKey];
+                }
+                const doanhThuQuyDoi = doanhThuThuc * heSo;
+                const date = parseDate(row['Ngày xuất hàng']);
+                
+                // Return a new object with calculated fields and trimmed text fields
+                return { 
+                    ...row, 
+                    'Ngành hàng': nganhHangTrimmed,
+                    'Nhóm hàng': row['Nhóm hàng'] ? String(row['Nhóm hàng']).trim() : undefined,
+                    'Người tạo': row['Người tạo'] ? String(row['Người tạo']).trim() : undefined,
+                    'Nhà sản xuất': row['Nhà sản xuất'] ? String(row['Nhà sản xuất']).trim() : undefined,
+                    'Tên sản phẩm': row['Tên sản phẩm'] ? String(row['Tên sản phẩm']).trim() : undefined,
+                    soLuongHopLe, 
+                    doanhThuThuc, 
+                    doanhThuQuyDoi, 
+                    date 
+                };
+            });
+        }
+        
+        function handleFile(event, dataType) {
+            const file = event.target.files[0];
+            const infoDiv = infoDivs[dataType];
+            if (!file) { infoDiv.textContent = ''; return; }
+            infoDiv.textContent = `Đang xử lý...`;
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const workbook = XLSX.read(new Uint8Array(e.target.result), { type: 'array', cellDates: true });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (dataType === 'this-month') { 
+                        dataThangNay = processData(jsonData); 
+                        
+                        // Reset state using the default function
+                        appState = getDefaultAppState();
+
+                        // --- DYNAMICALLY SET TAB 2 DEFAULTS BASED ON FILE DATA ---
+                        // This ensures selections are always correct regardless of minor name variations in the file.
+                        const allCategoriesInData = [...new Set(dataThangNay.map(r => r['Ngành hàng']).filter(Boolean))];
+                        
+                        // **FIX**: Updated category codes based on user feedback.
+                        // Define the category CODES that should be selected by default.
+                        const defaultSelectedCodes = new Set(['13', '304', '22', '1755', '1754', '1756', '1116']);
+                        
+                        // Define the category CODES that should be GROUPED by default.
+                        const defaultGropingCodes = new Set(['22', '1755', '1754', '1756', '1116']);
+
+                        const newSelectedCategories = [];
+                        const newCategoryGroping = {};
+
+                        allCategoriesInData.forEach(catName => {
+                            const code = catName.split(' - ')[0]; // Extract code, e.g., '1756'
+                            if (defaultSelectedCodes.has(code)) {
+                                newSelectedCategories.push(catName);
+                            }
+                            if (defaultGropingCodes.has(code)) {
+                                newCategoryGroping[catName] = true;
+                            }
+                        });
+
+                        // Overwrite tab2 defaults with dynamically generated ones
+                        appState.tab2.selectedCategories = newSelectedCategories;
+                        appState.tab2.categoryGroping = newCategoryGroping;
+                        // --- END DYNAMIC SETTINGS ---
+
+                        const allEmployees = [...new Set(dataThangNay.map(r => r['Người tạo']).filter(Boolean))];
+                        appState.tab3.selectedEmployees = allEmployees.filter(emp => !NHAN_VIEN_BI_LOAI.has(emp));
+                    }
+                    else if (dataType === 'this-year') { dataNamNay = processData(jsonData); }
+                    else if (dataType === 'last-year') { dataNamNgoai = processData(jsonData); }
+
+                    infoDiv.textContent = `✅ Đã tải: ${file.name}`;
+                    
+                    const activeTab = document.querySelector('.tab-btn.active').dataset.tab;
+                    if (activeTab === 'tab-1') {
+                         renderTab1();
+                    } else if (activeTab === 'tab-2') {
+                         renderTab2();
+                    } else if (activeTab === 'tab-3') {
+                         renderTab3();
+                    }
+                } catch (error) {
+                    console.error("Lỗi xử lý tệp:", error);
+                    infoDiv.textContent = '❌ Lỗi khi đọc tệp.';
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // --- Tab 1: DT Ngành Hàng ---
+        function renderTab1() {
+            const tabContainer = document.getElementById('tab-1');
+            
+            const today = new Date();
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            if (!appState.tab1.startDate) appState.tab1.startDate = toSafeISODateString(firstDayOfMonth);
+            if (!appState.tab1.endDate) appState.tab1.endDate = toSafeISODateString(yesterday);
+
+            let uiHTML = `<div class="bg-white p-4 rounded-xl shadow-lg mb-8">
+                <div class="flex flex-wrap items-center justify-center gap-4">
+                    <label for="start-date" class="font-semibold text-gray-700">Từ ngày:</label>
+                    <input type="date" id="start-date" class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="${appState.tab1.startDate}">
+                    <label for="end-date" class="font-semibold text-gray-700">Đến ngày:</label>
+                    <input type="date" id="end-date" class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" value="${appState.tab1.endDate}">
+                    <button id="analyze-btn-tab1" class="bg-blue-600 text-white font-bold py-2 px-5 rounded-lg hover:bg-blue-700 transition-transform transform hover:scale-105 shadow-md">
+                        <i class="fas fa-chart-pie"></i> Phân Tích
+                    </button>
+                </div>
+                <div id="view-options" class="mt-4 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer font-medium text-gray-600"><input type="checkbox" id="toggle-dt-thuc" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${appState.tab1.showDtThuc ? 'checked' : ''}>Hiện DT Thực</label>
+                    <label class="flex items-center gap-2 cursor-pointer font-medium text-gray-600"><input type="checkbox" id="toggle-dt-qd" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${appState.tab1.showDtQd ? 'checked' : ''}>Hiện DT QĐ</label>
+                </div>
+            </div>
+            <div id="report-content-tab1" class="flex justify-center"></div>
+            <div id="chart-container-tab1" class="mt-8 bg-white p-6 rounded-xl shadow-lg"></div>`;
+            tabContainer.innerHTML = uiHTML;
+
+            document.getElementById('analyze-btn-tab1').addEventListener('click', analyzeAndRenderTab1);
+            document.getElementById('toggle-dt-thuc').addEventListener('change', analyzeAndRenderTab1);
+            document.getElementById('toggle-dt-qd').addEventListener('change', analyzeAndRenderTab1);
+            
+            if (dataThangNay.length > 0 || dataNamNay.length > 0) {
+                 analyzeAndRenderTab1();
+            }
+        }
+
+        function renderComparisonChart() {
+            const container = document.getElementById('chart-container-tab1');
+            if (dataNamNay.length === 0 && dataNamNgoai.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            container.innerHTML = `
+                <h3 class="text-lg font-semibold text-center text-gray-800">So Sánh Doanh Thu Quy Đổi Hàng Tháng</h3>
+                <p id="chart-subtitle" class="text-center text-gray-600 text-sm mb-4"></p>
+                <canvas id="monthly-revenue-chart"></canvas>
+            `;
+            const ctx = document.getElementById('monthly-revenue-chart').getContext('2d');
+
+            const aggregateMonthly = (data) => {
+                const monthlyTotals = Array(12).fill(0);
+                data.forEach(r => {
+                    if (r.date) {
+                        const month = r.date.getMonth(); // 0-11
+                        monthlyTotals[month] += r.doanhThuQuyDoi;
+                    }
+                });
+                return monthlyTotals.map(total => Math.round(total / 1000000)); // Convert to millions
+            };
+
+            const dataThisYear = aggregateMonthly(dataNamNay);
+            const dataLastYear = aggregateMonthly(dataNamNgoai);
+            
+            const labels = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+            
+            // --- CẬP NHẬT LOGIC TÍNH DOANH THU DỰ KIẾN V2.0 ---
+            const today = new Date();
+            const currentMonthIndex = today.getMonth();
+            const currentYear = today.getFullYear();
+            
+            // Chỉ thực hiện tính toán nếu có dữ liệu tháng này
+            if (dataThangNay.length > 0) {
+                const dayOfMonth = today.getDate();
+                const daysPassed = dayOfMonth > 1 ? dayOfMonth - 1 : 1; // Tránh chia cho 0 vào ngày mùng 1
+
+                const daysInMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
+                
+                // Lọc dữ liệu của tháng hiện tại, tính đến hết ngày hôm qua
+                // Sử dụng dataThangNay thay vì dataNamNay
+                const revenueThisMonthToDate = dataThangNay
+                    .filter(r => {
+                        const rDate = r.date;
+                        return rDate && rDate.getDate() < dayOfMonth;
+                    })
+                    .reduce((sum, r) => sum + r.doanhThuQuyDoi, 0);
+
+                // Tính doanh thu trung bình ngày
+                const averageDailyRevenue = revenueThisMonthToDate / daysPassed;
+                // Dự kiến doanh thu cả tháng
+                const projectedMonthlyRevenue = averageDailyRevenue * daysInMonth;
+
+                // Cập nhật lại giá trị của tháng hiện tại trong mảng dữ liệu biểu đồ
+                dataThisYear[currentMonthIndex] = Math.round(projectedMonthlyRevenue / 1000000);
+            }
+            // --- KẾT THÚC CẬP NHẬT ---
+
+
+            // Calculate cumulative for subtitle
+            if (currentMonthIndex > 0) {
+                 const luyKeThisYear = dataThisYear.slice(0, currentMonthIndex).reduce((a, b) => a + b, 0);
+                 const luyKeLastYear = dataLastYear.slice(0, currentMonthIndex).reduce((a, b) => a + b, 0);
+                 let luyKeGrowth = 0;
+                 if (luyKeLastYear > 0) {
+                     luyKeGrowth = ((luyKeThisYear - luyKeLastYear) / luyKeLastYear) * 100;
+                 }
+                 const growthSign = luyKeGrowth >= 0 ? '+' : '';
+                 const growthColor = luyKeGrowth >= 0 ? 'text-green-600' : 'text-red-600';
+                 const subtitleEl = document.getElementById('chart-subtitle');
+                 subtitleEl.innerHTML = `Lũy kế đến T${currentMonthIndex}: <strong class="text-blue-600">${luyKeThisYear.toLocaleString('vi-VN')} Tr</strong>. Tăng trưởng: <strong class="${growthColor}">${growthSign}${luyKeGrowth.toFixed(1)}%</strong> vs Năm ngoái.`;
+            }
+
+
+            if (chartInstances['monthly-revenue-chart']) {
+                chartInstances['monthly-revenue-chart'].destroy();
+            }
+            
+            Chart.register(ChartDataLabels);
+
+            chartInstances['monthly-revenue-chart'] = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: `Năm Nay (${new Date().getFullYear()}) - (Tháng hiện tại là DT dự kiến)`,
+                            data: dataThisYear,
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            borderColor: '#3b82f6',
+                            borderWidth: 1
+                        },
+                        {
+                            label: `Năm Ngoái (${new Date().getFullYear() - 1})`,
+                            data: dataLastYear,
+                            backgroundColor: 'rgba(249, 115, 22, 0.6)',
+                            borderColor: '#f97316',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'top' },
+                        title: { display: false },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            formatter: (value) => value > 0 ? value.toLocaleString('vi-VN') : null,
+                            font: { weight: 'bold', size: 10 },
+                            color: '#4b5563'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { display: false },
+                            title: {
+                                display: true,
+                                text: 'Doanh thu (Triệu)'
+                            }
+                        },
+                        x: {
+                             grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        function analyzeAndRenderTab1() {
+            appState.tab1.startDate = document.getElementById('start-date').value;
+            appState.tab1.endDate = document.getElementById('end-date').value;
+            appState.tab1.showDtThuc = document.getElementById('toggle-dt-thuc').checked;
+            appState.tab1.showDtQd = document.getElementById('toggle-dt-qd').checked;
+
+            const reportContent = document.getElementById('report-content-tab1');
+            if (dataThangNay.length === 0) {
+                reportContent.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-red-500 font-semibold">Vui lòng tải lên "Dữ liệu Tháng Này" trước khi phân tích.</p></div>`;
+                return;
+            }
+            
+            const hasNamNayData = dataNamNay.length > 0;
+            const hasNamNgoaiData = dataNamNgoai.length > 0;
+            
+            const startDate = new Date(appState.tab1.startDate);
+            const endDate = new Date(appState.tab1.endDate);
+
+            if (isNaN(startDate) || isNaN(endDate)) {
+                reportContent.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-red-500 font-semibold">Vui lòng chọn khoảng ngày phân tích hợp lệ.</p></div>`;
+                return;
+            }
+            
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate.setUTCHours(23, 59, 59, 999);
+
+            const aggregate = (data, range) => data
+                .filter(r => r.date && r.date >= range.start && r.date <= range.end)
+                .reduce((acc, r) => {
+                    const category = r['Ngành hàng'] || 'Không xác định';
+                    const subGroup = r['Nhóm hàng'] || 'Chưa phân loại';
+                    
+                    if (!acc[category]) acc[category] = { summary: { sl: 0, dt: 0, dt_qd: 0 }, subGroups: {} };
+                    if (!acc[category].subGroups[subGroup]) acc[category].subGroups[subGroup] = { sl: 0, dt: 0, dt_qd: 0 };
+                    
+                    const sl = r.soLuongHopLe;
+                    const dt = r.doanhThuThuc;
+                    const dt_qd = r.doanhThuQuyDoi;
+
+                    acc[category].summary.sl += sl;
+                    acc[category].summary.dt += dt;
+                    acc[category].summary.dt_qd += dt_qd;
+                    acc[category].subGroups[subGroup].sl += sl;
+                    acc[category].subGroups[subGroup].dt += dt;
+                    acc[category].subGroups[subGroup].dt_qd += dt_qd;
+                    return acc;
+                }, {});
+
+            const currentAgg = aggregate(dataThangNay, { start: startDate, end: endDate });
+            const prevMonthAgg = hasNamNayData ? aggregate(dataNamNay, { start: new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() - 1, startDate.getUTCDate())), end: new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth() - 1, endDate.getUTCDate(), 23, 59, 59, 999)) }) : {};
+            const prevYearAgg = hasNamNgoaiData ? aggregate(dataNamNgoai, { start: new Date(Date.UTC(startDate.getUTCFullYear() - 1, startDate.getUTCMonth(), startDate.getUTCDate())), end: new Date(Date.UTC(endDate.getUTCFullYear() - 1, endDate.getUTCMonth(), endDate.getUTCDate(), 23, 59, 59, 999)) }) : {};
+            
+            const allCategories = new Set([...Object.keys(currentAgg), ...Object.keys(prevMonthAgg), ...Object.keys(prevYearAgg)]);
+            
+            let combinedData = Array.from(allCategories).map(cat => {
+                const currentCatData = currentAgg[cat] || { summary: {sl:0, dt:0, dt_qd:0}, subGroups: {} };
+                const prevMCatData = prevMonthAgg[cat] || { summary: {sl:0, dt:0, dt_qd:0}, subGroups: {} };
+                const prevYCatData = prevYearAgg[cat] || { summary: {sl:0, dt:0, dt_qd:0}, subGroups: {} };
+
+                const allSubGroups = new Set([
+                    ...Object.keys(currentCatData.subGroups),
+                    ...Object.keys(prevMCatData.subGroups),
+                    ...Object.keys(prevYCatData.subGroups)
+                ]);
+
+                const subGroupsData = Array.from(allSubGroups).map(sub => ({
+                    name: sub,
+                    current: currentCatData.subGroups[sub] || { sl: 0, dt: 0, dt_qd: 0 },
+                    prevM: prevMCatData.subGroups[sub] || { sl: 0, dt: 0, dt_qd: 0 },
+                    prevY: prevYCatData.subGroups[sub] || { sl: 0, dt: 0, dt_qd: 0 },
+                })).sort((a,b) => b.current.dt_qd - a.current.dt_qd);
+
+                return { category: cat, current: currentCatData.summary, prevM: prevMCatData.summary, prevY: prevYCatData.summary, subGroups: subGroupsData };
+            })
+            .filter(item => item.current.dt > 0 || item.prevM.dt > 0 || item.prevY.dt > 0)
+            .sort((a,b) => b.current.dt_qd - a.current.dt_qd);
+
+            if (combinedData.length === 0) {
+                reportContent.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-gray-600">Không có dữ liệu doanh thu cho khoảng ngày đã chọn.</p></div>`;
+                renderComparisonChart();
+                return;
+            }
+            
+            const showDtThuc = appState.tab1.showDtThuc;
+            const showDtQd = appState.tab1.showDtQd;
+            const periodColspan = 1 + (showDtThuc ? 1 : 0) + (showDtQd ? 1 : 0);
+
+            const formatComparisonCell = (current, previous, isMoney = false) => {
+                if (previous === undefined || previous === null || previous === 0) return '-';
+                const diff = current - previous;
+                if (diff === 0) return '0 (0.0%)';
+                const percentage = (diff / previous) * 100;
+                const className = diff > 0 ? 'comparison-up' : 'comparison-down';
+                const sign = diff > 0 ? '+' : '';
+                const formattedDiff = isMoney ? formatToMillions(diff) : diff.toLocaleString('vi-VN');
+                return `<span class="${className}">${sign}${formattedDiff} (${sign}${percentage.toFixed(1)}%)</span>`;
+            };
+
+            let headerHTML = `<thead class="bg-gray-800 text-white text-sm">
+                <tr>
+                    <th rowspan="2" class="py-3 px-3 text-left font-semibold align-middle">Ngành Hàng / Nhóm Hàng</th>
+                    <th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ky-nay">Kỳ Này</th>`;
+            if (hasNamNayData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ky-truoc">Kỳ Trước</th>`;
+            if (hasNamNgoaiData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-nam-ngoai">Năm Ngoái</th>`;
+            if (hasNamNayData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ss-thang">Tăng trưởng vs Tháng</th>`;
+            if (hasNamNgoaiData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ss-nam">Tăng trưởng vs Năm</th>`;
+            headerHTML += `</tr><tr>`;
+            
+            // Sub-headers for periods
+            const renderSubHeader = (headerClass) => {
+                let html = `<th class="py-2 px-3 font-semibold border-l border-gray-600 ${headerClass}">SL</th>`;
+                if(showDtThuc) html += `<th class="py-2 px-3 font-semibold ${headerClass}">DT Thực</th>`;
+                if(showDtQd) html += `<th class="py-2 px-3 font-semibold ${headerClass}">DT QĐ</th>`;
+                return html;
+            }
+            
+            headerHTML += renderSubHeader('header-ky-nay');
+            if (hasNamNayData) headerHTML += renderSubHeader('header-ky-truoc');
+            if (hasNamNgoaiData) headerHTML += renderSubHeader('header-nam-ngoai');
+            if (hasNamNayData) headerHTML += renderSubHeader('header-ss-thang');
+            if (hasNamNgoaiData) headerHTML += renderSubHeader('header-ss-nam');
+
+            headerHTML += `</tr></thead>`;
+
+            let bodyHTML = '<tbody>';
+            const totals = { current: { sl: 0, dt: 0, dt_qd: 0 }, prevM: { sl: 0, dt: 0, dt_qd: 0 }, prevY: { sl: 0, dt: 0, dt_qd: 0 } };
+            
+            const renderRow = (item, isSubGroup = false) => {
+                let rowHTML = `<tr class="${isSubGroup ? 'subgroup-row' : 'category-row bg-white'} ${isSubGroup ? 'hidden' : ''}" ${isSubGroup ? `data-parent-category="${item.parentCategory}"` : ''}>`;
+                const name = isSubGroup ? item.name : item.category;
+                const hasSubGroups = !isSubGroup && item.subGroups && item.subGroups.length > 0;
+                rowHTML += `<td class="py-2 px-3 text-left font-medium"><i class="fas fa-caret-right toggle-subgroup ${hasSubGroups ? '' : 'invisible'}" data-target-category="${item.category}"></i>${name}</td>`;
+                // Period data
+                ['current', 'prevM', 'prevY'].forEach((period, index) => {
+                    if ((index === 1 && !hasNamNayData) || (index === 2 && !hasNamNgoaiData)) return;
+                    rowHTML += `<td class="py-2 px-3 text-center">${(item[period].sl || 0).toLocaleString('vi-VN')}</td>`;
+                    if(showDtThuc) rowHTML += `<td class="py-2 px-3 text-center">${formatToMillions(item[period].dt)}</td>`;
+                    if(showDtQd) rowHTML += `<td class="py-2 px-3 text-center">${formatToMillions(item[period].dt_qd)}</td>`;
+                });
+                // Comparison data
+                ['prevM', 'prevY'].forEach((period, index) => {
+                    if ((index === 0 && !hasNamNayData) || (index === 1 && !hasNamNgoaiData)) return;
+                     rowHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(item.current.sl, item[period].sl)}</td>`;
+                    if(showDtThuc) rowHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(item.current.dt, item[period].dt, true)}</td>`;
+                    if(showDtQd) rowHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(item.current.dt_qd, item[period].dt_qd, true)}</td>`;
+                });
+                rowHTML += `</tr>`;
+                return rowHTML;
+            };
+
+            combinedData.forEach(item => {
+                Object.keys(totals).forEach(key => { totals[key].sl += item[key].sl; totals[key].dt += item[key].dt; totals[key].dt_qd += item[key].dt_qd; });
+                bodyHTML += renderRow(item);
+                if (item.subGroups) {
+                    item.subGroups.forEach(subItem => { bodyHTML += renderRow({ ...subItem, parentCategory: item.category }, true); });
+                }
+            });
+
+            bodyHTML += `<tr class="bg-gray-200 font-bold text-gray-800"><td class="py-2 px-3 text-left">Tổng Cộng</td>`;
+            ['current', 'prevM', 'prevY'].forEach((period, index) => {
+                if ((index === 1 && !hasNamNayData) || (index === 2 && !hasNamNgoaiData)) return;
+                bodyHTML += `<td class="py-2 px-3 text-center">${totals[period].sl.toLocaleString('vi-VN')}</td>`;
+                if(showDtThuc) bodyHTML += `<td class="py-2 px-3 text-center">${formatToMillions(totals[period].dt)}</td>`;
+                if(showDtQd) bodyHTML += `<td class="py-2 px-3 text-center">${formatToMillions(totals[period].dt_qd)}</td>`;
+            });
+            ['prevM', 'prevY'].forEach((period, index) => {
+                if ((index === 0 && !hasNamNayData) || (index === 1 && !hasNamNgoaiData)) return;
+                bodyHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(totals.current.sl, totals[period].sl)}</td>`;
+                if(showDtThuc) bodyHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(totals.current.dt, totals[period].dt, true)}</td>`;
+                if(showDtQd) bodyHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(totals.current.dt_qd, totals[period].dt_qd, true)}</td>`;
+            });
+            bodyHTML += `</tr></tbody>`;
+
+            reportContent.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-lg w-full"><h2 class="text-xl font-semibold mb-4 text-center text-blue-600">Bảng So Sánh Doanh Thu Ngành Hàng (Đơn vị: Triệu)</h2><div class="overflow-x-auto rounded-lg border"><table id="report-table" class="min-w-full bg-white text-sm report-table">${headerHTML}${bodyHTML}</table></div></div>`;
+            
+            document.getElementById('report-table')?.addEventListener('click', (e) => {
+                const toggleBtn = e.target.closest('.toggle-subgroup');
+                if (toggleBtn && !toggleBtn.classList.contains('invisible')) {
+                    const category = toggleBtn.dataset.targetCategory;
+                    document.querySelectorAll(`.subgroup-row[data-parent-category="${category}"]`).forEach(row => row.classList.toggle('hidden'));
+                    toggleBtn.classList.toggle('expanded');
+                }
+            });
+
+            renderComparisonChart();
+        }
+
+        // --- Tab 2: DT Nhóm Hàng ---
+        function renderTab2() {
+            const tabContainer = document.getElementById('tab-2');
+            if (dataThangNay.length === 0) {
+                tabContainer.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-red-500 font-semibold">Vui lòng tải lên "Dữ liệu Tháng Này" để sử dụng chức năng này.</p></div>`;
+                return;
+            }
+
+            let uiHTML = `<div class="bg-white p-6 rounded-xl shadow-lg space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2">
+                    <div>
+                        <label for="category-filter-tab2" class="block text-lg font-semibold text-gray-800 mb-2">1. Chọn Ngành Hàng</label>
+                        <select id="category-filter-tab2" multiple></select>
+                    </div>
+                    <div>
+                        <label class="block text-lg font-semibold text-gray-800 mb-2">2. Chọn & Gộp Nhóm Hàng</label>
+                        <div id="product-group-list-container" class="max-h-64 overflow-y-auto border rounded-md p-3 space-y-2">
+                           <p class="text-gray-500">Vui lòng chọn ngành hàng trước.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="report-content-tab2" class="mt-8 space-y-8"></div>`;
+            tabContainer.innerHTML = uiHTML;
+
+            setupFiltersTab2();
+            
+            tabContainer.addEventListener('click', (e) => {
+                const brandRow = e.target.closest('.brand-row');
+                if (brandRow) {
+                    const brandId = brandRow.dataset.brandId;
+                    const icon = brandRow.querySelector('.brand-toggle-icon');
+                    document.querySelectorAll(`.brand-product-row[data-parent-brand="${brandId}"]`).forEach(row => {
+                        row.classList.toggle('hidden');
+                    });
+                    icon.classList.toggle('fa-plus-circle');
+                    icon.classList.toggle('fa-minus-circle');
+                }
+            });
+        }
+        
+        function setupFiltersTab2() {
+            if (slimSelectInstances.category) {
+                slimSelectInstances.category.destroy();
+            }
+
+            const categoryRevenues = dataThangNay.reduce((acc, r) => {
+                const cat = r['Ngành hàng'] || 'Không xác định';
+                acc[cat] = (acc[cat] || 0) + r.doanhThuQuyDoi;
+                return acc;
+            }, {});
+            const sortedCategories = Object.keys(categoryRevenues)
+                .filter(cat => cat !== 'Không xác định')
+                .sort((a, b) => categoryRevenues[b] - categoryRevenues[a])
+                .map(cat => ({ text: cat, value: cat }));
+
+            slimSelectInstances.category = new SlimSelect({
+                select: '#category-filter-tab2',
+                settings: { placeholderText: 'Chọn ngành hàng', allowDeselect: true, closeOnSelect: false },
+                data: sortedCategories,
+                events: {
+                    afterChange: (newVal) => {
+                        appState.tab2.selectedCategories = newVal.map(v => v.value);
+                        updateProductGroupsList();
+                        analyzeAndRenderTab2();
+                    }
+                }
+            });
+            slimSelectInstances.category.setSelected(appState.tab2.selectedCategories);
+            updateProductGroupsList();
+        }
+
+        function updateProductGroupsList() {
+            const container = document.getElementById('product-group-list-container');
+            const selectedCategories = appState.tab2.selectedCategories;
+
+            if (selectedCategories.length === 0) {
+                container.innerHTML = `<p class="text-gray-500">Vui lòng chọn ngành hàng trước.</p>`;
+                appState.tab2.groupSelections = {};
+                appState.tab2.categoryGroping = {};
+                analyzeAndRenderTab2();
+                return;
+            }
+            
+            let html = '<div class="space-y-2">';
+
+            html += '<div class="border-b pb-2 mb-2">';
+            html += '<h4 class="font-semibold text-gray-600 text-sm mb-1">Gộp theo Ngành hàng</h4>';
+            selectedCategories.forEach(cat => {
+                const isChecked = appState.tab2.categoryGroping[cat] || false;
+                html += `
+                    <label class="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-gray-100">
+                        <input type="checkbox" data-category-name="${cat}" class="category-gop-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${isChecked ? 'checked' : ''}>
+                        <span class="text-sm font-medium text-blue-700">${cat}</span>
+                    </label>
+                `;
+            });
+            html += '</div>';
+            
+            // Determine which groups to hide
+            const gropedCategories = Object.keys(appState.tab2.categoryGroping).filter(cat => appState.tab2.categoryGroping[cat]);
+            const groupsToHide = new Set();
+            gropedCategories.forEach(catName => {
+                dataThangNay.forEach(r => {
+                    if (r['Ngành hàng'] === catName && r['Nhóm hàng']) {
+                        groupsToHide.add(r['Nhóm hàng']);
+                    }
+                });
+            });
+
+
+            const groupRevenues = dataThangNay
+                .filter(r => selectedCategories.includes(r['Ngành hàng']))
+                .reduce((acc, r) => {
+                    const group = r['Nhóm hàng'] || 'Không xác định';
+                    acc[group] = (acc[group] || 0) + r.doanhThuQuyDoi;
+                    return acc;
+                }, {});
+            
+            const sortedGroups = Object.keys(groupRevenues)
+                .filter(group => group !== 'Không xác định' && !groupsToHide.has(group))
+                .sort((a,b) => groupRevenues[b] - groupRevenues[a]);
+
+            html += '<h4 class="font-semibold text-gray-600 text-sm mb-1">Gộp theo Nhóm hàng</h4>';
+            html += `
+                <div class="p-1">
+                    <input type="text" id="group-search-input" placeholder="Tìm kiếm nhóm hàng..." class="w-full p-1.5 border border-gray-300 rounded-md text-sm">
+                </div>
+            `;
+            sortedGroups.forEach(group => {
+                const selection = appState.tab2.groupSelections[group] || { selected: false, gop: 0 };
+                let gopButtonsHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    gopButtonsHTML += `<label class="mr-2"><input type="radio" name="gop-${group}" value="${i}" class="gop-radio" data-group-name="${group}" ${selection.gop === i ? 'checked' : ''}> ${i}</label>`;
+                }
+
+                html += `
+                    <div class="flex items-center justify-between p-1.5 rounded hover:bg-gray-100 group-item-container">
+                        <label class="flex items-center gap-2 cursor-pointer flex-grow">
+                            <input type="checkbox" data-group-name="${group}" class="group-checkbox h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${selection.selected ? 'checked' : ''}>
+                            <span class="text-sm">${group}</span>
+                        </label>
+                        <div class="text-xs gop-controls">
+                            <span class="mr-1">Gộp:</span>
+                            ${gopButtonsHTML}
+                             <button data-group-name="${group}" class="gop-clear-btn text-red-500 ml-1" title="Bỏ gộp">✖</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+
+            // Add event listeners
+            container.querySelector('#group-search-input')?.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                container.querySelectorAll('.group-item-container').forEach(itemDiv => {
+                    const groupName = itemDiv.querySelector('span').textContent.toLowerCase();
+                    if (groupName.includes(searchTerm)) {
+                        itemDiv.style.display = 'flex';
+                    } else {
+                        itemDiv.style.display = 'none';
+                    }
+                });
+            });
+
+            container.querySelectorAll('.category-gop-checkbox').forEach(cb => {
+                cb.addEventListener('change', e => {
+                    appState.tab2.categoryGroping[e.target.dataset.categoryName] = e.target.checked;
+                    updateProductGroupsList(); // Re-render the list to hide/show groups
+                    analyzeAndRenderTab2();
+                });
+            });
+
+            container.querySelectorAll('.group-checkbox').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const groupName = e.target.dataset.groupName;
+                    if (!appState.tab2.groupSelections[groupName]) {
+                        appState.tab2.groupSelections[groupName] = { selected: false, gop: 0 };
+                    }
+                    appState.tab2.groupSelections[groupName].selected = e.target.checked;
+                    analyzeAndRenderTab2();
+                });
+            });
+
+            container.querySelectorAll('.gop-radio').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const groupName = e.target.dataset.groupName;
+                    if (!appState.tab2.groupSelections[groupName]) {
+                        appState.tab2.groupSelections[groupName] = { selected: false, gop: 0 };
+                    }
+                    appState.tab2.groupSelections[groupName].selected = true;
+                    appState.tab2.groupSelections[groupName].gop = parseInt(e.target.value);
+                    const checkbox = container.querySelector(`.group-checkbox[data-group-name="${groupName}"]`);
+                    if (checkbox) checkbox.checked = true;
+                    analyzeAndRenderTab2();
+                });
+            });
+            
+            container.querySelectorAll('.gop-clear-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const groupName = e.target.dataset.groupName;
+                    if (appState.tab2.groupSelections[groupName]) {
+                        appState.tab2.groupSelections[groupName].gop = 0;
+                    }
+                    container.querySelectorAll(`input[name="gop-${groupName}"]`).forEach(radio => radio.checked = false);
+                    analyzeAndRenderTab2();
+                });
+            });
+        }
+
+        function analyzeAndRenderTab2() {
+            const reportContainer = document.getElementById('report-content-tab2');
+            reportContainer.innerHTML = '';
+
+            const groupsToAnalyze = [];
+            const gopMap = {};
+            const processedGroups = new Set();
+
+            // Process category-level groupings first
+            Object.entries(appState.tab2.categoryGroping).forEach(([categoryName, isGroped]) => {
+                if (isGroped) {
+                    const groupsInCat = [...new Set(dataThangNay.filter(r => r['Ngành hàng'] === categoryName).map(r => r['Nhóm hàng']))];
+                    groupsToAnalyze.push({ name: categoryName, groups: groupsInCat });
+                    groupsInCat.forEach(g => processedGroups.add(g));
+                }
+            });
+
+            // Process manual groupings
+            Object.entries(appState.tab2.groupSelections).forEach(([groupName, selection]) => {
+                if (!selection.selected || processedGroups.has(groupName)) return;
+
+                if (selection.gop > 0) {
+                    if (!gopMap[selection.gop]) {
+                        gopMap[selection.gop] = { name: '', groups: [], names: [] };
+                    }
+                    gopMap[selection.gop].groups.push(groupName);
+                    gopMap[selection.gop].names.push(groupName);
+                    processedGroups.add(groupName);
+                }
+            });
+             Object.values(gopMap).forEach(g => {
+                groupsToAnalyze.push({ name: g.names.join(' & '), groups: g.groups });
+            });
+
+
+            // Process individual selections
+            Object.entries(appState.tab2.groupSelections).forEach(([groupName, selection]) => {
+                if (selection.selected && !processedGroups.has(groupName)) {
+                    groupsToAnalyze.push({ name: groupName, groups: [groupName] });
+                }
+            });
+
+            if (groupsToAnalyze.length === 0) return;
+
+            const startDate = new Date(appState.tab1.startDate);
+            const endDate = new Date(appState.tab1.endDate);
+            if (isNaN(startDate) || isNaN(endDate)) {
+                 reportContainer.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-red-500 font-semibold">Vui lòng đặt ngày hợp lệ ở Tab 1 để xem phân tích.</p></div>`;
+                return;
+            }
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate.setUTCHours(23, 59, 59, 999);
+            
+            const prevMonthRange = {
+                start: new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() - 1, startDate.getUTCDate())),
+                end: new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth() - 1, endDate.getUTCDate(), 23, 59, 59, 999))
+            };
+            
+            const hasNamNayData = dataNamNay.length > 0;
+            const totalRevenueAll = dataThangNay.reduce((sum, row) => sum + row.doanhThuQuyDoi, 0);
+
+            groupsToAnalyze.forEach(item => {
+                const { name: groupName, groups: groupList } = item;
+                const safeGroupName = groupName.replace(/[^a-zA-Z0-9]/g, '-');
+
+                const groupData = dataThangNay.filter(r => groupList.includes(r['Nhóm hàng']) && r.date >= startDate && r.date <= endDate);
+                const groupDataLM = hasNamNayData ? dataNamNay.filter(r => groupList.includes(r['Nhóm hàng']) && r.date >= prevMonthRange.start && r.date <= prevMonthRange.end) : [];
+
+                const aggregateTotals = (data) => data.reduce((acc, row) => {
+                    acc.sl += row.soLuongHopLe;
+                    acc.dt_qd += row.doanhThuQuyDoi;
+                    return acc;
+                }, { sl: 0, dt_qd: 0 });
+
+                const groupTotals = aggregateTotals(groupData);
+                const groupTotalsLM = aggregateTotals(groupDataLM);
+
+                const groupPercentageOfTotal = totalRevenueAll > 0 ? (groupTotals.dt_qd / totalRevenueAll) * 100 : 0;
+
+                const analyzeBrands = (data) => data.reduce((acc, row) => {
+                    const brand = row['Nhà sản xuất'] || 'Không có thương hiệu';
+                    if (!acc[brand]) acc[brand] = { sl: 0, dt_qd: 0, products: {} };
+                    acc[brand].sl += row.soLuongHopLe;
+                    acc[brand].dt_qd += row.doanhThuQuyDoi;
+                    if (row.soLuongHopLe > 0) {
+                        const productName = row['Tên sản phẩm'];
+                        if (!acc[brand].products[productName]) {
+                            acc[brand].products[productName] = { name: productName, sl: 0, price: parseFloat(row['Giá bán_1']) || 0 };
+                        }
+                        acc[brand].products[productName].sl += row.soLuongHopLe;
+                    }
+                    return acc;
+                }, {});
+                
+                const brandAnalysis = analyzeBrands(groupData);
+                const brandAnalysisLM = analyzeBrands(groupDataLM);
+
+                const allBrands = new Set([...Object.keys(brandAnalysis), ...Object.keys(brandAnalysisLM)]);
+
+                const sortedBrands = Array.from(allBrands).map(brandName => {
+                    const brandData = brandAnalysis[brandName] || {};
+                    const brandDataLM = brandAnalysisLM[brandName] || {};
+                    const productList = Object.values(brandData.products || {}).sort((a, b) => b.sl - a.sl);
+                    return { name: brandName, sl: brandData.sl || 0, dt_qd: brandData.dt_qd || 0, sl_lm: brandDataLM.sl || 0, dt_qd_lm: brandDataLM.dt_qd || 0, products: productList };
+                }).sort((a, b) => b.dt_qd - a.dt_qd);
+                
+                const productSales = groupData.reduce((acc, row) => {
+                    const productName = row['Tên sản phẩm'];
+                    if (!productName || row.soLuongHopLe <= 0) return acc;
+                    if (!acc[productName]) {
+                        acc[productName] = { name: productName, sl: 0, price: parseFloat(row['Giá bán_1']) || 0 };
+                    }
+                    acc[productName].sl += row.soLuongHopLe;
+                    return acc;
+                }, {});
+
+                const topProducts = Object.values(productSales).sort((a, b) => b.sl - a.sl).slice(0, 10);
+
+                let brandTableHTML = `
+                    <h4 class="text-md font-semibold text-gray-700 mt-4 mb-3">Chi tiết theo Hãng (Đơn vị: Triệu):</h4>
+                    <div class="overflow-x-auto rounded-lg border">
+                        <table class="min-w-full bg-white text-sm report-table">
+                            <thead class="bg-gray-200 text-gray-700 font-semibold">
+                                <tr>
+                                    <th class="py-2 px-3 text-left">Hãng</th>
+                                    <th class="py-2 px-3 text-center">Số Lượng</th>
+                                    <th class="py-2 px-3 text-center">Doanh Thu QĐ</th>
+                                    <th class="py-2 px-3 text-center">Tỷ trọng</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+                
+                sortedBrands.forEach(brand => {
+                    const brandId = `${safeGroupName}-${brand.name.replace(/[^a-zA-Z0-9]/g, '-')}`;
+                    const brandPercentageOfGroup = groupTotals.dt_qd > 0 ? (brand.dt_qd / groupTotals.dt_qd) * 100 : 0;
+                    const slChangeHTML = formatChangeIndicator(brand.sl, brand.sl_lm);
+                    const dtChangeHTML = formatChangeIndicator(brand.dt_qd, brand.dt_qd_lm, true);
+
+                    brandTableHTML += `
+                        <tr class="brand-row" data-brand-id="${brandId}">
+                            <td class="py-2 px-3 text-left font-medium">
+                                <i class="fas fa-plus-circle text-blue-500 mr-2 brand-toggle-icon"></i>
+                                ${brand.name}
+                            </td>
+                            <td class="py-2 px-3 text-center">${brand.sl.toLocaleString('vi-VN')} ${slChangeHTML}</td>
+                            <td class="py-2 px-3 text-center">${formatToMillions(brand.dt_qd)} ${dtChangeHTML}</td>
+                            <td class="py-2 px-3 text-center"><span class="font-semibold ${getColorForPercentageText(brandPercentageOfGroup)}">${brandPercentageOfGroup.toFixed(2)}%</span></td>
+                        </tr>`;
+                    
+                    if (brand.products.length > 0) {
+                         brand.products.forEach(product => {
+                             brandTableHTML += `
+                                <tr class="hidden brand-product-row" data-parent-brand="${brandId}">
+                                    <td class="py-2 px-3 text-left pl-10 text-gray-600">${product.name}</td>
+                                    <td class="py-2 px-3 text-center text-gray-600">${product.sl.toLocaleString('vi-VN')}</td>
+                                    <td class="py-2 px-3 text-center text-gray-600" colspan="2">${formatToMillions(product.price * product.sl)}</td>
+                                </tr>`;
+                         });
+                    }
+                });
+                
+                const totalSlChangeHTML = formatChangeIndicator(groupTotals.sl, groupTotalsLM.sl);
+                const totalDtChangeHTML = formatChangeIndicator(groupTotals.dt_qd, groupTotalsLM.dt_qd, true);
+
+                brandTableHTML += `
+                        <tr class="bg-gray-100 font-bold">
+                            <td class="py-2 px-3 text-left">Tổng cộng</td>
+                            <td class="py-2 px-3 text-center">${groupTotals.sl.toLocaleString('vi-VN')} ${totalSlChangeHTML}</td>
+                            <td class="py-2 px-3 text-center">${formatToMillions(groupTotals.dt_qd)} ${totalDtChangeHTML}</td>
+                            <td class="py-2 px-3 text-center">100.00%</td>
+                        </tr>
+                    </tbody></table></div>`;
+
+                let topProductsHTML = '';
+                if (topProducts.length > 0) {
+                    topProductsHTML = `
+                        <h4 class="text-md font-semibold text-gray-700 mt-4 mb-3"><i class="fas fa-star text-yellow-500 mr-2"></i>Top 10 Sản phẩm Bán chạy</h4>
+                        <div class="overflow-x-auto rounded-lg border">
+                            <table class="min-w-full bg-white text-sm report-table">
+                                <thead class="bg-gray-200 text-gray-700 font-semibold">
+                                    <tr>
+                                        <th class="py-2 px-3 text-center w-16">Hạng</th>
+                                        <th class="py-2 px-3 text-left">Tên Sản Phẩm</th>
+                                        <th class="py-2 px-3 text-center">Số Lượng</th>
+                                        <th class="py-2 px-3 text-center">Giá Bán (Triệu)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>`;
+                    
+                    topProducts.forEach((product, index) => {
+                        let rankIcon = '';
+                        if (index === 0) rankIcon = '<i class="fas fa-trophy text-yellow-400 text-lg"></i>';
+                        else if (index === 1) rankIcon = '<i class="fas fa-trophy text-gray-400 text-lg"></i>';
+                        else if (index === 2) rankIcon = '<i class="fas fa-trophy text-orange-400 text-lg"></i>';
+                        else rankIcon = `${index + 1}`;
+
+                        topProductsHTML += `
+                            <tr>
+                                <td class="py-2 px-3 text-center font-bold">${rankIcon}</td>
+                                <td class="py-2 px-3 text-left">${product.name}</td>
+                                <td class="py-2 px-3 text-center font-semibold">${product.sl.toLocaleString('vi-VN')}</td>
+                                <td class="py-2 px-3 text-center">${(product.price / 1000000).toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            </tr>`;
+                    });
+
+                    topProductsHTML += `</tbody></table></div>`;
+                }
+
+                let cardHTML = `
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-xl font-bold text-blue-700 mb-4">
+                        ${groupName}
+                        <span class="text-base font-semibold ${getColorForPercentageText(groupPercentageOfTotal)} ml-2">(Tỷ trọng: ${groupPercentageOfTotal.toFixed(2)}%)</span>
+                    </h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 mt-4">
+                        <div class="lg:col-span-3">
+                            ${brandTableHTML}
+                        </div>
+                        <div class="lg:col-span-2">
+                            ${topProductsHTML}
+                        </div>
+                    </div>
+                </div>`;
+                reportContainer.innerHTML += cardHTML;
+            });
+        }
+        
+        // --- Tab 3: DT Nhân Viên ---
+        function renderTab3() {
+            const tabContainer = document.getElementById('tab-3');
+            if (dataThangNay.length === 0) {
+                tabContainer.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-red-500 font-semibold">Vui lòng tải lên "Dữ liệu Tháng Này" để sử dụng chức năng này.</p></div>`;
+                return;
+            }
+
+            let uiHTML = `
+                <div class="bg-white p-4 rounded-xl shadow-lg mb-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+                            <label class="flex items-center gap-2 cursor-pointer font-medium text-gray-600"><input type="checkbox" id="toggle-dt-thuc-tab3" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${appState.tab3.showDtThuc ? 'checked' : ''}>Hiện DT Thực</label>
+                            <label class="flex items-center gap-2 cursor-pointer font-medium text-gray-600"><input type="checkbox" id="toggle-dt-qd-tab3" class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${appState.tab3.showDtQd ? 'checked' : ''}>Hiện DT QĐ</label>
+                        </div>
+                        <div>
+                             <label for="employee-filter-tab3" class="block text-sm font-medium text-gray-700">Lọc theo nhân viên</label>
+                             <select id="employee-filter-tab3" multiple></select>
+                        </div>
+                    </div>
+                </div>
+                <div id="report-content-tab3-main" class="flex justify-center mb-8"></div>
+                
+                <hr class="my-8 border-t-2 border-gray-300">
+
+                <div id="seven-day-tracker-container">
+                    <h2 class="text-2xl font-bold text-center text-blue-600 mb-6">Theo dõi số bán 7 ngày</h2>
+                    <div class="bg-white p-6 rounded-xl shadow-lg space-y-4 mb-8">
+                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-4">
+                            <div>
+                                <label for="seven-day-category-filter" class="block text-lg font-semibold text-gray-800 mb-2">1. Chọn Ngành Hàng</label>
+                                <select id="seven-day-category-filter" multiple></select>
+                                <div id="special-reports-container-7day" class="mt-2"></div>
+                            </div>
+                            <div id="seven-day-filters-container" class="lg:col-span-2">
+                                <label class="block text-lg font-semibold text-gray-800 mb-2">2. Chọn & Gộp Nhóm Hàng</label>
+                                <div id="seven-day-group-list-container" class="max-h-64 overflow-y-auto border rounded-md p-3 space-y-2">
+                                   <p class="text-gray-500">Vui lòng chọn ngành hàng trước.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="report-content-tab3-7day" class="space-y-8"></div>
+                </div>
+            `;
+            tabContainer.innerHTML = uiHTML;
+
+            document.getElementById('toggle-dt-thuc-tab3').addEventListener('change', analyzeAndRenderTab3);
+            document.getElementById('toggle-dt-qd-tab3').addEventListener('change', analyzeAndRenderTab3);
+            
+            setupEmployeeFilter();
+            setup7DayFilters();
+            analyzeAndRenderTab3();
+        }
+        
+        function setupEmployeeFilter() {
+            if (slimSelectInstances.employee) {
+                slimSelectInstances.employee.destroy();
+            }
+
+            const allEmployees = [...new Set(dataThangNay.map(r => r['Người tạo']).filter(Boolean))].sort();
+            const employeeOptions = allEmployees.map(emp => ({
+                text: emp,
+                value: emp,
+            }));
+
+            slimSelectInstances.employee = new SlimSelect({
+                select: '#employee-filter-tab3',
+                settings: { 
+                    placeholderText: 'Chọn nhân viên', 
+                    allowDeselect: true,
+                    closeOnSelect: false,
+                },
+                data: employeeOptions,
+                events: {
+                    afterChange: (newVal) => {
+                        appState.tab3.selectedEmployees = newVal.map(v => v.value);
+                        analyzeAndRenderTab3();
+                    }
+                }
+            });
+
+            // Set default selection
+            slimSelectInstances.employee.setSelected(appState.tab3.selectedEmployees);
+        }
+
+
+        function analyzeAndRenderTab3() {
+            appState.tab3.showDtThuc = document.getElementById('toggle-dt-thuc-tab3').checked;
+            appState.tab3.showDtQd = document.getElementById('toggle-dt-qd-tab3').checked;
+            
+            renderEmployeeComparisonTable();
+            render7DayTrackingTable();
+        }
+
+        function renderEmployeeComparisonTable() {
+            const reportContent = document.getElementById('report-content-tab3-main');
+            
+            const startDate = new Date(appState.tab1.startDate);
+            const endDate = new Date(appState.tab1.endDate);
+            if (isNaN(startDate) || isNaN(endDate)) {
+                reportContent.innerHTML = `<div class="bg-white p-6 rounded-lg shadow-md text-center"><p class="text-red-500 font-semibold">Vui lòng đặt ngày hợp lệ ở Tab 1 để xem phân tích.</p></div>`;
+                return;
+            }
+            startDate.setUTCHours(0, 0, 0, 0);
+            endDate.setUTCHours(23, 59, 59, 999);
+            
+            const selectedEmployees = appState.tab3.selectedEmployees;
+            if (selectedEmployees.length === 0) {
+                reportContent.innerHTML = '';
+                return;
+            }
+            
+            const hasNamNayData = dataNamNay.length > 0;
+            const hasNamNgoaiData = dataNamNgoai.length > 0;
+            
+            const prevMonthRange = { start: new Date(Date.UTC(startDate.getUTCFullYear(), startDate.getUTCMonth() - 1, startDate.getUTCDate())), end: new Date(Date.UTC(endDate.getUTCFullYear(), endDate.getUTCMonth() - 1, endDate.getUTCDate(), 23, 59, 59, 999)) };
+            const prevYearRange = { start: new Date(Date.UTC(startDate.getUTCFullYear() - 1, startDate.getUTCMonth(), startDate.getUTCDate())), end: new Date(Date.UTC(endDate.getUTCFullYear() - 1, endDate.getUTCMonth(), endDate.getUTCDate(), 23, 59, 59, 999)) };
+
+            const dataThisPeriod = dataThangNay.filter(r => r.date >= startDate && r.date <= endDate);
+            const dataLastMonth = hasNamNayData ? dataNamNay.filter(r => r.date >= prevMonthRange.start && r.date <= prevMonthRange.end) : [];
+            const dataLastYear = hasNamNgoaiData ? dataNamNgoai.filter(r => r.date >= prevYearRange.start && r.date <= prevYearRange.end) : [];
+
+            const totalSupermarketRevenue = dataThisPeriod.reduce((sum, r) => sum + r.doanhThuQuyDoi, 0);
+
+            const aggregateByEmployee = (data) => data.reduce((acc, r) => {
+                const employee = r['Người tạo'];
+                if (!employee) return acc;
+                if (!acc[employee]) acc[employee] = { sl: 0, dt: 0, dt_qd: 0 };
+                acc[employee].sl += r.soLuongHopLe;
+                acc[employee].dt += r.doanhThuThuc;
+                acc[employee].dt_qd += r.doanhThuQuyDoi;
+                return acc;
+            }, {});
+
+            const aggThisPeriod = aggregateByEmployee(dataThisPeriod);
+            const aggLastMonth = aggregateByEmployee(dataLastMonth);
+            const aggLastYear = aggregateByEmployee(dataLastYear);
+
+            const allEmployeeNames = new Set([...Object.keys(aggThisPeriod), ...Object.keys(aggLastMonth), ...Object.keys(aggLastYear)]);
+
+            let employeeData = Array.from(allEmployeeNames)
+                .filter(name => selectedEmployees.includes(name))
+                .map(name => {
+                    const current = aggThisPeriod[name] || { sl: 0, dt: 0, dt_qd: 0 };
+                    const prevM = aggLastMonth[name] || { sl: 0, dt: 0, dt_qd: 0 };
+                    const prevY = aggLastYear[name] || { sl: 0, dt: 0, dt_qd: 0 };
+                    const contribution = totalSupermarketRevenue > 0 ? (current.dt_qd / totalSupermarketRevenue) * 100 : 0;
+                    const conversionRate = current.dt > 0 ? (current.dt_qd / current.dt) : 0;
+
+                    return { name, current, prevM, prevY, contribution, conversionRate };
+                })
+                .sort((a,b) => b.current.dt_qd - a.current.dt_qd);
+
+            const showDtThuc = appState.tab3.showDtThuc;
+            const showDtQd = appState.tab3.showDtQd;
+            const periodColspan = 1 + (showDtThuc ? 1 : 0) + (showDtQd ? 1 : 0);
+            
+            const formatComparisonCell = (current, previous, isMoney = false) => {
+                if (previous === undefined || previous === null || previous === 0) return '-';
+                const diff = current - previous;
+                if (diff === 0) return '0 (0.0%)';
+                const percentage = (diff / previous) * 100;
+                const className = diff > 0 ? 'comparison-up' : 'comparison-down';
+                const sign = diff > 0 ? '+' : '';
+                const formattedDiff = isMoney ? formatToMillions(diff) : diff.toLocaleString('vi-VN');
+                return `<span class="${className}">${sign}${formattedDiff} (${sign}${percentage.toFixed(1)}%)</span>`;
+            };
+
+            let headerHTML = `<thead class="bg-gray-800 text-white text-sm">
+                <tr>
+                    <th rowspan="2" class="py-3 px-3 text-left font-semibold align-middle">Nhân viên</th>
+                    <th rowspan="2" class="py-3 px-3 font-semibold align-middle">Tỷ trọng <br> đóng góp</th>
+                    <th rowspan="2" class="py-3 px-3 font-semibold align-middle">Tỷ lệ <br> quy đổi</th>
+                    <th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ky-nay">Kỳ Này</th>`;
+            if (hasNamNayData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ky-truoc">Kỳ Trước</th>`;
+            if (hasNamNgoaiData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-nam-ngoai">Năm Ngoái</th>`;
+            if (hasNamNayData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ss-thang">Tăng trưởng vs Tháng</th>`;
+            if (hasNamNgoaiData) headerHTML += `<th colspan="${periodColspan}" class="py-3 px-3 font-semibold border-b border-l border-gray-600 header-ss-nam">Tăng trưởng vs Năm</th>`;
+            headerHTML += `</tr><tr>`;
+             
+             const renderSubHeader = (headerClass) => {
+                let html = `<th class="py-2 px-3 font-semibold border-l border-gray-600 ${headerClass}">SL</th>`;
+                if(showDtThuc) html += `<th class="py-2 px-3 font-semibold ${headerClass}">DT Thực</th>`;
+                if(showDtQd) html += `<th class="py-2 px-3 font-semibold ${headerClass}">DT QĐ</th>`;
+                return html;
+            }
+            
+            headerHTML += renderSubHeader('header-ky-nay');
+            if (hasNamNayData) headerHTML += renderSubHeader('header-ky-truoc');
+            if (hasNamNgoaiData) headerHTML += renderSubHeader('header-nam-ngoai');
+            if (hasNamNayData) headerHTML += renderSubHeader('header-ss-thang');
+            if (hasNamNgoaiData) headerHTML += renderSubHeader('header-ss-nam');
+
+            headerHTML += `</tr></thead>`;
+
+            let bodyHTML = '<tbody>';
+            employeeData.forEach(emp => {
+                bodyHTML += `<tr class="bg-white">
+                    <td class="py-2 px-3 text-left font-medium">${emp.name}</td>
+                    <td class="py-2 px-3 text-center">${emp.contribution.toFixed(2)}%</td>
+                    <td class="py-2 px-3 text-center">${emp.conversionRate.toFixed(2)}</td>`;
+                ['current', 'prevM', 'prevY'].forEach((period, index) => {
+                    if ((index === 1 && !hasNamNayData) || (index === 2 && !hasNamNgoaiData)) return;
+                    bodyHTML += `<td class="py-2 px-3 text-center">${(emp[period].sl || 0).toLocaleString('vi-VN')}</td>`;
+                    if(showDtThuc) bodyHTML += `<td class="py-2 px-3 text-center">${formatToMillions(emp[period].dt)}</td>`;
+                    if(showDtQd) bodyHTML += `<td class="py-2 px-3 text-center">${formatToMillions(emp[period].dt_qd)}</td>`;
+                });
+                 ['prevM', 'prevY'].forEach((period, index) => {
+                    if ((index === 0 && !hasNamNayData) || (index === 1 && !hasNamNgoaiData)) return;
+                     bodyHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(emp.current.sl, emp[period].sl)}</td>`;
+                    if(showDtThuc) bodyHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(emp.current.dt, emp[period].dt, true)}</td>`;
+                    if(showDtQd) bodyHTML += `<td class="py-2 px-3 text-center text-xs">${formatComparisonCell(emp.current.dt_qd, emp[period].dt_qd, true)}</td>`;
+                });
+                bodyHTML += `</tr>`;
+            });
+            bodyHTML += '</tbody>';
+
+            reportContent.innerHTML = `<div class="bg-white p-6 rounded-xl shadow-lg w-full"><h2 class="text-xl font-semibold mb-4 text-center text-blue-600">Bảng So Sánh Doanh Thu Nhân Viên (Đơn vị: Triệu)</h2><div class="overflow-x-auto rounded-lg border"><table class="min-w-full bg-white text-sm report-table">${headerHTML}${bodyHTML}</table></div></div>`;
+        }
+
+        function setup7DayFilters() {
+             if (slimSelectInstances.sevenDayCategory) {
+                slimSelectInstances.sevenDayCategory.destroy();
+            }
+
+            const categoryRevenues = dataThangNay.reduce((acc, r) => {
+                const cat = r['Ngành hàng'] || 'Không xác định';
+                acc[cat] = (acc[cat] || 0) + r.doanhThuQuyDoi;
+                return acc;
+            }, {});
+            const sortedCategories = Object.keys(categoryRevenues)
+                .filter(cat => cat !== 'Không xác định')
+                .sort((a, b) => categoryRevenues[b] - categoryRevenues[a])
+                .map(cat => ({ text: cat, value: cat }));
+
+            slimSelectInstances.sevenDayCategory = new SlimSelect({
+                select: '#seven-day-category-filter',
+                settings: { placeholderText: 'Chọn ngành hàng', allowDeselect: true, closeOnSelect: false },
+                data: sortedCategories,
+                events: {
+                    afterChange: (newVal) => {
+                        appState.tab3.sevenDayCategories = newVal.map(v => v.value);
+                        update7DayProductGroupsList();
+                        render7DayTrackingTable();
+                    }
+                }
+            });
+            slimSelectInstances.sevenDayCategory.setSelected(appState.tab3.sevenDayCategories);
+            update7DayProductGroupsList();
+        }
+
+        function update7DayProductGroupsList() {
+            const specialReportsContainer = document.getElementById('special-reports-container-7day');
+            const container = document.getElementById('seven-day-group-list-container');
+            const selectedCategories = appState.tab3.sevenDayCategories;
+
+            // --- Special Report Section (Insurance) ---
+            let specialReportsHTML = '<h4 class="font-semibold text-gray-600 text-sm mb-1">Báo cáo đặc biệt</h4>';
+            const isInsuranceChecked = appState.tab3.showInsuranceReport7Day || false;
+            specialReportsHTML += `
+                <label class="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-gray-100">
+                    <input type="checkbox" id="insurance-gop-checkbox" class="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500" ${isInsuranceChecked ? 'checked' : ''}>
+                    <span class="text-sm font-medium text-purple-700">Báo cáo Bảo hiểm (Tổng 4479 & 4499)</span>
+                </label>
+            `;
+            specialReportsContainer.innerHTML = specialReportsHTML;
+
+            specialReportsContainer.querySelector('#insurance-gop-checkbox').addEventListener('change', e => {
+                appState.tab3.showInsuranceReport7Day = e.target.checked;
+                render7DayTrackingTable();
+            });
+
+
+            // --- Main Group Selection Section ---
+            let html = '<div class="space-y-2">';
+            if (selectedCategories.length === 0) {
+                 html += `<p class="text-gray-500">Vui lòng chọn ngành hàng để xem các nhóm hàng.</p></div>`;
+                 container.innerHTML = html;
+                 return;
+            } 
+            
+            html += '<div class="border-b pb-2 mb-2">';
+            html += '<h4 class="font-semibold text-gray-600 text-sm mb-1">Gộp theo Ngành hàng</h4>';
+            selectedCategories.forEach(cat => {
+                const isChecked = appState.tab3.sevenDayCategoryGroping[cat] || false;
+                html += `
+                    <label class="flex items-center gap-2 cursor-pointer p-1.5 rounded hover:bg-gray-100">
+                        <input type="checkbox" data-category-name="${cat}" class="category-gop-checkbox-7day h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${isChecked ? 'checked' : ''}>
+                        <span class="text-sm font-medium text-blue-700">${cat}</span>
+                    </label>
+                `;
+            });
+            html += '</div>';
+
+            // Determine which groups to hide
+            const gropedCategories = Object.keys(appState.tab3.sevenDayCategoryGroping).filter(cat => appState.tab3.sevenDayCategoryGroping[cat]);
+            const groupsToHide = new Set();
+            gropedCategories.forEach(catName => {
+                dataThangNay.forEach(r => {
+                    if (r['Ngành hàng'] === catName && r['Nhóm hàng']) {
+                        groupsToHide.add(r['Nhóm hàng']);
+                    }
+                });
+            });
+
+            const groupRevenues = dataThangNay
+                .filter(r => selectedCategories.includes(r['Ngành hàng']))
+                .reduce((acc, r) => {
+                    const group = r['Nhóm hàng'] || 'Không xác định';
+                    acc[group] = (acc[group] || 0) + r.doanhThuQuyDoi;
+                    return acc;
+                }, {});
+            
+            const sortedGroups = Object.keys(groupRevenues)
+                .filter(group => group !== 'Không xác định' && !groupsToHide.has(group))
+                .sort((a,b) => groupRevenues[b] - groupRevenues[a]);
+
+            html += '<h4 class="font-semibold text-gray-600 text-sm mb-1">Gộp theo Nhóm hàng</h4>';
+            html += `
+                <div class="p-1">
+                    <input type="text" id="group-search-input-7day" placeholder="Tìm kiếm nhóm hàng..." class="w-full p-1.5 border border-gray-300 rounded-md text-sm">
+                </div>
+            `;
+            sortedGroups.forEach(group => {
+                const selection = appState.tab3.sevenDayGroupSelections[group] || { selected: false, gop: 0 };
+                let gopButtonsHTML = '';
+                for (let i = 1; i <= 5; i++) {
+                    gopButtonsHTML += `<label class="mr-2"><input type="radio" name="gop-7day-${group}" value="${i}" class="gop-radio-7day" data-group-name="${group}" ${selection.gop === i ? 'checked' : ''}> ${i}</label>`;
+                }
+
+                html += `
+                    <div class="flex items-center justify-between p-1.5 rounded hover:bg-gray-100 group-item-container-7day">
+                        <label class="flex items-center gap-2 cursor-pointer flex-grow">
+                            <input type="checkbox" data-group-name="${group}" class="group-checkbox-7day h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" ${selection.selected ? 'checked' : ''}>
+                            <span class="text-sm">${group}</span>
+                        </label>
+                        <div class="text-xs gop-controls">
+                            <span class="mr-1">Gộp:</span>
+                            ${gopButtonsHTML}
+                             <button data-group-name="${group}" class="gop-clear-btn-7day text-red-500 ml-1" title="Bỏ gộp">✖</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+            
+
+            // Add event listeners
+            container.querySelector('#group-search-input-7day')?.addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase().trim();
+                container.querySelectorAll('.group-item-container-7day').forEach(itemDiv => {
+                    const groupName = itemDiv.querySelector('span').textContent.toLowerCase();
+                    if (groupName.includes(searchTerm)) {
+                        itemDiv.style.display = 'flex';
+                    } else {
+                        itemDiv.style.display = 'none';
+                    }
+                });
+            });
+            
+            container.querySelectorAll('.category-gop-checkbox-7day').forEach(cb => {
+                cb.addEventListener('change', e => {
+                    const categoryName = e.target.dataset.categoryName;
+                    const isChecked = e.target.checked;
+                    appState.tab3.sevenDayCategoryGroping[categoryName] = isChecked;
+
+                    const groupsInCat = [...new Set(dataThangNay.filter(r => r['Ngành hàng'] === categoryName).map(r => r['Nhóm hàng']).filter(Boolean))];
+                    
+                    let targetGopNumber = 0;
+                    if (isChecked) {
+                        const usedGopNumbers = new Set(Object.values(appState.tab3.sevenDayGroupSelections).map(s => s.gop).filter(g => g > 0));
+                        for (let i = 1; i <= 5; i++) { if (!usedGopNumbers.has(i)) { targetGopNumber = i; break; } }
+                        if (targetGopNumber === 0) targetGopNumber = 1; // Fallback
+                    } else {
+                        // Find the gop number to "un-gop" by checking the first child
+                        for (const group of groupsInCat) {
+                            if (appState.tab3.sevenDayGroupSelections[group]?.gop > 0) {
+                                targetGopNumber = appState.tab3.sevenDayGroupSelections[group].gop;
+                                break;
+                            }
+                        }
+                    }
+
+                    groupsInCat.forEach(group => {
+                        if (!appState.tab3.sevenDayGroupSelections[group]) {
+                            appState.tab3.sevenDayGroupSelections[group] = { selected: false, gop: 0 };
+                        }
+
+                        if (isChecked) {
+                            appState.tab3.sevenDayGroupSelections[group].selected = true;
+                            appState.tab3.sevenDayGroupSelections[group].gop = targetGopNumber;
+                            // Update DOM
+                            const groupCheckbox = container.querySelector(`.group-checkbox-7day[data-group-name="${group}"]`);
+                            if(groupCheckbox) groupCheckbox.checked = true;
+                            const radioToSelect = container.querySelector(`input[name="gop-7day-${group}"][value="${targetGopNumber}"]`);
+                            if(radioToSelect) radioToSelect.checked = true;
+                        } else {
+                            if (appState.tab3.sevenDayGroupSelections[group].gop === targetGopNumber) {
+                                appState.tab3.sevenDayGroupSelections[group].gop = 0;
+                                // Update DOM
+                                const gopRadios = container.querySelectorAll(`input[name="gop-7day-${group}"]`);
+                                gopRadios.forEach(r => r.checked = false);
+                            }
+                        }
+                    });
+
+                    update7DayProductGroupsList();
+                    render7DayTrackingTable();
+                });
+            });
+
+            container.querySelectorAll('.group-checkbox-7day').forEach(cb => {
+                cb.addEventListener('change', (e) => {
+                    const groupName = e.target.dataset.groupName;
+                    if (!appState.tab3.sevenDayGroupSelections[groupName]) {
+                        appState.tab3.sevenDayGroupSelections[groupName] = { selected: false, gop: 0 };
+                    }
+                    appState.tab3.sevenDayGroupSelections[groupName].selected = e.target.checked;
+                    render7DayTrackingTable();
+                });
+            });
+
+            container.querySelectorAll('.gop-radio-7day').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const groupName = e.target.dataset.groupName;
+                    if (!appState.tab3.sevenDayGroupSelections[groupName]) {
+                        appState.tab3.sevenDayGroupSelections[groupName] = { selected: false, gop: 0 };
+                    }
+                    appState.tab3.sevenDayGroupSelections[groupName].selected = true;
+                    appState.tab3.sevenDayGroupSelections[groupName].gop = parseInt(e.target.value);
+                    const checkbox = container.querySelector(`.group-checkbox-7day[data-group-name="${groupName}"]`);
+                    if (checkbox) checkbox.checked = true;
+                    render7DayTrackingTable();
+                });
+            });
+            
+            container.querySelectorAll('.gop-clear-btn-7day').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const groupName = e.target.dataset.groupName;
+                    if (appState.tab3.sevenDayGroupSelections[groupName]) {
+                        appState.tab3.sevenDayGroupSelections[groupName].gop = 0;
+                    }
+                    container.querySelectorAll(`input[name="gop-7day-${groupName}"]`).forEach(radio => radio.checked = false);
+                    render7DayTrackingTable();
+                });
+            });
+        }
+        
+        function render7DayTrackingTable() {
+            const reportContent = document.getElementById('report-content-tab3-7day');
+            reportContent.innerHTML = '';
+
+            const groupsToAnalyze = [];
+            const gopMap = {};
+            const processedGroups = new Set();
+            
+            if (appState.tab3.showInsuranceReport7Day) {
+                groupsToAnalyze.push({
+                    name: 'Báo cáo Bảo hiểm',
+                    groups: ['4479', '4499'], // Use identifiers for robust checking
+                    isSpecial: true
+                });
+            }
+
+            Object.entries(appState.tab3.sevenDayCategoryGroping).forEach(([categoryName, isGroped]) => {
+                if (isGroped) {
+                    const groupsInCat = [...new Set(dataThangNay.filter(r => r['Ngành hàng'] === categoryName).map(r => r['Nhóm hàng']))];
+                    groupsToAnalyze.push({ name: categoryName, groups: groupsInCat });
+                    groupsInCat.forEach(g => processedGroups.add(g));
+                }
+            });
+
+            Object.entries(appState.tab3.sevenDayGroupSelections).forEach(([groupName, selection]) => {
+                if (!selection.selected || processedGroups.has(groupName)) return;
+                if (selection.gop > 0) {
+                    if (!gopMap[selection.gop]) {
+                        gopMap[selection.gop] = { name: '', groups: [], names: [] };
+                    }
+                    gopMap[selection.gop].groups.push(groupName);
+                    gopMap[selection.gop].names.push(groupName);
+                    processedGroups.add(groupName);
+                }
+            });
+            Object.values(gopMap).forEach(g => {
+                groupsToAnalyze.push({ name: g.names.join(' & '), groups: g.groups });
+            });
+
+            Object.entries(appState.tab3.sevenDayGroupSelections).forEach(([groupName, selection]) => {
+                if (selection.selected && !processedGroups.has(groupName)) {
+                    groupsToAnalyze.push({ name: groupName, groups: [groupName] });
+                }
+            });
+
+            if (groupsToAnalyze.length === 0) {
+                reportContent.innerHTML = '<p class="text-center text-gray-500">Chọn nhóm hàng để xem báo cáo 7 ngày.</p>';
+                return;
+            }
+            
+            const selectedEmployees = appState.tab3.selectedEmployees;
+            if (selectedEmployees.length === 0) {
+                reportContent.innerHTML = '<p class="text-center text-gray-500">Chọn nhân viên để xem báo cáo 7 ngày.</p>';
+                return;
+            }
+
+            const today = new Date();
+            const dates = [];
+            const sevenDaysAgoStrings = new Set();
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(today);
+                date.setDate(today.getDate() - i);
+                dates.push(date);
+                sevenDaysAgoStrings.add(toSafeISODateString(date));
+            }
+            dates.reverse(); // Display from oldest to newest
+
+            const dataSources = [...dataThangNay, ...dataNamNay];
+
+            const dateFilteredData = dataSources.filter(r => {
+                return r.date && sevenDaysAgoStrings.has(toSafeISODateString(r.date));
+            });
+            
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            const monthFilteredData = dataThangNay.filter(r => {
+                return r.date && r.date >= startOfMonth && r.date <= today;
+            });
+            
+            groupsToAnalyze.forEach(item => {
+                const { name: groupName, groups: groupList, isSpecial } = item;
+                
+                const groupData7Day = dateFilteredData.filter(r => {
+                    const group = r['Nhóm hàng'];
+                    if (!group) return false;
+                    if (isSpecial) { // Robust check for insurance
+                        return groupList.some(id => group.includes(id));
+                    }
+                    return groupList.includes(group);
+                });
+                
+                const groupDataMonth = monthFilteredData.filter(r => {
+                     const group = r['Nhóm hàng'];
+                    if (!group) return false;
+                    if (isSpecial) {
+                        return groupList.some(id => group.includes(id));
+                    }
+                    return groupList.includes(group);
+                });
+
+
+                const salesByEmployeeDay = {};
+                groupData7Day.forEach(r => {
+                    const employee = r['Người tạo'];
+                    if (!employee || !selectedEmployees.includes(employee)) return;
+
+                    const dateStr = toSafeISODateString(r.date);
+                    if (!salesByEmployeeDay[employee]) salesByEmployeeDay[employee] = {};
+                    if (!salesByEmployeeDay[employee][dateStr]) salesByEmployeeDay[employee][dateStr] = { sl: 0, dt_thuc: 0, dt_qd: 0 };
+
+                    salesByEmployeeDay[employee][dateStr].sl += r.soLuongHopLe;
+                    salesByEmployeeDay[employee][dateStr].dt_thuc += r.doanhThuThuc;
+                    salesByEmployeeDay[employee][dateStr].dt_qd += r.doanhThuQuyDoi;
+                });
+                
+                const salesByEmployeeMonth = {};
+                groupDataMonth.forEach(r => {
+                    const employee = r['Người tạo'];
+                     if (!employee || !selectedEmployees.includes(employee)) return;
+                     if(!salesByEmployeeMonth[employee]) salesByEmployeeMonth[employee] = { sl: 0, dt_thuc: 0, dt_qd: 0 };
+                     salesByEmployeeMonth[employee].sl += r.soLuongHopLe;
+                     salesByEmployeeMonth[employee].dt_thuc += r.doanhThuThuc;
+                     salesByEmployeeMonth[employee].dt_qd += r.doanhThuQuyDoi;
+                });
+                
+                const metric = appState.tab3.sevenDayMetrics[groupName] || 'sl';
+
+                let cardHTML = `<div class="bg-white p-6 rounded-xl shadow-lg mb-6">
+                    <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                        <h3 class="text-xl font-bold text-blue-700">${groupName}</h3>
+                        <div class="flex items-center gap-4">
+                             <label class="flex items-center gap-2 font-medium cursor-pointer">
+                                <input type="radio" name="metric-${groupName.replace(/[^a-zA-Z0-9]/g, '-')}" value="sl" class="h-4 w-4 seven-day-metric-radio" data-group-name="${groupName}" ${metric === 'sl' ? 'checked' : ''}>
+                                Số lượng
+                            </label>
+                            <label class="flex items-center gap-2 font-medium cursor-pointer">
+                                <input type="radio" name="metric-${groupName.replace(/[^a-zA-Z0-9]/g, '-')}" value="dt_thuc" class="h-4 w-4 seven-day-metric-radio" data-group-name="${groupName}" ${metric === 'dt_thuc' ? 'checked' : ''}>
+                                Doanh thu Thực
+                            </label>
+                            <label class="flex items-center gap-2 font-medium cursor-pointer">
+                                <input type="radio" name="metric-${groupName.replace(/[^a-zA-Z0-9]/g, '-')}" value="dt_qd" class="h-4 w-4 seven-day-metric-radio" data-group-name="${groupName}" ${metric === 'dt_qd' ? 'checked' : ''}>
+                                Doanh thu QĐ
+                            </label>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-lg border">
+                        <table class="min-w-full bg-white text-sm report-table">
+                            <thead class="bg-gray-800 text-white text-sm"><tr>
+                                <th class="py-2 px-3 text-left">Nhân viên</th>
+                                <!-- CẬP NHẬT BỐ CỤC BẢNG 7 NGÀY -->
+                                <th class="py-2 px-3 text-center">Lũy kế tháng</th>`;
+                dates.forEach(d => {
+                    cardHTML += `<th class="py-2 px-3 text-center">${d.getDate()}/${d.getMonth() + 1}</th>`;
+                });
+                cardHTML += `<th class="py-2 px-3 text-center">Nhận xét</th></tr></thead><tbody>`;
+
+                selectedEmployees.forEach(emp => {
+                    let daysSinceSale = -1;
+                    const reversedDates = [...dates].reverse(); // from newest to oldest
+                    for (let i = 0; i < reversedDates.length; i++) {
+                        const dateStr = toSafeISODateString(reversedDates[i]);
+                        const saleValue = salesByEmployeeDay[emp]?.[dateStr]?.[metric] || 0;
+                        if (saleValue > 0) {
+                            daysSinceSale = i; // 0 = today, 1 = yesterday, etc.
+                            break;
+                        }
+                    }
+
+                    let remarkText;
+                    let remarkClass = '';
+                    if (daysSinceSale === -1) {
+                        remarkText = `> 7 ngày chưa bán`;
+                        remarkClass = 'bg-red-500 text-white';
+                    } else if (daysSinceSale <= 1) { // Sold today or yesterday
+                        remarkText = 'Tốt';
+                        remarkClass = 'text-green-600 font-bold';
+                    } else {
+                        remarkText = `${daysSinceSale + 1} ngày chưa bán`;
+                        if (daysSinceSale >= 4) { // 5 days or more
+                            remarkClass = 'bg-red-200 text-red-800';
+                        } else if (daysSinceSale >= 2) { // 3-4 days
+                            remarkClass = 'bg-yellow-200 text-yellow-800';
+                        }
+                    }
+
+                    const luyKeValue = salesByEmployeeMonth[emp]?.[metric] || 0;
+                    let formattedLuyKe = '0';
+                     if (metric === 'sl') {
+                        formattedLuyKe = luyKeValue > 0 ? luyKeValue.toLocaleString('vi-VN') : '0';
+                    } else { // dt_thuc or dt_qd
+                        if (luyKeValue >= 1000000) {
+                            formattedLuyKe = formatToMillions(luyKeValue);
+                        } else if (luyKeValue > 0) {
+                            formattedLuyKe = Math.round(luyKeValue / 1000).toLocaleString('vi-VN') + 'K';
+                        }
+                    }
+
+                    cardHTML += `<tr><td class="py-2 px-3 text-left font-medium">${emp}</td>`;
+                    cardHTML += `<td class="py-2 px-3 text-center font-semibold text-blue-600">${formattedLuyKe}</td>`;
+                    // --- KẾT THÚC CẬP NHẬT BỐ CỤC ---
+
+                    dates.forEach(d => {
+                        const dateStr = toSafeISODateString(d);
+                        const value = salesByEmployeeDay[emp]?.[dateStr]?.[metric] || 0;
+                        const cellClass = value === 0 ? 'bg-red-100' : 'bg-white font-semibold';
+                        
+                        let formattedValue = '0';
+                        if (metric === 'sl') {
+                            formattedValue = value > 0 ? value.toLocaleString('vi-VN') : '0';
+                        } else { // dt_thuc or dt_qd
+                            if (value >= 1000000) {
+                                formattedValue = formatToMillions(value);
+                            } else if (value > 0) {
+                                formattedValue = Math.round(value / 1000).toLocaleString('vi-VN') + 'K';
+                            }
+                        }
+                        cardHTML += `<td class="py-2 px-3 text-center ${cellClass}">${formattedValue}</td>`;
+                    });
+                    cardHTML += `<td class="py-2 px-3 text-center font-medium ${remarkClass}">${remarkText}</td></tr>`;
+                });
+                cardHTML += `</tbody></table></div></div>`;
+                reportContent.innerHTML += cardHTML;
+            });
+
+            reportContent.querySelectorAll('.seven-day-metric-radio').forEach(radio => {
+                radio.addEventListener('change', e => {
+                    const groupName = e.target.dataset.groupName;
+                    appState.tab3.sevenDayMetrics[groupName] = e.target.value;
+                    render7DayTrackingTable();
+                });
+            });
+        }
+        
+        // --- General App Logic ---
+        function handleTabClick(event) {
+            const clickedTab = event.target.closest('.tab-btn');
+            if (!clickedTab) return;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            clickedTab.classList.add('active');
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            const targetPane = document.getElementById(clickedTab.dataset.tab);
+            if(targetPane) targetPane.classList.remove('hidden');
+
+            const tabId = clickedTab.dataset.tab;
+            if (tabId === 'tab-1') {
+                renderTab1();
+            } else if (tabId === 'tab-2') {
+                renderTab2();
+            } else if (tabId === 'tab-3') {
+                renderTab3();
+            }
+        }
+
+        function takeScreenshot() {
+            const infoDiv = infoDivs['this-month'];
+            infoDiv.textContent = "Đang tạo ảnh báo cáo...";
+            
+            const activeTabId = document.querySelector('.tab-btn.active').dataset.tab;
+            let reportElement;
+            if (activeTabId === 'tab-1') {
+                reportElement = document.getElementById('report-content-tab1');
+            } else if (activeTabId === 'tab-2') {
+                reportElement = document.getElementById('report-content-tab2');
+            } else if (activeTabId === 'tab-3') {
+                reportElement = document.getElementById('tab-3');
+            } else {
+                 reportElement = document.getElementById('report-content-tab1'); // Fallback
+            }
+            
+            if (!reportElement || reportElement.children.length === 0) {
+                 infoDiv.textContent = "Không có báo cáo để chụp.";
+                 return;
+            }
+            
+            html2canvas(reportElement, { scale: 1.5, useCORS: true, logging: true, backgroundColor: '#f3f4f6' })
+            .then(canvas => {
+                const link = document.createElement('a');
+                link.download = `bao-cao-kinh-doanh-${new Date().toISOString().slice(0,10)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                infoDiv.textContent = "Đã lưu ảnh báo cáo!";
+            }).catch(error => {
+                console.error('Lỗi chụp ảnh:', error);
+                infoDiv.textContent = "Lỗi khi chụp ảnh báo cáo.";
+            });
+        }
+
+        // Initial load
+        renderTab1();
+    </script>
+
+</body>
+</html>

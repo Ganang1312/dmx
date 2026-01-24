@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công cụ in POPUP Máy Lọc Nước</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thư viện để đọc file Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        /* Tùy chỉnh font chữ */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap');
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* CSS cho chế độ in */
+        @page {
+            size: A5 portrait;
+            margin: 0;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .no-print {
+                display: none;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+
+        .price-highlight {
+            color: #d0021b; /* Màu đỏ nổi bật */
+            font-weight: 900; /* In đậm hơn */
+        }
+        
+        .price-input {
+            width: 100px;
+            text-align: right;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 2px 5px;
+        }
+        .price-input:focus {
+            outline: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <div class="container mx-auto p-4">
+
+        <!-- KHU VỰC ĐIỀU KHIỂN -->
+        <div class="no-print bg-white p-6 rounded-lg shadow-lg mb-4">
+            <h1 class="text-2xl font-bold text-center text-blue-600 mb-4">Công Cụ Tạo POPUP Máy Lọc Nước</h1>
+            <div class="grid md:grid-cols-2 gap-6 items-start">
+                <!-- Cột trái: Input & Info -->
+                <div>
+                    <div class="mb-4">
+                        <label for="file-input" class="block text-sm font-medium text-gray-700 mb-1">1. Chọn file Excel (.xls, .xlsx):</label>
+                        <input type="file" id="file-input" accept=".xls, .xlsx" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                    </div>
+                    <div class="mb-4">
+                         <label for="popup-title-input" class="block text-sm font-medium text-gray-700 mb-1">2. Chỉnh sửa tiêu đề POPUP:</label>
+                         <input type="text" id="popup-title-input" value="MÁY LỌC NƯỚC VƯỢT TRỘI DỊCH VỤ" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="mb-4">
+                         <label for="slogan-input" class="block text-sm font-medium text-gray-700 mb-1">3. Chỉnh sửa Slogan:</label>
+                         <input type="text" id="slogan-input" value="Bảo vệ sức khỏe khỏi vi khuẩn, kim loại nặng và hóa chất độc hại" class="block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div class="bg-gray-50 p-3 rounded-md">
+                        <p class="text-sm font-medium text-gray-800">Số sản phẩm đã chọn: <span id="selected-count" class="font-bold text-blue-600">0</span></p>
+                        <p class="text-sm font-medium text-gray-800">Số trang A5 sẽ in: <span id="page-count" class="font-bold text-blue-600">0</span></p>
+                    </div>
+                     <button id="print-btn" class="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-4 rounded-md transition duration-300 text-lg">
+                        5. IN TẤT CẢ
+                    </button>
+                </div>
+                <!-- Cột phải: Danh sách sản phẩm -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-sm font-medium text-gray-700">4. Chọn sản phẩm cần in:</label>
+                        <label class="flex items-center text-sm cursor-pointer">
+                            <input type="checkbox" id="select-all-checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-1">
+                            Chọn tất cả
+                        </label>
+                    </div>
+                    <div id="product-list" class="h-64 overflow-y-auto border border-gray-300 rounded-md p-2 bg-white">
+                        <p class="text-gray-500">Vui lòng chọn file Excel trước...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KHU VỰC HIỂN THỊ VÀ IN (PREVIEW) -->
+        <h2 class="no-print text-xl font-bold text-center text-gray-700 my-4">Bản xem trước</h2>
+        <div id="print-area" class="bg-white shadow-lg">
+            <!-- Các trang in sẽ được tạo bằng JavaScript ở đây -->
+        </div>
+    </div>
+
+<script>
+    const fileInput = document.getElementById('file-input');
+    const productListDiv = document.getElementById('product-list');
+    const printBtn = document.getElementById('print-btn');
+    const titleInput = document.getElementById('popup-title-input');
+    const sloganInput = document.getElementById('slogan-input');
+    const printArea = document.getElementById('print-area');
+    const selectedCountSpan = document.getElementById('selected-count');
+    const pageCountSpan = document.getElementById('page-count');
+    const selectAllCheckbox = document.getElementById('select-all-checkbox');
+    const storageKey = 'popupGeneratorState_v6';
+
+    let excelData = [];
+    
+    // Ánh xạ cột Excel sang chỉ số mảng (A=0)
+    const COLS = {
+        E: 4, F: 5, G: 6, H: 7,
+        X: 23,
+        AT: 45,
+        AY: 50,
+        AZ: 51,
+        BA: 52,
+        BB: 53,
+        BC: 54,
+        BE: 56
+    };
+
+    function formatCurrency(number) {
+        if (isNaN(number) || number === null) return '0đ';
+        return number.toLocaleString('vi-VN') + 'đ';
+    }
+     function formatInputCurrency(input) {
+        let value = input.value.replace(/[^0-9]/g, '');
+        if (value) {
+            input.value = parseInt(value, 10).toLocaleString('vi-VN');
+        } else {
+            input.value = '';
+        }
+    }
+
+    function parseCurrency(value) {
+        if (typeof value !== 'string' && typeof value !== 'number') return 0;
+        if(typeof value === 'number') return value;
+        const number = parseInt(value.replace(/[^0-9]/g, ''), 10);
+        return isNaN(number) ? 0 : number;
+    }
+    
+    function saveState() {
+        const title = titleInput.value;
+        const slogan = sloganInput.value;
+        const selections = {};
+        const fileName = fileInput.files[0] ? fileInput.files[0].name : '';
+
+        document.querySelectorAll('.product-checkbox').forEach(cb => {
+            const index = cb.value;
+            const priceInput = document.querySelector(`.price-input[data-index="${index}"]`);
+            if (cb.checked || (priceInput && priceInput.defaultValue !== priceInput.value)) {
+                 selections[index] = {
+                    checked: cb.checked,
+                    price: priceInput.value
+                };
+            }
+        });
+        const state = { title, slogan, selections, fileName };
+        localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function applySavedSelections(currentFileName) {
+         const savedState = localStorage.getItem(storageKey);
+         if (savedState) {
+            const state = JSON.parse(savedState);
+            // Chỉ áp dụng nếu tên file trùng khớp
+            if (state.fileName === currentFileName && state.selections) {
+                Object.keys(state.selections).forEach(index => {
+                    const checkbox = document.querySelector(`.product-checkbox[value="${index}"]`);
+                    const priceInput = document.querySelector(`.price-input[data-index="${index}"]`);
+                    if (checkbox && priceInput) {
+                        checkbox.checked = state.selections[index].checked;
+                        priceInput.value = state.selections[index].price;
+                    }
+                });
+            }
+         }
+    }
+
+    function loadState() {
+        const savedState = localStorage.getItem(storageKey);
+        if (savedState) {
+            const state = JSON.parse(savedState);
+            if (state.title) {
+                titleInput.value = state.title;
+            }
+            if (state.slogan) {
+                sloganInput.value = state.slogan;
+            }
+        }
+    }
+
+
+    fileInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }).slice(1);
+
+            productListDiv.innerHTML = '';
+            selectAllCheckbox.checked = false;
+            let productCounter = 1;
+            excelData.forEach((row, index) => {
+                const productName = row[COLS.AT];
+                if (productName && productName.trim() !== '') {
+                    const price = parseCurrency(row[COLS.X]);
+                    const div = document.createElement('div');
+                    div.className = 'p-1.5 hover:bg-blue-50 rounded flex items-center justify-between';
+                    div.innerHTML = `
+                        <label class="flex items-center space-x-3 cursor-pointer flex-grow">
+                            <input type="checkbox" value="${index}" class="product-checkbox h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <span class="text-gray-700 text-sm">${productCounter}. ${productName}</span>
+                        </label>
+                        <input type="text" value="${price.toLocaleString('vi-VN')}" data-index="${index}" class="price-input text-sm ml-2">
+                    `;
+                    productListDiv.appendChild(div);
+                    productCounter++;
+                }
+            });
+            
+            document.querySelectorAll('.price-input').forEach(input => {
+                input.addEventListener('input', () => formatInputCurrency(input));
+                input.addEventListener('change', () => {
+                    generatePrintPreview();
+                    saveState();
+                });
+            });
+
+            applySavedSelections(file.name);
+            generatePrintPreview();
+        };
+        reader.readAsArrayBuffer(file);
+    });
+    
+    function createPopupHtml(productObject) {
+        if (!productObject) {
+            return '<div class="w-full h-1/2 box-border"></div>';
+        }
+        
+        const { rowData, editedPrice } = productObject;
+        const productName = rowData[COLS.AT] || 'N/A';
+        const productCode = rowData[COLS.BE] ? `Mã: ${rowData[COLS.BE]}` : '';
+        const customTitle = titleInput.value.toUpperCase();
+        const sloganText = sloganInput.value;
+
+        const cleanText = (text, fallback) => (text || fallback).replace(/^[-•\s]+/, '').trim();
+        const year1Text = cleanText(rowData[COLS.AZ], 'Chi phí thay lõi định kỳ năm thứ 1');
+        const year2Text = cleanText(rowData[COLS.BA], 'Chi phí thay lõi định kỳ năm thứ 2');
+        const year3Text = cleanText(rowData[COLS.BB], 'Chi phí thay lõi định kỳ năm thứ 3');
+        const year4Text = cleanText(rowData[COLS.BC], 'Chi phí thay lõi định kỳ năm thứ 4');
+        
+        const costX = editedPrice;
+        const costE = parseCurrency(rowData[COLS.E]);
+        const costF = parseCurrency(rowData[COLS.F]);
+        const costG = parseCurrency(rowData[COLS.G]);
+        const costH = parseCurrency(rowData[COLS.H]);
+
+        const year1Cost = costX + costE;
+        const year2Cost = year1Cost + costF;
+        const year3Cost = year2Cost + costG;
+        const year4Cost = year3Cost + costH;
+        
+        let rawWarrantyInfo = rowData[COLS.AY] || '';
+        let processedWarranty = rawWarrantyInfo;
+        const chinhHangIndex = rawWarrantyInfo.indexOf('chính hãng');
+        if (chinhHangIndex !== -1) {
+            processedWarranty = rawWarrantyInfo.substring(0, chinhHangIndex + 'chính hãng'.length);
+        }
+        processedWarranty = processedWarranty.replace(/(\d+)(\s*năm)/g, '<strong class="text-lg mx-1">$1</strong>$2');
+        
+        let hasZeroPercent = rowData.some(cell => {
+            if (cell === null || cell === undefined) return false;
+            const cellValue = String(cell);
+            return cellValue === '0%' || cellValue === '0.00%';
+        });
+
+        if (hasZeroPercent) {
+            processedWarranty += `
+                <span class="inline-flex items-center ml-1">
+                    + Trả chậm <strong class="font-black text-black text-lg ml-1">0%</strong>
+                </span>`;
+        }
+
+        const printDateTime = new Date().toLocaleString('vi-VN', {
+            hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+        });
+
+        return `
+            <div class="w-full h-1/2 flex flex-col p-2 box-border overflow-hidden">
+                <div class="border-2 border-dashed border-gray-400 flex flex-col h-full">
+                    <div class="text-black text-center font-black p-2 text-2xl border-b-2 border-dashed border-gray-400 flex justify-center items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-700">
+                            <path d="M12 22a7 7 0 0 0 7-7c0-2.3-1.4-5.2-7-13-5.6 7.8-7 10.7-7 13a7 7 0 0 0 7 7z"></path>
+                        </svg>
+                        <span>${customTitle}</span>
+                    </div>
+                    <div class="p-2 text-center flex-grow flex flex-col">
+                        <h2 class="text-xl font-bold text-black leading-tight" style="min-height: 2.5rem; display: flex; align-items: center; justify-content: center;">${productName}</h2>
+                        <p class="text-xs text-gray-500 mt-1 flex items-center justify-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block text-gray-400"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                            <span>${productCode}</span>
+                        </p>
+                        <div class="text-sm font-semibold text-blue-600 italic my-1 px-2 text-center">
+                            <span class="text-gray-800">"${sloganText}"</span>
+                        </div>
+                        <div class="border-t border-dashed border-gray-300 my-1"></div>
+                        <div class="text-left text-base flex-grow">
+                            <p class="py-1 flex justify-between"><span>• ${year1Text}</span> <span class="price-highlight">${formatCurrency(year1Cost)}</span></p>
+                            <p class="py-1 flex justify-between border-t border-dashed border-gray-300"><span>• ${year2Text}</span> <span class="price-highlight">${formatCurrency(year2Cost)}</span></p>
+                            <p class="py-1 flex justify-between border-t border-dashed border-gray-300"><span>• ${year3Text}</span> <span class="price-highlight">${formatCurrency(year3Cost)}</span></p>
+                            <p class="py-1 flex justify-between border-t border-dashed border-gray-300"><span>• ${year4Text}</span> <span class="price-highlight">${formatCurrency(year4Cost)}</span></p>
+                        </div>
+                    </div>
+                    <div class="p-2 bg-gray-100 text-center font-bold text-base border-t-2 border-dashed border-gray-400 relative">
+                        <div class="flex items-center justify-center flex-nowrap">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-2 text-green-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            <span class="whitespace-nowrap">${processedWarranty}</span>
+                        </div>
+                        <span class="absolute right-2 bottom-1 text-[10px] font-normal text-gray-500">${printDateTime}</span>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function adjustFontSizes() {
+        const productNames = document.querySelectorAll('#print-area h2');
+        productNames.forEach(h2 => {
+            // Reset font size to default before checking
+            h2.style.fontSize = ''; 
+            let currentSize = parseFloat(window.getComputedStyle(h2).fontSize);
+            // Check for overflow and reduce font size
+            while (h2.scrollHeight > h2.offsetHeight && currentSize > 12) {
+                currentSize--;
+                h2.style.fontSize = currentSize + 'px';
+            }
+        });
+    }
+
+    function generatePrintPreview() {
+        const checkedBoxes = document.querySelectorAll('.product-checkbox:checked');
+        const selectedProducts = Array.from(checkedBoxes).map(cb => {
+            const index = parseInt(cb.value);
+            const priceInput = document.querySelector(`.price-input[data-index="${index}"]`);
+            const editedPrice = parseCurrency(priceInput.value);
+            return { rowData: excelData[index], editedPrice };
+        });
+
+        selectedCountSpan.textContent = selectedProducts.length;
+        pageCountSpan.textContent = Math.ceil(selectedProducts.length / 2);
+        
+        printArea.innerHTML = '';
+        if(selectedProducts.length === 0) {
+            printArea.innerHTML = '<p class="text-center p-10 text-gray-500">Chưa có sản phẩm nào được chọn để hiển thị.</p>';
+            return;
+        }
+
+        for (let i = 0; i < selectedProducts.length; i += 2) {
+            const page = document.createElement('div');
+            page.style.width = '148mm';
+            page.style.height = '210mm';
+            // Add relative positioning for the line
+            page.className = 'flex flex-col bg-white page-break relative';
+            
+            page.innerHTML = createPopupHtml(selectedProducts[i]) + createPopupHtml(selectedProducts[i+1] || null);
+
+            // Add the solid cutting line if there are two popups on the page
+            if (selectedProducts[i + 1]) {
+                const line = document.createElement('div');
+                line.className = 'absolute top-1/2 left-0 w-full border-b border-gray-400';
+                page.appendChild(line);
+            }
+            
+            printArea.appendChild(page);
+        }
+
+        // Adjust font sizes after rendering
+        // Use a short timeout to allow the browser to render first
+        setTimeout(adjustFontSizes, 0);
+    }
+    
+    selectAllCheckbox.addEventListener('change', (e) => {
+        document.querySelectorAll('.product-checkbox').forEach(checkbox => {
+            checkbox.checked = e.target.checked;
+        });
+        generatePrintPreview();
+        saveState();
+    });
+
+    productListDiv.addEventListener('change', (e) => {
+        if (e.target.classList.contains('product-checkbox')) {
+            generatePrintPreview();
+            saveState();
+        }
+    });
+    titleInput.addEventListener('input', () => {
+        generatePrintPreview();
+        saveState();
+    });
+    sloganInput.addEventListener('input', () => {
+        generatePrintPreview();
+        saveState();
+    });
+    
+    printBtn.addEventListener('click', () => {
+        if(document.querySelectorAll('.product-checkbox:checked').length > 0) {
+            window.print();
+        } else {
+            alert('Vui lòng chọn ít nhất một sản phẩm để in!');
+        }
+    });
+
+    loadState();
+    generatePrintPreview();
+
+</script>
+</body>
+</html>

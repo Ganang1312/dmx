@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo tồn kho & Trưng bày</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #f0f2f5; 
+        }
+        body, h1, h2, h3, p, span, th, td, label, div:not([class*="bg-"]) {
+            color: #000000;
+        }
+        .table-container { 
+            overflow-x: auto; 
+        }
+        
+        /* CSS DÀNH CHO VIỆC IN ẤN - ĐÃ CẬP NHẬT */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-section, .print-section * {
+                visibility: visible;
+            }
+            .print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+            @page {
+                size: A4 portrait;
+                margin: 10mm;
+
+                /* Bổ sung số trang ở cuối trang in */
+                @bottom-center {
+                    content: "Trang " counter(page);
+                    font-family: 'Inter', sans-serif;
+                    font-size: 6.5pt;
+                    color: #666;
+                }
+            }
+            body {
+                margin: 0;
+                padding: 0;
+                font-size: 7pt;
+                counter-reset: page; /* Khởi tạo bộ đếm trang */
+            }
+            .print-section table, .print-section th, .print-section td {
+                font-size: 6.5pt !important;
+            }
+
+            .print-section th, .print-section td {
+                padding: 1px 3px !important;
+            }
+            
+            .print-section .laptop-table td:nth-child(4) {
+                white-space: nowrap !important;
+            }
+
+             /* Ngăn trình duyệt xóa style khi in */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color: #000 !important;
+                background: transparent !important;
+                box-shadow: none !important;
+                text-shadow: none !important;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: auto;
+            }
+            thead {
+                display: table-header-group; /* Lặp lại header trên mỗi trang */
+            }
+            tr, h2, h3, h4 {
+                page-break-inside: avoid;
+            }
+            h2, h3, h4 {
+                page-break-after: avoid;
+            }
+            .space-y-12, .space-y-8, .space-y-6 {
+                gap: 0.5rem 0;
+            }
+            .p-6 {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-black p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-8 text-center no-print">
+            <h1 class="text-3xl md:text-4xl font-extrabold">Báo Cáo Tồn Kho & Trưng Bày</h1>
+            <p class="mt-2">Vui lòng cung cấp các file và dữ liệu cần thiết để tạo báo cáo.</p>
+        </div>
+
+        <!-- Vùng nhập liệu -->
+        <div class="space-y-6 mb-6 p-6 bg-white rounded-2xl shadow-lg no-print">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <label for="priceFile" class="flex items-center justify-center cursor-pointer bg-blue-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-blue-700 transition-all duration-300 w-full text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" /></svg>
+                        Tải file giá laptop
+                    </label>
+                    <input type="file" id="priceFile" class="hidden" accept=".csv, .xls, .xlsx">
+                    <span id="priceFileName" class="text-sm mt-2 block truncate text-center">Chưa chọn file</span>
+                </div>
+                <div>
+                    <label for="priceFileIT" class="flex items-center justify-center cursor-pointer bg-purple-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-purple-700 transition-all duration-300 w-full text-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v.01" /></svg>
+                        Tải file giá IT
+                    </label>
+                    <input type="file" id="priceFileIT" class="hidden" accept=".csv, .xls, .xlsx">
+                    <span id="priceFileNameIT" class="text-sm mt-2 block truncate text-center">Chưa chọn file</span>
+                </div>
+                <div>
+                    <label for="inventoryFile" class="flex items-center justify-center cursor-pointer bg-teal-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-teal-700 transition-all duration-300 w-full text-center">
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4M4 7s0 0 0 0" /></svg>
+                        Tải file tồn kho
+                    </label>
+                    <input type="file" id="inventoryFile" class="hidden" accept=".csv, .xls, .xlsx">
+                    <span id="inventoryFileName" class="text-sm mt-2 block truncate text-center">Chưa chọn file</span>
+                </div>
+            </div>
+            <div>
+                <label for="displayCodes" class="block mb-2 font-semibold">Dán danh sách mã sản phẩm đang trưng bày (mỗi mã một dòng):</label>
+                <textarea id="displayCodes" rows="8" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Để trống nếu không cần phân tích hàng trưng bày..."></textarea>
+            </div>
+            <!-- NÂNG CẤP: Thêm nút tích tối ưu -->
+            <div class="flex items-center justify-center pt-4 border-t">
+                <input type="checkbox" id="optimizeDisplayToggle" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <label for="optimizeDisplayToggle" class="ml-2 block text-sm font-medium text-gray-900">
+                    Bật gợi ý tối ưu trưng bày laptop
+                </label>
+            </div>
+        </div>
+        
+        <div id="process-button-container" class="text-center my-6 no-print hidden">
+             <button id="processBtn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-indigo-700 transform hover:scale-105 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none">
+                Xem Báo Cáo
+            </button>
+        </div>
+
+        <div id="status" class="text-center py-8 no-print">
+            <p>Vui lòng tải file Tồn Kho và ít nhất một file Giá (Laptop hoặc IT).</p>
+        </div>
+
+        <div id="reportContainer" class="hidden space-y-12">
+            <!-- Báo cáo trưng bày -->
+            <div id="display-report-section" class="bg-white p-6 rounded-2xl shadow-lg">
+                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-2">
+                    <div>
+                        <h2 class="text-2xl font-bold">Báo Cáo Trưng Bày</h2>
+                        <p class="text-sm" id="display-report-date"></p>
+                    </div>
+                     <div class="flex flex-wrap gap-2 mt-2 sm:mt-0 no-print">
+                        <button onclick="printTable('display-report-section')" class="flex items-center bg-sky-100 text-sky-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-sky-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v-2a1 1 0 011-1h8a1 1 0 011 1v2h1a2 2 0 002-2v-3a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" /></svg>In / Lưu PDF</button>
+                        <button onclick="exportSectionToExcel('display-report-section', 'bao-cao-trung-bay.xlsx')" class="flex items-center bg-emerald-100 text-emerald-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>Xuất Excel</button>
+                        <button onclick="captureTable('display-report-section', 'bao-cao-trung-bay.png')" class="flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>Chụp ảnh</button>
+                    </div>
+                </div>
+                <div id="display-analysis-results-printable"></div>
+            </div>
+            
+            <!-- Bảng tồn kho chung -->
+            <div id="main-report-section" class="bg-white p-6 rounded-2xl shadow-lg">
+                 <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-2">
+                    <div>
+                        <h2 class="text-2xl font-bold">Tồn Kho Chung</h2>
+                        <p class="text-sm" id="main-report-date"></p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-2 sm:mt-0 no-print">
+                        <button onclick="printTable('main-report-section')" class="flex items-center bg-sky-100 text-sky-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-sky-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v-2a1 1 0 011-1h8a1 1 0 011 1v2h1a2 2 0 002-2v-3a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" /></svg>In / Lưu PDF</button>
+                        <button onclick="exportSectionToExcel('main-report-section', 'ton-kho-chung.xlsx')" class="flex items-center bg-emerald-100 text-emerald-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>Xuất Excel</button>
+                        <button onclick="captureTable('main-report-section', 'ton-kho-chung.png')" class="flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>Chụp ảnh</button>
+                    </div>
+                </div>
+                <p class="mb-4 text-xs italic text-center border-t border-b border-dashed py-2">
+                    Giá sản phẩm thay đổi theo ngày nên chỉ tham khảo, để chính xác mời quý khách hàng hỏi nhân viên tư vấn để được báo giá chính xác.
+                </p>
+                <div id="main-tables-container" class="space-y-8"></div>
+            </div>
+
+            <!-- Các bảng theo hãng -->
+            <div id="brand-report-section" class="bg-white p-6 rounded-2xl shadow-lg">
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-2">
+                     <div>
+                        <h2 class="text-2xl font-bold">Chi Tiết Theo Hãng</h2>
+                        <p class="text-sm" id="brand-report-date"></p>
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-2 sm:mt-0 no-print">
+                        <button onclick="printTable('brand-report-section')" class="flex items-center bg-sky-100 text-sky-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-sky-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 4v3H4a2 2 0 00-2 2v3a2 2 0 002 2h1v-2a1 1 0 011-1h8a1 1 0 011 1v2h1a2 2 0 002-2v-3a2 2 0 00-2-2h-1V4a2 2 0 00-2-2H7a2 2 0 00-2 2zm8 0H7v3h6V4zm0 8H7v4h6v-4z" clip-rule="evenodd" /></svg>In / Lưu PDF</button>
+                        <button onclick="exportSectionToExcel('brand-report-section', 'chi-tiet-theo-hang.xlsx')" class="flex items-center bg-emerald-100 text-emerald-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>Xuất Excel</button>
+                        <button onclick="captureTable('brand-report-section', 'chi-tiet-theo-hang.png')" class="flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-200 transition"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>Chụp ảnh</button>
+                    </div>
+                </div>
+                 <p class="mb-4 text-xs italic text-center border-t border-b border-dashed py-2">
+                    Giá sản phẩm thay đổi theo ngày nên chỉ tham khảo, để chính xác mời quý khách hàng hỏi nhân viên tư vấn để được báo giá chính xác.
+                </p>
+                <div id="brand-tables-container" class="space-y-8"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        var priceData = null;
+        var priceDataIT = null;
+        var inventoryData = null;
+
+        // DOM Elements
+        const priceFileInput = document.getElementById('priceFile');
+        const priceFileITInput = document.getElementById('priceFileIT');
+        const inventoryFileInput = document.getElementById('inventoryFile');
+        const displayCodesTextarea = document.getElementById('displayCodes');
+        const priceFileNameSpan = document.getElementById('priceFileName');
+        const priceFileNameITSpan = document.getElementById('priceFileNameIT');
+        const inventoryFileNameSpan = document.getElementById('inventoryFileName');
+        const processBtn = document.getElementById('processBtn');
+        const processContainer = document.getElementById('process-button-container');
+        const statusDiv = document.getElementById('status');
+        const reportContainer = document.getElementById('reportContainer');
+        const optimizeDisplayToggle = document.getElementById('optimizeDisplayToggle'); // Nâng cấp
+        
+        // Report sections
+        const mainTablesContainer = document.getElementById('main-tables-container');
+        const brandTablesContainer = document.getElementById('brand-tables-container');
+        const displayReportSection = document.getElementById('display-report-section');
+        const displayAnalysisResultsPrintable = document.getElementById('display-analysis-results-printable');
+        
+        // Report metadata
+        const mainReportDate = document.getElementById('main-report-date');
+        const brandReportDate = document.getElementById('brand-report-date');
+        const displayReportDate = document.getElementById('display-report-date');
+
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', loadFromLocalStorage);
+        priceFileInput.addEventListener('change', (e) => handleFileSelect(e, 'price'));
+        priceFileITInput.addEventListener('change', (e) => handleFileSelect(e, 'priceIT'));
+        inventoryFileInput.addEventListener('change', (e) => handleFileSelect(e, 'inventory'));
+        displayCodesTextarea.addEventListener('input', (e) => localStorage.setItem('savedDisplayCodes', e.target.value));
+        processBtn.addEventListener('click', processAndRenderAll);
+
+        function handleFileSelect(event, fileType) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            let fileNameSpan;
+            let dataKey, nameKey;
+
+            if (fileType === 'price') {
+                fileNameSpan = priceFileNameSpan;
+                dataKey = 'savedPriceData';
+                nameKey = 'savedPriceFileName';
+            } else if (fileType === 'priceIT') {
+                fileNameSpan = priceFileNameITSpan;
+                dataKey = 'savedPriceDataIT';
+                nameKey = 'savedPriceFileNameIT';
+            } else {
+                fileNameSpan = inventoryFileNameSpan;
+                dataKey = 'savedInventoryData';
+                nameKey = 'savedInventoryFileName';
+            }
+            
+            fileNameSpan.textContent = file.name;
+            fileNameSpan.classList.add('font-semibold');
+            statusDiv.textContent = `Đang đọc file ${file.name}...`;
+
+            const reader = new FileReader();
+            reader.onload = e => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const parsedData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (fileType === 'price') priceData = parsedData;
+                    else if (fileType === 'priceIT') priceDataIT = parsedData;
+                    else inventoryData = parsedData;
+
+                    // Save to localStorage
+                    localStorage.setItem(dataKey, JSON.stringify(parsedData));
+                    localStorage.setItem(nameKey, file.name);
+
+                    checkFilesReady();
+                } catch (error) {
+                    statusDiv.innerHTML = `<p class="text-red-600">Lỗi khi đọc file ${file.name}. File có thể bị hỏng hoặc không đúng định dạng.</p>`;
+                    console.error("File parsing error:", error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function loadFromLocalStorage() {
+            displayCodesTextarea.value = localStorage.getItem('savedDisplayCodes') || '';
+
+            const savedPriceData = localStorage.getItem('savedPriceData');
+            if(savedPriceData) {
+                priceData = JSON.parse(savedPriceData);
+                priceFileNameSpan.textContent = localStorage.getItem('savedPriceFileName') || 'Đã tải từ cache';
+                priceFileNameSpan.classList.add('font-semibold');
+            }
+
+            const savedPriceDataIT = localStorage.getItem('savedPriceDataIT');
+            if(savedPriceDataIT) {
+                priceDataIT = JSON.parse(savedPriceDataIT);
+                priceFileNameITSpan.textContent = localStorage.getItem('savedPriceFileNameIT') || 'Đã tải từ cache';
+                priceFileNameITSpan.classList.add('font-semibold');
+            }
+
+            const savedInventoryData = localStorage.getItem('savedInventoryData');
+            if(savedInventoryData) {
+                inventoryData = JSON.parse(savedInventoryData);
+                inventoryFileNameSpan.textContent = localStorage.getItem('savedInventoryFileName') || 'Đã tải từ cache';
+                inventoryFileNameSpan.classList.add('font-semibold');
+            }
+            
+            checkFilesReady();
+        }
+
+        function checkFilesReady() {
+            if ((priceData || priceDataIT) && inventoryData) {
+                processContainer.classList.remove('hidden');
+                processBtn.disabled = false;
+                statusDiv.innerHTML = '<p class="font-semibold text-green-700">Đã sẵn sàng! Nhấn "Xem Báo Cáo" để xử lý.</p>';
+            } else {
+                let missing = [];
+                if (!inventoryData) missing.push("Tồn Kho");
+                if (!priceData && !priceDataIT) missing.push("Giá Laptop hoặc Giá IT");
+                statusDiv.textContent = `Vui lòng tải lên file: ${missing.join(', ')}.`;
+            }
+        }
+        
+        function findHeaderRow(data, key_keyword) {
+            if (!data) return 1;
+            for (let i = 0; i < Math.min(data.length, 20); i++) {
+                for(let j = 0; j < Math.min((data[i] || []).length, 10); j++) {
+                    const cellValue = data[i][j];
+                    if (cellValue && typeof cellValue === 'string' && cellValue.toLowerCase().includes(key_keyword)) {
+                        return i + 1;
+                    }
+                }
+            }
+            return 1;
+        }
+
+        function processAndRenderAll() {
+            statusDiv.textContent = 'Đang kết hợp dữ liệu và tạo báo cáo...';
+            reportContainer.classList.add('hidden');
+            displayReportSection.classList.add('hidden');
+
+            try {
+                const inventoryMap = new Map();
+                const invStartIndex = findHeaderRow(inventoryData, 'mã');
+                inventoryData.slice(invStartIndex).forEach(row => {
+                    if(row && row.length > 9){
+                        const productId = row[6];
+                        const quantity = parseInt(row[9], 10) || 0;
+                        if (productId) inventoryMap.set(String(productId).trim(), quantity);
+                    }
+                });
+                
+                let allLaptops = [];
+                if (priceData) {
+                    const priceStartIndex = findHeaderRow(priceData, 'mã');
+                    allLaptops = priceData.slice(priceStartIndex).map(row => {
+                        if (!row || row.length < 21) return null;
+                        const originalPrice = parsePrice(row[18]);
+                        const finalPrice = parsePrice(row[20]);
+                        const productId = String(row[6] || '').trim();
+                        const name = row[0] || null;
+                        return {
+                            productType: 'laptop',
+                            name: name, id: productId, config: row[8] || null,
+                            originalPrice: originalPrice > 0 ? originalPrice : finalPrice,
+                            finalPrice: finalPrice,
+                            quantity: inventoryMap.get(productId) || 0,
+                            cpuInfo: getCPUInfo(row[8], name), 
+                            brand: getBrand(name),
+                            productLine: getProductLine(name) // Nâng cấp: Thêm dòng sản phẩm
+                        };
+                    }).filter(p => p && p.name && p.id && (p.originalPrice > 0 || p.finalPrice > 0));
+                }
+
+                let allITProducts = [];
+                if (priceDataIT) {
+                    const priceITStartIndex = findHeaderRow(priceDataIT, 'mã');
+                    allITProducts = priceDataIT.slice(priceITStartIndex).map(row => {
+                        if (!row || row.length < 21) return null;
+                        const name = row[0] || '';
+                        const productId = String(row[6] || '').trim();
+                        const originalPrice = parsePrice(row[18]);
+                        const finalPrice = parsePrice(row[20]);
+                        const spec = row[8] || '';
+
+                        const baseProduct = {
+                            name: name, id: productId,
+                            originalPrice: originalPrice > 0 ? originalPrice : finalPrice,
+                            finalPrice: finalPrice,
+                            quantity: inventoryMap.get(productId) || 0,
+                            brand: getBrand(name),
+                        };
+
+                        if (name.toLowerCase().includes('máy in')) {
+                            return { ...baseProduct, productType: 'printer', spec: spec };
+                        } else {
+                            return { ...baseProduct, productType: 'monitor', spec: spec, numericSize: parseScreenSize(spec) };
+                        }
+                    }).filter(p => p && p.name && p.id && (p.originalPrice > 0 || p.finalPrice > 0));
+                }
+
+                const allProducts = [...allLaptops, ...allITProducts];
+
+                if (allProducts.length === 0) {
+                    throw new Error("Không tìm thấy dữ liệu sản phẩm hợp lệ nào. Vui lòng kiểm tra lại các file đầu vào.");
+                }
+                
+                renderInventoryReports(allLaptops, allITProducts);
+                renderBrandReports(allLaptops, allITProducts);
+                
+                const codesText = displayCodesTextarea.value.trim();
+                if (codesText) {
+                    const showOptimization = optimizeDisplayToggle.checked;
+                    analyzeAndRenderDisplay(allProducts, codesText, showOptimization);
+                }
+
+                statusDiv.innerHTML = '';
+                reportContainer.classList.remove('hidden');
+
+            } catch (error) {
+                console.error("Lỗi xử lý dữ liệu:", error);
+                statusDiv.innerHTML = `<p class="text-red-600 font-semibold">${error.message}</p>`;
+                reportContainer.classList.add('hidden');
+            }
+        }
+        
+        function renderInventoryReports(laptops, itProducts) {
+            const today = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            mainReportDate.textContent = `Ngày tạo báo cáo: ${today}`;
+            mainTablesContainer.innerHTML = '';
+            
+            if (laptops.length > 0) {
+                const macbooks = laptops.filter(p => p.cpuInfo.isMac).sort((a, b) => b.originalPrice - a.originalPrice);
+                const otherLaptops = laptops.filter(p => !p.cpuInfo.isMac).sort((a, b) => {
+                    if (a.cpuInfo.rank !== b.cpuInfo.rank) return b.cpuInfo.rank - a.cpuInfo.rank;
+                    return b.originalPrice - a.originalPrice;
+                });
+                const sortedLaptops = [...otherLaptops, ...macbooks];
+                createSection(mainTablesContainer, `Tồn Kho Laptop (${sortedLaptops.length} sản phẩm)`, container => renderLaptopTable(container, sortedLaptops));
+            }
+
+            const printers = itProducts.filter(p => p.productType === 'printer');
+            if (printers.length > 0) {
+                printers.sort((a, b) => b.originalPrice - a.originalPrice);
+                createSection(mainTablesContainer, `Tồn Kho Máy In (${printers.length} sản phẩm)`, container => renderPrinterTable(container, printers));
+            }
+            
+            const monitors = itProducts.filter(p => p.productType === 'monitor');
+            if (monitors.length > 0) {
+                monitors.sort((a, b) => {
+                    if(a.numericSize !== b.numericSize) return b.numericSize - a.numericSize;
+                    return b.originalPrice - a.originalPrice;
+                });
+                createSection(mainTablesContainer, `Tồn Kho Màn Hình (${monitors.length} sản phẩm)`, container => renderMonitorTable(container, monitors));
+            }
+        }
+        
+        function renderBrandReports(laptops, itProducts) {
+            const today = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            brandReportDate.textContent = `Ngày tạo báo cáo: ${today}`;
+            brandTablesContainer.innerHTML = '';
+
+            if (laptops.length > 0) {
+                const section = createSection(brandTablesContainer, 'Chi Tiết Laptop Theo Hãng', null, 'h3', 'text-2xl font-bold mb-4 border-b pb-2');
+                const laptopsByBrand = laptops.reduce((acc, p) => {
+                    (acc[p.brand] = acc[p.brand] || []).push(p);
+                    return acc;
+                }, {});
+                Object.keys(laptopsByBrand).sort().forEach(brand => {
+                    const brandData = laptopsByBrand[brand].sort((a, b) => {
+                        if (a.cpuInfo.rank !== b.cpuInfo.rank) return b.cpuInfo.rank - a.cpuInfo.rank;
+                        return b.originalPrice - a.originalPrice;
+                    });
+                    createSection(section, `${brand} (${brandData.length})`, container => renderLaptopTable(container, brandData), 'h4', 'text-lg font-semibold mb-2 mt-4');
+                });
+            }
+
+            const monitors = itProducts.filter(p => p.productType === 'monitor');
+            if (monitors.length > 0) {
+                const section = createSection(brandTablesContainer, 'Chi Tiết Màn Hình Theo Hãng', null, 'h3', 'text-2xl font-bold mb-4 border-b pb-2 mt-8');
+                const monitorsByBrand = monitors.reduce((acc, p) => {
+                    (acc[p.brand] = acc[p.brand] || []).push(p);
+                    return acc;
+                }, {});
+                Object.keys(monitorsByBrand).sort().forEach(brand => {
+                    const brandData = monitorsByBrand[brand].sort((a, b) => {
+                         if(a.numericSize !== b.numericSize) return b.numericSize - a.numericSize;
+                         return b.originalPrice - a.originalPrice;
+                    });
+                    createSection(section, `${brand} (${brandData.length})`, container => renderMonitorTable(container, brandData), 'h4', 'text-lg font-semibold mb-2 mt-4');
+                });
+            }
+
+            const printers = itProducts.filter(p => p.productType === 'printer');
+            if (printers.length > 0) {
+                const section = createSection(brandTablesContainer, 'Chi Tiết Máy In Theo Hãng', null, 'h3', 'text-2xl font-bold mb-4 border-b pb-2 mt-8');
+                const printersByBrand = printers.reduce((acc, p) => {
+                    (acc[p.brand] = acc[p.brand] || []).push(p);
+                    return acc;
+                }, {});
+                Object.keys(printersByBrand).sort().forEach(brand => {
+                    const brandData = printersByBrand[brand].sort((a, b) => b.originalPrice - a.originalPrice);
+                    createSection(section, `${brand} (${brandData.length})`, container => renderPrinterTable(container, brandData), 'h4', 'text-lg font-semibold mb-2 mt-4');
+                });
+            }
+        }
+        
+        function createSection(parent, title, renderFn, titleElement = 'h3', titleClass = 'text-xl font-bold mb-3') {
+            const sectionDiv = document.createElement('div');
+            sectionDiv.innerHTML = `<${titleElement} class="${titleClass}">${title}</${titleElement}>`;
+            const tableContainer = document.createElement('div');
+            tableContainer.className = 'table-container';
+            sectionDiv.appendChild(tableContainer);
+            parent.appendChild(sectionDiv);
+            if(renderFn) renderFn(tableContainer);
+            return sectionDiv;
+        }
+
+        function renderLaptopTable(container, data) {
+            const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'CPU', 'Tồn kho', 'Giá Gốc', 'Giá Cuối'];
+            const rows = data.map((p, i) => [
+                i + 1, p.id, p.name, p.cpuInfo.display, p.quantity, 
+                formatCurrency(p.originalPrice), formatCurrency(p.finalPrice)
+            ]);
+            container.innerHTML = createTableHTML(headers, rows, 'table-7-cols laptop-table');
+        }
+        
+        function renderPrinterTable(container, data) {
+            const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'Thông số kỹ thuật', 'Tồn kho', 'Giá Gốc', 'Giá Cuối'];
+            const rows = data.map((p, i) => [
+                i + 1, p.id, p.name, p.spec, p.quantity, 
+                formatCurrency(p.originalPrice), formatCurrency(p.finalPrice)
+            ]);
+            container.innerHTML = createTableHTML(headers, rows, 'table-7-cols');
+        }
+
+        function renderMonitorTable(container, data) {
+            const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'Thông số kỹ thuật', 'Tồn kho', 'Giá Gốc', 'Giá Cuối'];
+            const rows = data.map((p, i) => [
+                i + 1, p.id, p.name, p.spec, p.quantity, 
+                formatCurrency(p.originalPrice), formatCurrency(p.finalPrice)
+            ]);
+            container.innerHTML = createTableHTML(headers, rows, 'table-7-cols');
+        }
+
+        function createTableHTML(headers, rows, tableClass = '') {
+            if (rows.length === 0) return `<p class="p-4">Không có dữ liệu.</p>`;
+            
+            let headHTML = headers.map(h => `<th class="border border-slate-300 px-2 py-1 font-semibold ${h.includes('Giá') ? 'text-right' : (h.includes('Tồn') ? 'text-center' : '')}">${h}</th>`).join('');
+            let bodyHTML = rows.map(row => {
+                let cellsHTML = row.map((cell, i) => {
+                    let classes = "border border-slate-300 px-2 py-1 align-middle"; // Căn giữa theo chiều dọc
+                    if (i === 0) classes += " text-center font-medium"; // STT
+                    if (i === 1) classes += " font-mono"; // Mã SP
+                    if (i === 2) classes += " font-semibold"; // Tên SP
+                    if (headers[i].includes('Tồn')) classes += " text-center font-bold";
+                    if (headers[i].includes('Giá Gốc')) classes += " text-right"; 
+                    if (headers[i].includes('Giá Cuối')) classes += " text-right font-bold";
+                    return `<td class="${classes}">${cell}</td>`;
+                }).join('');
+                return `<tr>${cellsHTML}</tr>`;
+            }).join('');
+
+            return `
+                <table class="w-full text-xs text-left border-collapse ${tableClass}">
+                    <thead class="bg-slate-100"><tr>${headHTML}</tr></thead>
+                    <tbody>${bodyHTML}</tbody>
+                </table>
+            `;
+        }
+
+        function createSuggestionTreeHTML(suggestions) {
+            if (suggestions.length === 0) {
+                return '<p class="text-green-600 font-semibold">Tốt! Không có dòng laptop nào trưng bày nhiều hơn 1 mẫu.</p>';
+            }
+
+            let html = '<div class="space-y-4">';
+
+            suggestions.forEach(s => {
+                html += `<div class="border border-gray-200 rounded-lg p-4 bg-gray-50">`;
+                html += `<h4 class="text-md font-bold text-gray-800 mb-3 pb-2 border-b">${s.line}</h4>`;
+                html += '<ul class="space-y-3">';
+
+                // Sản phẩm gợi ý giữ lại
+                html += `<li class="border-l-4 border-green-500 pl-3 py-1">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="font-semibold text-gray-900">${s.keep.name}</p>
+                                    <p class="text-sm text-gray-600">CPU: <span class="font-medium">${s.keep.cpuInfo.display}</span> - Giá: <span class="font-medium">${formatCurrency(s.keep.originalPrice)}</span></p>
+                                </div>
+                                <span class="text-xs font-bold text-white bg-green-600 px-2 py-1 rounded-full ml-2 flex-shrink-0">Giữ Lại</span>
+                            </div>
+                         </li>`;
+
+                // Sản phẩm gợi ý cất đi
+                s.remove.forEach(p => {
+                     html += `<li class="border-l-4 border-red-400 pl-3 py-1">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="font-semibold text-gray-900">${p.name}</p>
+                                        <p class="text-sm text-gray-600">CPU: <span class="font-medium">${p.cpuInfo.display}</span> - Giá: <span class="font-medium">${formatCurrency(p.originalPrice)}</span></p>
+                                    </div>
+                                    <span class="text-xs font-bold text-white bg-red-600 px-2 py-1 rounded-full ml-2 flex-shrink-0">Cất Đi</span>
+                                </div>
+                              </li>`;
+                });
+
+                html += '</ul></div>';
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        function analyzeAndRenderDisplay(allProducts, codesText, showOptimization) {
+            const displayCodes = codesText.split(/\s+/).map(code => code.trim()).filter(code => code);
+            if (displayCodes.length === 0) {
+                displayReportSection.classList.add('hidden');
+                return;
+            }
+            
+            const codeCounts = displayCodes.reduce((acc, code) => {
+                acc[code] = (acc[code] || 0) + 1;
+                return acc;
+            }, {});
+
+            const duplicatedCodes = Object.entries(codeCounts)
+                .filter(([_, count]) => count > 1)
+                .map(([code, count]) => ({ id: code, count: count }));
+
+            const duplicatedProducts = duplicatedCodes.map(item => {
+                const productInfo = allProducts.find(p => p.id === item.id) || { name: 'Không tìm thấy tên sản phẩm', id: item.id };
+                return { ...productInfo, displayCount: item.count };
+            });
+
+            const uniqueDisplayCodes = new Set(displayCodes);
+            const productsInStock = allProducts.filter(p => p.quantity > 0);
+            const toBeDisplayedProducts = productsInStock.filter(p => !uniqueDisplayCodes.has(p.id));
+            
+            const laptopsToBeDisplayed = toBeDisplayedProducts.filter(p => p.productType === 'laptop');
+            const monitorsToBeDisplayed = toBeDisplayedProducts.filter(p => p.productType === 'monitor');
+            const printersToBeDisplayed = toBeDisplayedProducts.filter(p => p.productType === 'printer');
+
+            const today = new Date().toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            displayReportDate.textContent = `Ngày tạo báo cáo: ${today}`;
+
+            let html = '<div class="space-y-8">';
+
+            // --- BÁO CÁO TRÙNG - BỔ SUNG ---
+            html += `<div><h3 class="text-xl font-bold text-red-600">Sản phẩm bị trưng trùng (${duplicatedProducts.length} mẫu)</h3>`;
+            if (duplicatedProducts.length > 0) {
+                const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'Số Lượng Trưng'];
+                const rows = duplicatedProducts.map((p, i) => [i + 1, p.id, p.name, p.displayCount]);
+                html += createTableHTML(headers, rows, 'table-4-cols');
+            } else {
+                html += '<p class="text-green-600 mt-1">Không có sản phẩm nào bị trưng trùng.</p>';
+            }
+            html += '</div>';
+
+            let totalToRemove = 0;
+            let newDisplaySuggestions = [];
+            let remainingLaptopsToBeDisplayed = laptopsToBeDisplayed;
+
+            if (showOptimization) {
+                // --- GỢI Ý TỐI ƯU TRƯNG BÀY ---
+                const displayedLaptops = allProducts.filter(p => p.productType === 'laptop' && uniqueDisplayCodes.has(p.id));
+                const displayedLines = displayedLaptops.reduce((acc, p) => {
+                    const line = p.productLine;
+                    if (!acc[line]) acc[line] = [];
+                    acc[line].push(p);
+                    return acc;
+                }, {});
+
+                const suggestions = [];
+                for (const line in displayedLines) {
+                    const productsInLine = displayedLines[line];
+                    if (productsInLine.length > 1) {
+                        productsInLine.sort((a, b) => b.originalPrice - a.originalPrice);
+                        suggestions.push({
+                            line: line,
+                            keep: productsInLine[0],
+                            remove: productsInLine.slice(1)
+                        });
+                    }
+                }
+                
+                suggestions.forEach(s => {
+                    totalToRemove += s.remove.length;
+                });
+
+                html += `<div><h3 class="text-xl font-bold text-purple-600">Gợi ý tối ưu trưng bày laptop (Cất đi ${totalToRemove} máy)</h3>`;
+                html += `<p class="text-sm italic mb-2">Với các dòng laptop có nhiều phiên bản đang trưng bày, gợi ý giữ lại mẫu giá cao nhất và cất các mẫu còn lại.</p>`;
+                html += createSuggestionTreeHTML(suggestions);
+                html += '</div>';
+                
+                // --- GỢI Ý BỔ SUNG TRƯNG BÀY ---
+                if (totalToRemove > 0) {
+                    const laptopsForNewDisplay = [...laptopsToBeDisplayed].sort((a, b) => b.originalPrice - a.originalPrice);
+                    newDisplaySuggestions = laptopsForNewDisplay.slice(0, totalToRemove);
+
+                    html += `<div class="mt-8"><h3 class="text-xl font-bold text-teal-600">Gợi ý bổ sung trưng bày (${newDisplaySuggestions.length} máy)</h3>`;
+                    html += `<p class="text-sm italic mb-2">Để lấp đầy chỗ trống, gợi ý trưng bày các mẫu laptop có giá trị cao đang có tồn kho.</p>`;
+                    
+                    if (newDisplaySuggestions.length > 0) {
+                        const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'Tồn Kho', 'Giá Gốc'];
+                        const rows = newDisplaySuggestions.map((p, i) => [
+                            i + 1,
+                            p.id,
+                            p.name,
+                            p.quantity,
+                            formatCurrency(p.originalPrice)
+                        ]);
+                        html += createTableHTML(headers, rows, 'table-5-cols');
+                    } else {
+                        html += '<p class="text-orange-600 mt-1 font-semibold">Không có sản phẩm laptop nào khác trong kho để lấp đầy chỗ trống.</p>';
+                    }
+                    html += '</div>';
+                }
+                remainingLaptopsToBeDisplayed = laptopsToBeDisplayed.slice(newDisplaySuggestions.length);
+            }
+            
+            // --- SẢN PHẨM CẦN BỔ SUNG (CHUNG) ---
+            const totalOtherToDisplay = remainingLaptopsToBeDisplayed.length + monitorsToBeDisplayed.length + printersToBeDisplayed.length;
+            html += `<div><h3 class="text-xl font-bold text-blue-600">Các sản phẩm khác cần bổ sung (${totalOtherToDisplay} mẫu)</h3>`;
+            if (totalOtherToDisplay > 0) {
+                if (remainingLaptopsToBeDisplayed.length > 0) {
+                    html += `<h4 class="text-lg font-semibold mt-4 mb-2">Laptop (${remainingLaptopsToBeDisplayed.length})</h4>`;
+                    const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'Tồn Kho'];
+                    const rows = remainingLaptopsToBeDisplayed.map((p, i) => [i + 1, p.id, p.name, p.quantity]);
+                    html += createTableHTML(headers, rows, 'table-4-cols');
+                }
+                if (monitorsToBeDisplayed.length > 0) {
+                    html += `<h4 class="text-lg font-semibold mt-4 mb-2">Màn hình (${monitorsToBeDisplayed.length})</h4>`;
+                    const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'Tồn Kho'];
+                    const rows = monitorsToBeDisplayed.map((p, i) => [i + 1, p.id, p.name, p.quantity]);
+                    html += createTableHTML(headers, rows, 'table-4-cols');
+                }
+                if (printersToBeDisplayed.length > 0) {
+                    html += `<h4 class="text-lg font-semibold mt-4 mb-2">Máy in (${printersToBeDisplayed.length})</h4>`;
+                    const headers = ['STT', 'Mã Sản Phẩm', 'Tên Sản Phẩm', 'Tồn Kho'];
+                    const rows = printersToBeDisplayed.map((p, i) => [i + 1, p.id, p.name, p.quantity]);
+                    html += createTableHTML(headers, rows, 'table-4-cols');
+                }
+            } else {
+                html += '<p class="mt-1">Không có sản phẩm nào khác cần bổ sung trưng bày.</p>';
+            }
+            html += '</div>';
+
+            html += '</div>';
+            displayAnalysisResultsPrintable.innerHTML = html;
+            displayReportSection.classList.remove('hidden');
+        }
+        
+        // Helper functions
+        function parsePrice(priceString) { if (!priceString) return 0; return parseFloat(String(priceString).replace(/[^0-9]/g, '')) || 0; }
+        
+        function getProductLine(name) {
+            if (!name) return 'Dòng không xác định';
+            const words = name.split(' ');
+            if (words.length < 2) return name;
+
+            const specKeywords = ['i3', 'i5', 'i7', 'i9', 'R3', 'R5', 'R7', 'R9', 'CELERON', 'PENTIUM', 'ATHLON', 'M1', 'M2', 'M3'];
+            let cutIndex = -1;
+
+            for(let i = 1; i < words.length; i++) {
+                for(const keyword of specKeywords) {
+                    if(words[i].toUpperCase().startsWith(keyword)) {
+                        cutIndex = i;
+                        break;
+                    }
+                }
+                if(cutIndex !== -1) break;
+            }
+
+            if (cutIndex !== -1) {
+                return words.slice(0, cutIndex).join(' ');
+            }
+            
+            return words.length > 3 ? words.slice(0, 3).join(' ') : words.slice(0, 2).join(' ');
+        }
+
+        function getCPUInfo(configString, nameString) {
+            const combined = ((nameString || '') + ' ' + (configString || '')).toLowerCase();
+            if (combined.includes('macbook')) {
+                const m = combined.match(/m[1-9](\s|pro|max|ultra)?/);
+                if (m) return { display: m[0].trim().toUpperCase(), rank: 100, isMac: true };
+            }
+            const patterns = [
+                { p: /core i9|i9-|ultra 9/i, d: 'Core i9', r: 90 }, 
+                { p: /ryzen 9|r9-/i, d: 'Ryzen 9', r: 89 }, 
+                { p: /core i7|i7-|ultra 7/i, d: 'Core i7', r: 70 }, 
+                { p: /ryzen 7|r7-/i, d: 'Ryzen 7', r: 69 }, 
+                { p: /core i5|i5-|ultra 5/i, d: 'Core i5', r: 50 }, 
+                { p: /ryzen 5|r5-/i, d: 'Ryzen 5', r: 49 },
+                { p: /core i3|i3-|ultra 3/i, d: 'Core i3', r: 30 }, 
+                { p: /ryzen 3|r3-/i, d: 'Ryzen 3', r: 29 }
+            ];
+            for (const i of patterns) {
+                if (i.p.test(combined)) return { display: i.d, rank: i.r, isMac: false };
+            }
+            return { display: 'Khác', rank: 0, isMac: false };
+        }
+
+        function getBrand(nameString) {
+            if (!nameString) return 'Không xác định';
+            const n = nameString.toLowerCase();
+            if (n.includes('macbook') || n.includes('apple')) return 'Apple';
+            const brands = ['Dell', 'HP', 'Lenovo', 'Asus', 'Acer', 'MSI', 'LG', 'Samsung', 'Gigabyte', 'Canon', 'Brother', 'Epson', 'Viewsonic', 'BenQ'];
+            for (const brand of brands) {
+                if (n.includes(brand.toLowerCase())) return brand;
+            }
+            return 'Hãng khác';
+        }
+
+        function parseScreenSize(sizeString) {
+            if (!sizeString) return 0;
+            const match = String(sizeString).match(/(\d{2,3}(\.\d{1,2})?)/);
+            return match ? parseFloat(match[1]) : 0;
+        }
+
+        function formatCurrency(value) { return (parseFloat(value) || 0).toLocaleString('vi-VN', { style: 'currency', currency: 'VND' }); }
+        
+        window.printTable = function(sectionId) { 
+            const section = document.getElementById(sectionId);
+            if (!section) return; 
+            
+            document.querySelectorAll('.print-section').forEach(el => el.classList.remove('print-section'));
+            section.classList.add('print-section');
+            
+            window.print(); 
+        }
+
+        window.captureTable = function(elementId, fileName) { 
+            const e = document.getElementById(elementId); 
+            if (!e) return; 
+            html2canvas(e, { scale: 2, backgroundColor: '#ffffff' }).then(c => { 
+                const l = document.createElement('a'); 
+                l.download = fileName; 
+                l.href = c.toDataURL('image/png'); 
+                l.click(); 
+            }); 
+        }
+
+        window.exportSectionToExcel = function(sectionId, fileName) {
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+
+            const wb = XLSX.utils.book_new();
+            
+            const containers = section.querySelectorAll('.table-container, #display-analysis-results-printable > div > div');
+
+            if (containers.length > 0) {
+                 containers.forEach((container, index) => {
+                    const table = container.querySelector('table');
+                    if (!table) return;
+
+                    let sheetTitle = `Sheet${index + 1}`;
+                    const titleElement = container.previousElementSibling;
+                    if (titleElement && (titleElement.tagName === 'H3' || titleElement.tagName === 'H4')) {
+                        sheetTitle = titleElement.textContent.replace(/[/\\?*\[\]]/g, '').substring(0, 31);
+                    } else if (index === 0) {
+                        sheetTitle = section.querySelector('h2').textContent.replace(/[/\\?*\[\]]/g, '').substring(0, 31);
+                    }
+                    
+                    const ws = XLSX.utils.table_to_sheet(table);
+                    XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
+                });
+            } else {
+                 const tables = section.querySelectorAll('table');
+                 tables.forEach((table, index) => {
+                    let sheetTitle = `Sheet${index + 1}`;
+                     const titleElement = table.closest('div[class*="space-y-6"]')?.previousElementSibling;
+                     if (titleElement && (titleElement.tagName === 'H3' || titleElement.tagName === 'H4')) {
+                        sheetTitle = titleElement.textContent.replace(/[/\\?*\[\]]/g, '').substring(0, 31);
+                    }
+                    const ws = XLSX.utils.table_to_sheet(table);
+                    XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
+                 });
+            }
+
+
+            if (wb.SheetNames.length > 0) {
+                XLSX.writeFile(wb, fileName);
+            } else {
+                alert('Không có dữ liệu để xuất.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Quản lý - Điện Máy Xanh Savico</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* Palette đồng bộ với LK.html và NV.html */
+            --primary-accent: #0ABDE3;
+            --secondary-accent: #FF9F43;
+            --success-color: #00D2D3;
+            --danger-color: #FF6B6B;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --text-on-dark: #FFFFFF;
+
+            /* Glassmorphism Variables */
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: #546e7a;
+            --border-main: rgba(255, 255, 255, 0.4);
+
+            /* Shadows */
+            --clay-shadow: 8px 8px 16px 0 rgba(0, 0, 0, 0.05), inset -4px -4px 8px 0 rgba(0, 0, 0, 0.03), inset 4px 4px 8px 0 rgba(255, 255, 255, 0.8);
+            --shadow-main: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+
+            /* Header info */
+            --header-height: 70px;
+        }
+
+        /* --- Reset & Base --- */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            /* Font chữ Tahoma theo yêu cầu đồng bộ */
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            background-color: #f5f7fa;
+            background-image: linear-gradient(to bottom, #ffffff, #eaeff2);
+            color: var(--text-primary);
+            overflow: hidden;
+        }
+
+        /* --- Layout Container --- */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* --- HEADER (Horizontal Layout) --- */
+        .main-header {
+            height: var(--header-height);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-main);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-accent), #0056b3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 4px 8px rgba(10, 189, 227, 0.3);
+        }
+
+        .brand-logo svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .brand-text {
+            font-weight: 800;
+            font-size: 1.1em;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+
+        /* --- TOP NAVIGATION (Tabs) --- */
+        .top-nav {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10px;
+            overflow-x: auto;
+            /* Hide scrollbar for cleaner look */
+            scrollbar-width: none;
+            /* Firefox */
+            -ms-overflow-style: none;
+            /* IE/Edge */
+        }
+
+        .top-nav::-webkit-scrollbar {
+            display: none;
+            /* Chrome/Safari/Opera */
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 5px;
+            /* Reduced gap */
+            background: rgba(236, 240, 243, 0.5);
+            padding: 5px;
+            /* Reduced container padding */
+            border-radius: 14px;
+            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
+        }
+
+        .nav-item {
+            padding: 8px 15px;
+            /* Compact padding */
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9em;
+            /* Slightly smaller text */
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            color: var(--primary-accent);
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .nav-item.active {
+            background-color: #fff;
+            color: var(--primary-accent);
+            box-shadow: 4px 4px 8px rgba(163, 177, 198, 0.2), -4px -4px 8px rgba(255, 255, 255, 0.8);
+            transform: translateY(-1px);
+        }
+
+        .nav-item i {
+            font-size: 1.05em;
+        }
+
+        /* --- Header Actions --- */
+        .header-actions {
+            flex-shrink: 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-header {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            color: #fff;
+        }
+
+        .btn-backup {
+            background: linear-gradient(135deg, var(--primary-accent), #0984e3);
+            box-shadow: 0 4px 10px rgba(10, 189, 227, 0.3);
+        }
+
+        .btn-cloud {
+            background: linear-gradient(135deg, #1dd1a1, #10ac84);
+            box-shadow: 0 4px 10px rgba(29, 209, 161, 0.3);
+        }
+
+        .btn-header:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        /* --- CONTENT BODY --- */
+        .content-body {
+            flex: 1;
+            position: relative;
+            background: var(--glass-bg);
+            overflow: hidden;
+            margin: 0;
+        }
+
+        .tab-pane {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* --- Backup Modal --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: #f8f9fa;
+            margin: 5% auto;
+            padding: 30px;
+            border: none;
+            width: 90%;
+            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            font-family: 'Tahoma', sans-serif;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+            transition: 0.2s;
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary-accent);
+            color: #fff;
+            box-shadow: 0 4px 6px rgba(10, 189, 227, 0.2);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(10, 189, 227, 0.3);
+        }
+
+        .btn-danger {
+            background: #fee;
+            color: var(--danger-color);
+        }
+
+        .btn-danger:hover {
+            background: #fdd;
+        }
+
+        .backup-textarea {
+            width: 100%;
+            height: 100px;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-family: monospace;
+            background: #fff;
+            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        .backup-textarea:focus {
+            outline: 2px solid var(--primary-accent);
+        }
+
+        /* Toast */
+        .toast {
+            visibility: hidden;
+            min-width: 250px;
+            background: var(--text-primary);
+            color: #fff;
+            text-align: center;
+            border-radius: 12px;
+            padding: 16px;
+            position: fixed;
+            z-index: 3000;
+            left: 50%;
+            bottom: 40px;
+            transform: translateX(-50%);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            font-weight: 600;
+        }
+
+        .toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+
+        @keyframes fadein {
+            from {
+                bottom: 0;
+                opacity: 0;
+            }
+
+            to {
+                bottom: 40px;
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeout {
+            from {
+                bottom: 40px;
+                opacity: 1;
+            }
+
+            to {
+                bottom: 0;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-container">
+
+        <!-- TOP HEADER & NAV -->
+        <header class="main-header">
+            <div class="brand-section">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24">
+                        <path
+                            d="M12,3L2,12V21H22V12L12,3M19,19H17V12H7V19H5V10.19L12,5.69L19,10.19V19M12,14A2,2 0 0,1 14,16A2,2 0 0,1 12,18A2,2 0 0,1 10,16A2,2 0 0,1 12,14Z" />
+                    </svg>
+                </div>
+                <span class="brand-text">NH.Dương 32859</span>
+            </div>
+
+            <nav class="top-nav">
+                <ul class="nav-menu">
+                    <li class="nav-item active" onclick="switchTab(this, 'Rtst')">
+                        <i class="fas fa-chart-line"></i> <span>Realtime</span>
+                    </li>
+                    <li class="nav-item" onclick="switchTab(this, 'Lkst')">
+                        <i class="fas fa-chart-bar"></i> <span>BI Lũy Kế</span>
+                    </li>
+                    <li class="nav-item" onclick="switchTab(this, 'biNhanVien')">
+                        <i class="fas fa-users"></i> <span>BI Nhân viên</span>
+                    </li>
+                    <li class="nav-item" onclick="switchTab(this, 'baoCaoYCX')">
+                        <i class="fas fa-file-contract"></i> <span>Báo cáo YCX</span>
+                    </li>
+                    <li class="nav-item" onclick="switchTab(this, 'tonlap')">
+                        <i class="fas fa-laptop"></i> <span>Tồn Laptop</span>
+                    </li>
+                    <li class="nav-item" onclick="switchTab(this, 'popuploc')">
+                        <i class="fas fa-print"></i> <span>In Popup</span>
+                    </li>
+                    <li class="nav-item" onclick="switchTab(this, 'banhang')">
+                        <i class="fas fa-pen-fancy"></i> <span>Nhật ký BH</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="header-actions">
+                <button class="btn-header btn-cloud" id="btnSave" onclick="saveToCloud()">
+                    <i class="fas fa-cloud-upload-alt"></i> Lưu dữ liệu
+                </button>
+                <button class="btn-header btn-backup" onclick="openBackupModal()">
+                    <i class="fas fa-database"></i> Backup
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="content-body">
+            <div id="Rtst" class="tab-pane active"><iframe src="./RT.html"></iframe></div>
+            <div id="Lkst" class="tab-pane"><iframe src="./LK.html"></iframe></div>
+            <div id="biNhanVien" class="tab-pane"><iframe src="./NV.html"></iframe></div>
+            <div id="baoCaoYCX" class="tab-pane"><iframe src="./YCX.html"></iframe></div>
+            <div id="tonlap" class="tab-pane"><iframe src="./tonlap.html"></iframe></div>
+            <div id="popuploc" class="tab-pane"><iframe src="./popuploc.html"></iframe></div>
+            <div id="banhang" class="tab-pane"><iframe src="./banhang.html"></iframe></div>
+        </main>
+    </div>
+
+    <!-- Backup Modal -->
+    <div id="backupModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeBackupModal()">&times;</span>
+            <h3 style="margin-top:0; color:var(--primary-accent)">Quản lý Dữ liệu</h3>
+            <p style="font-size:0.9em; color:#666">Sao lưu và phục hồi dữ liệu hệ thống.</p>
+
+            <div
+                style="background:#fff; padding:20px; border-radius:15px; margin-bottom:15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <strong style="color:var(--text-primary)"><i class="fas fa-file-download"></i> File Backup (Khuyên
+                    dùng)</strong>
+                <div style="display:flex; gap:10px; margin-top:10px;">
+                    <button class="action-btn btn-primary" onclick="downloadBackupFile()" style="flex:1">Tải xuống
+                        .json</button>
+                    <button class="action-btn" onclick="document.getElementById('backupFileInput').click()"
+                        style="flex:1; border:1px solid #ccc; background:#fff; color:var(--text-secondary)">Upload
+                        File</button>
+                    <input type="file" id="backupFileInput" hidden accept=".json" onchange="handleFileSelect(this)">
+                </div>
+            </div>
+
+            <strong style="color:var(--text-primary)"><i class="fas fa-code"></i> Thủ công (Copy/Paste Mã)</strong>
+            <textarea id="globalDataTextarea" class="backup-textarea" placeholder="Dán mã backup vào đây..."></textarea>
+
+            <div class="modal-actions">
+                <button class="action-btn btn-danger" onclick="clearAllData()">Xóa hết</button>
+                <button class="action-btn" style="background:#eee; color:#555" onclick="copyGlobalData()">Copy</button>
+                <button class="action-btn btn-primary" onclick="restoreGlobalData()">Khôi phục</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Thông báo</div>
+
+    <script>
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw9Dy5-4WqL7ZcLiN9c-A-8ayuMjoat-34rklt49WjnCvB-20VINuDZ_Te-9ZPXg3ns/exec";
+
+        // --- Navigation Logic ---
+        function switchTab(element, tabId) {
+            // 1. Active Nav Item
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+
+            // 2. Show Content
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // --- CLOUD SAVE LOGIC (Restored) ---
+        async function saveToCloud() {
+            const btn = document.getElementById('btnSave');
+            const old = btn.innerHTML;
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            btn.style.pointerEvents = 'none';
+
+            const data = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                data[k] = localStorage.getItem(k);
+            }
+
+            try {
+                await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(data)
+                });
+                showToast("✅ Đã lưu dữ liệu lên Cloud");
+            } catch (e) {
+                console.error(e);
+                showToast("❌ Lỗi kết nối Cloud");
+            }
+
+            btn.innerHTML = old;
+            btn.style.pointerEvents = 'auto';
+        }
+
+        async function loadFromCloud() {
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const data = await res.json();
+
+                Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
+
+                // Reload active iframes if needed or just notify
+                // document.querySelectorAll('iframe').forEach(i=>{
+                //     try{i.contentWindow.location.reload()}catch{}
+                // });
+
+                // We typically run this on load. If it updates localStorage, the iframes (main content) 
+                // might need to re-read it. Since iframes load roughly at same time, 
+                // they might already be reading old data. Ideally we reload them.
+                document.querySelectorAll('iframe').forEach(i => {
+                    try { i.contentWindow.location.reload() } catch { }
+                });
+
+                showToast("📥 Đã đồng bộ dữ liệu");
+            } catch (e) {
+                // Silent fail or log
+                console.log("Cloud load optional or failed: " + e);
+            }
+        }
+
+        // --- BACKUP LOGIC ---
+        function getAllLocalStorage() {
+            const allData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                allData[key] = localStorage.getItem(key);
+            }
+            return allData;
+        }
+
+        function openBackupModal() {
+            const textarea = document.getElementById('globalDataTextarea');
+            textarea.value = JSON.stringify(getAllLocalStorage(), null, 2);
+            document.getElementById('backupModal').style.display = "block";
+        }
+
+        function closeBackupModal() {
+            document.getElementById('backupModal').style.display = "none";
+        }
+
+        function downloadBackupFile() {
+            const dataStr = JSON.stringify(getAllLocalStorage(), null, 2);
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const date = new Date().toISOString().slice(0, 10);
+            a.href = url;
+            a.download = `Backup_DMX_${date}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast("Đang tải xuống...");
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) { processRestore(e.target.result); input.value = ''; };
+            reader.readAsText(file);
+        }
+
+        function processRestore(jsonStr) {
+            try {
+                const data = JSON.parse(jsonStr);
+                if (confirm("Dữ liệu hiện tại sẽ bị thay thế. Tiếp tục?")) {
+                    localStorage.clear();
+                    for (const key in data) localStorage.setItem(key, data[key]);
+                    showToast("Khôi phục thành công! Reloading...");
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } catch (e) { showToast("Lỗi định dạng file!"); }
+        }
+
+        function copyGlobalData() {
+            const ta = document.getElementById('globalDataTextarea');
+            ta.select(); document.execCommand('copy');
+            showToast("Đã copy mã!");
+        }
+        function restoreGlobalData() {
+            processRestore(document.getElementById('globalDataTextarea').value);
+        }
+        function clearAllData() {
+            if (confirm("Xóa sạch toàn bộ dữ liệu?")) {
+                localStorage.clear(); location.reload();
+            }
+        }
+        function showToast(msg) {
+            const x = document.getElementById("toast");
+            x.textContent = msg; x.className = "toast show";
+            setTimeout(() => x.className = x.className.replace("show", ""), 3000);
+        }
+        window.onclick = function (e) {
+            if (e.target == document.getElementById('backupModal')) closeBackupModal();
+        }
+
+        // Auto load on start
+        window.addEventListener('load', loadFromCloud);
+    </script>
+
+</body>
+
+</html>

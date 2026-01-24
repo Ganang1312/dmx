@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhật Ký Bán Hàng - Sales Dashboard</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel để chạy JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Thư viện chụp ảnh DOM thành Canvas/Image -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Google Fonts: Noto Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Noto Sans', sans-serif; }
+        
+        /* CSS hỗ trợ thay thế textarea khi chụp ảnh */
+        .print-replacement {
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            display: block !important;
+            overflow: visible !important;
+        }
+
+        /* --- TÙY CHỈNH IN ẤN SIÊU TO & SIÊU KHÍT --- */
+        @media print {
+            @page { 
+                size: A4 landscape;
+                margin: 2mm; /* Lề giấy cực nhỏ */
+            }
+            body { 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+                background-color: white !important;
+                zoom: 98%; /* Zoom tối đa */
+            }
+            .no-print { display: none !important; }
+            
+            /* Grid in ấn xít lại */
+            .print-grid-fix {
+                display: grid !important;
+                grid-template-columns: repeat(3, minmax(0, 1fr)) !important; 
+                gap: 2px !important; /* Khoảng cách giữa các khối gần như bằng 0 */
+            }
+            
+            .print-no-shadow { box-shadow: none !important; border: 2px solid #000 !important; }
+            
+            /* Ép chiều cao textarea */
+            .print-h-auto { 
+                min-height: 60px !important; /* Giảm chiều cao tối thiểu để tiết kiệm chỗ */
+                height: auto !important; 
+                white-space: pre-wrap !important; 
+            }
+            .break-inside-avoid { break-inside: avoid; page-break-inside: avoid; }
+            .no-scroll-on-print { overflow: hidden !important; }
+            
+            /* --- CẤU HÌNH PHÔNG CHỮ KHỔNG LỒ & BỐ CỤC CHẶT --- */
+            
+            /* Màu đen tuyệt đối */
+            * { color: black !important; border-color: black !important; }
+            .bg-black { background-color: black !important; color: white !important; }
+            /* Sửa lại text-white khi in đè lên nền trắng -> thành đen */
+            .text-white { color: black !important; } 
+
+            /* PHÓNG ĐẠI CỠ CHỮ (Gấp ~1.5 - 2 lần cũ) */
+            /* Tiêu đề nhỏ (Mục tiêu tháng, Lũy kế...) */
+            .text-\[8px\] { 
+                font-size: 14px !important; 
+                font-weight: 800 !important; /* Rất đậm */
+                line-height: 1 !important;
+                margin-bottom: 0 !important;
+                text-transform: uppercase;
+            }
+            /* Thứ ngày (T2, T3...) */
+            .text-\[9px\] { 
+                font-size: 16px !important; 
+                font-weight: 800 !important;
+            }
+            /* Nhãn (Tổng kết tuần...) */
+            .text-\[10px\] { 
+                font-size: 16px !important; 
+                font-weight: 800 !important;
+            }
+            
+            /* Số liệu nhập vào & Text thường */
+            .text-xs { 
+                font-size: 20px !important; 
+                font-weight: 700 !important; 
+            }
+            .text-sm { font-size: 18px !important; }
+            .text-base { font-size: 22px !important; font-weight: 900 !important; } /* Tổng kết to đùng */
+            .text-lg { font-size: 24px !important; }
+
+            /* Input nhập liệu: Siêu to, bỏ viền để tiết kiệm diện tích nhìn */
+            input { 
+                font-weight: 800 !important; 
+                font-size: 22px !important;
+                padding: 0 !important;
+                height: auto !important;
+                line-height: 1 !important;
+                border: none !important; /* Bỏ viền input con để nhìn thoáng hơn */
+                border-bottom: 1px dotted #999 !important; /* Chỉ giữ gạch chân mờ */
+                background: transparent !important;
+            }
+            
+            /* Textarea */
+            textarea {
+                font-size: 16px !important;
+                line-height: 1.2 !important;
+                padding: 2px !important;
+            }
+
+            /* --- CẮT GIẢM KHOẢNG TRỐNG (PADDING/MARGIN) --- */
+            /* Loại bỏ padding thừa trong các ô */
+            .p-2 { padding: 1px 2px !important; } 
+            .px-3 { padding-left: 4px !important; padding-right: 4px !important; }
+            .py-1 { padding-top: 0px !important; padding-bottom: 0px !important; }
+            .mb-4 { margin-bottom: 4px !important; }
+            .mb-2 { margin-bottom: 1px !important; }
+            .mt-4 { margin-top: 2px !important; }
+            
+            /* Căn chỉnh lại lưới con bên trong thẻ GroupCard */
+            .grid-cols-2 { gap: 0px !important; } /* Bỏ khoảng cách cột */
+            .flex-col { gap: 0px !important; } /* Bỏ khoảng cách dòng flex */
+            
+            /* Giảm độ dày đường kẻ phân cách để dành chỗ cho chữ */
+            .border-r { border-right-width: 1px !important; }
+            .h-px { height: 1px !important; margin: 1px 0 !important; } /* Đường kẻ ngang siêu mảnh, sát chữ */
+            
+            /* Ẩn các placeholder khi in để đỡ rối */
+            input::placeholder, textarea::placeholder {
+                color: transparent !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo, memo } = React;
+
+        // --- ICON COMPONENTS ---
+        const Icon = ({ name, size = 20, className = "" }) => {
+            const icons = {
+                Plus: <path d="M5 12h14M12 5v14" />,
+                Trash2: <g><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></g>,
+                User: <g><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></g>,
+                Printer: <g><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></g>,
+                RotateCcw: <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 12" />,
+                MessageSquare: <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />,
+                BookOpen: <path d="M2 20h20v-2H2v2zm18-3H4V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12zM12 15V7" />,
+                Clipboard: <g><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></g>,
+                Download: <g><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></g>
+            };
+
+            return (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    {icons[name]}
+                </svg>
+            );
+        };
+
+        // --- COMPONENTS ---
+
+        const InterestGroupCard = memo(({ interestColumns, setInterestColumns }) => {
+            // Giảm chiều cao tối thiểu khi in để tiết kiệm giấy
+            const minHeightClass = "min-h-[220px] md:min-h-[200px] xl:min-h-[200px] print:min-h-[150px]"; 
+            
+            const handleChangeCol1 = useCallback((e) => {
+                setInterestColumns(prev => ({ ...prev, col1: e.target.value }));
+            }, [setInterestColumns]);
+
+            const handleChangeCol2 = useCallback((e) => {
+                setInterestColumns(prev => ({ ...prev, col2: e.target.value }));
+            }, [setInterestColumns]);
+
+            return (
+                <div className="bg-white rounded-lg shadow-xl overflow-hidden border-2 border-dashed border-black flex flex-col break-inside-avoid print-no-shadow print:shadow-none">
+                    <div className="bg-white text-black border-b border-black p-2 px-3 flex justify-between items-center print:bg-white print:text-black print:py-1 print:border-b print:border-black">
+                        <div className="flex items-center gap-2">
+                             <Icon name="BookOpen" size={16} className="text-black" />
+                            <span className="font-bold text-base">Các nhóm hàng quan tâm</span>
+                        </div>
+                    </div>
+                    <div className={`p-2 flex-grow grid grid-cols-2 gap-2 ${minHeightClass} no-scroll-on-print`}>
+                        <textarea
+                            value={interestColumns.col1}
+                            onChange={handleChangeCol1}
+                            placeholder="Cột 1: Mục tiêu, kế hoạch..."
+                            className={`w-full h-full p-2 bg-white rounded-lg border border-black focus:outline-none focus:border-black focus:ring-1 focus:ring-black text-black text-sm resize-none leading-relaxed overflow-hidden print:border-none print:p-0 print:text-xs print-h-auto data-capture-textarea`}
+                        ></textarea>
+                        <textarea
+                            value={interestColumns.col2}
+                            onChange={handleChangeCol2}
+                            placeholder="Cột 2: Ghi chú, kết quả thực hiện..."
+                            className={`w-full h-full p-2 bg-white rounded-lg border border-black focus:outline-none focus:border-black focus:ring-1 focus:ring-black text-black text-sm resize-none leading-relaxed overflow-hidden print:border-none print:p-0 print:text-xs print-h-auto data-capture-textarea`}
+                        ></textarea>
+                    </div>
+                    {/* Ẩn dòng hướng dẫn khi in */}
+                    <div className="text-[10px] text-black p-1 pt-0 text-center font-medium print:hidden">Nội dung không cuộn và được chia thành 2 cột riêng biệt.</div>
+                </div>
+            );
+        });
+
+        const GroupNameInput = memo(({ id, name, onNameChange, removeGroup, canRemove }) => (
+             <div className="bg-white text-black border-b border-black p-2 px-3 flex justify-between items-center print:bg-white print:text-black print:py-1 print:px-1 print:border-b print:border-black">
+                <input 
+                    value={name}
+                    onChange={(e) => onNameChange(id, e.target.value)}
+                    className="bg-transparent text-black font-bold text-base focus:outline-none w-3/4 placeholder-gray-500 print:text-black print:placeholder-transparent print:w-full"
+                    placeholder="Tên nhóm..."
+                />
+                {canRemove && (
+                    <button 
+                        onClick={() => removeGroup(id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors no-print"
+                        title="Xóa"
+                    >
+                        <Icon name="Trash2" size={16} />
+                    </button>
+                )}
+            </div>
+        ));
+
+        const GroupCard = memo(({ group, handleGroupChange, handleDayChange, handleTotalChange, removeGroup, groupsLength }) => {
+            const onNameChange = useCallback((id, newName) => {
+                handleGroupChange(id, 'name', newName);
+            }, [handleGroupChange]);
+
+            return (
+                <div className="bg-white rounded-lg shadow-md overflow-hidden border border-black flex flex-col break-inside-avoid print-no-shadow">
+                    <GroupNameInput 
+                        id={group.id} 
+                        name={group.name} 
+                        onNameChange={onNameChange} 
+                        removeGroup={removeGroup}
+                        canRemove={groupsLength > 8}
+                    />
+
+                    <div className="p-2 bg-white grid grid-cols-2 gap-2 text-center border-b border-black print:py-0 print:gap-0">
+                        <div className="flex flex-col border-r border-black pr-1 print:pr-0">
+                            <span className="text-[8px] text-black uppercase font-bold">Mục tiêu Tháng</span>
+                            <input 
+                                value={group.monthTarget}
+                                onChange={(e) => handleGroupChange(group.id, 'monthTarget', e.target.value)}
+                                className="w-full text-center text-xs font-bold text-black bg-transparent focus:outline-none"
+                                placeholder="..."
+                            />
+                        </div>
+                        <div className="flex flex-col pl-1 print:pl-0">
+                            <span className="text-[8px] text-black uppercase font-bold">Lũy kế</span>
+                            <input 
+                                value={group.accumulated}
+                                onChange={(e) => handleGroupChange(group.id, 'accumulated', e.target.value)}
+                                className="w-full text-center text-xs font-bold text-black bg-transparent focus:outline-none"
+                                placeholder="..."
+                            />
+                        </div>
+                        <div className="col-span-2 h-px bg-black my-0.5 print:my-0"></div>
+                        <div className="flex flex-col border-r border-black pr-1 print:pr-0">
+                            <span className="text-[8px] text-black uppercase font-bold">Mục tiêu Tuần</span>
+                            <input 
+                                value={group.weekTarget}
+                                onChange={(e) => handleGroupChange(group.id, 'weekTarget', e.target.value)}
+                                className="w-full text-center text-xs font-bold text-black bg-transparent focus:outline-none"
+                                placeholder="..."
+                            />
+                        </div>
+                        <div className="flex flex-col pl-1 print:pl-0">
+                            <span className="text-[8px] text-black uppercase font-bold">Mục tiêu Ngày</span>
+                            <input 
+                                value={group.dailyTarget}
+                                onChange={(e) => handleGroupChange(group.id, 'dailyTarget', e.target.value)}
+                                className="w-full text-center text-xs font-bold text-black bg-transparent focus:outline-none"
+                                placeholder="..."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="p-2 flex-grow print:py-0">
+                        <div className="grid grid-cols-7 gap-1 mb-1 print:mb-0 print:gap-0">
+                            {['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map(d => (
+                                <div key={d} className="text-center text-[9px] font-bold text-black">{d}</div>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-7 gap-1 mb-2 print:gap-0 print:mb-0">
+                            {Object.keys(group.days).map((day) => (
+                                <input
+                                    key={day}
+                                    type="number"
+                                    value={group.days[day]}
+                                    onChange={(e) => handleDayChange(group.id, day, e.target.value)}
+                                    className="w-full text-center border border-gray-400 rounded py-0.5 text-xs font-medium text-black focus:border-black focus:outline-none print:border-none print:border-b print:border-dotted print:rounded-none"
+                                />
+                            ))}
+                        </div>
+                        <div className="flex justify-between items-center pt-2 border-t border-black print:pt-0 print:border-t-2">
+                            <span className="text-[10px] font-bold text-black uppercase">Tổng:</span>
+                            {/* ĐÃ THAY ĐỔI: Từ span sang input để có thể sửa được */}
+                            <input 
+                                value={group.weeklyTotal}
+                                onChange={(e) => handleTotalChange(group.id, e.target.value)}
+                                className="text-base font-bold text-black text-right bg-transparent focus:outline-none w-20"
+                                placeholder="0"
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+
+        // --- MAIN APP ---
+        const SalesDashboard = () => {
+            const predefinedInterestGroups = [
+                "Bán hàng Samsung", "Bảo hiểm", "Camera", "FE & TPBank", "Homecredit", "Máy lọc nước", "PHỤ KIỆN - ĐỒNG Hồ", 
+                "Sim", "ĐIỆN THOẠI & TABLET ANDROID TRÊN 7 TRIỆU", "Điện thoại Vivo", "Điện tử", "Điện tử & Điện lạnh LG", 
+                "ĐẶC QUYỀN NH MÁY GIẶT, SẤY"
+            ];
+            
+            const splitAndFormatGroups = (groups) => {
+                const total = groups.length;
+                const mid = Math.ceil(total / 2);
+                const col1Items = groups.slice(0, mid);
+                const col2Items = groups.slice(mid);
+                const formatColumn = (items, startNum) => items.map((item, index) => `${startNum + index}. ${item}`).join('\n');
+                return { col1: formatColumn(col1Items, 1), col2: formatColumn(col2Items, mid + 1) };
+            };
+
+            const defaultInterestContent = splitAndFormatGroups(predefinedInterestGroups);
+
+            // ĐÃ THAY ĐỔI: Thêm weeklyTotal: 0 vào dữ liệu khởi tạo
+            const initialGroups = [
+                { id: 1, name: 'Camera', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+                { id: 2, name: 'Sim', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+                { id: 3, name: 'ICT / LT', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+                { id: 4, name: 'Gia dụng', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+                { id: 5, name: 'Bảo hiểm', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+                { id: 6, name: 'Samsung', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+                { id: 7, name: 'Phụ kiện', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+                { id: 8, name: 'Điện thoại', monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '', weeklyTotal: 0, days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' } },
+            ];
+
+            const initialGeneralInfo = {
+                userName: '', userCode: '', week: '', mainTarget: '', accumulated: '', dailyTarget: '', categoryTarget: '', dateRange: '', signerTitle: 'ĐMX Savico'
+            };
+
+            const [generalInfo, setGeneralInfo] = useState(initialGeneralInfo);
+            const [managerComment, setManagerComment] = useState('');
+            const [groups, setGroups] = useState(initialGroups);
+            const [interestContent, setInterestContent] = useState(defaultInterestContent);
+
+            const handleGroupChange = useCallback((id, field, value) => {
+                setGroups(prevGroups => prevGroups.map(group => 
+                    group.id === id ? { ...group, [field]: value } : group
+                ));
+            }, []);
+
+            // ĐÃ THAY ĐỔI: Cập nhật logic tự động tính tổng khi sửa ngày
+            const handleDayChange = useCallback((id, day, value) => {
+                setGroups(prevGroups => prevGroups.map(group => {
+                    if (group.id !== id) return group;
+                    
+                    const newDays = { ...group.days, [day]: value };
+                    
+                    // Tính toán lại tổng tự động
+                    const total = Object.values(newDays).reduce((acc, curr) => {
+                        const val = parseFloat(curr);
+                        return acc + (isNaN(val) ? 0 : val);
+                    }, 0);
+
+                    // Cập nhật cả ngày và tổng mới
+                    return { ...group, days: newDays, weeklyTotal: total };
+                }));
+            }, []);
+
+            // ĐÃ THAY ĐỔI: Thêm hàm xử lý khi nhập tay vào ô Tổng
+            const handleTotalChange = useCallback((id, value) => {
+                setGroups(prevGroups => prevGroups.map(group => 
+                    group.id === id ? { ...group, weeklyTotal: value } : group
+                ));
+            }, []);
+
+            const removeGroup = useCallback((id) => {
+                setGroups(prev => {
+                    if (prev.length > 8 && window.confirm('Bạn có chắc muốn xóa nhóm này?')) {
+                        return prev.filter(g => g.id !== id);
+                    }
+                    return prev;
+                });
+            }, []);
+
+            const addGroup = useCallback(() => {
+                setGroups(prev => {
+                    const newId = prev.length > 0 ? Math.max(...prev.map(g => g.id)) + 1 : 1;
+                    return [...prev, {
+                        id: newId,
+                        name: 'Nhóm mới',
+                        monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '',
+                        weeklyTotal: 0,
+                        days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' }
+                    }];
+                });
+            }, []);
+
+            const clearAllData = useCallback(() => {
+                if (window.confirm('CẢNH BÁO: Bạn muốn xóa TRẮNG toàn bộ thông tin?')) {
+                    setGeneralInfo({ ...initialGeneralInfo, signerTitle: 'DMX Savico' });
+                    
+                    // Xóa trắng tên nhóm hàng (name: '') và reset tổng về 0
+                    setGroups(initialGroups.map(g => ({
+                        ...g,
+                        name: '', 
+                        monthTarget: '', accumulated: '', weekTarget: '', dailyTarget: '',
+                        weeklyTotal: 0,
+                        days: { t2: '', t3: '', t4: '', t5: '', t6: '', t7: '', cn: '' }
+                    })));
+                    
+                    setManagerComment('');
+                    
+                    // Hỏi thêm về nhóm hàng quan tâm
+                    if (window.confirm('Bạn có muốn xóa trắng cả nội dung "Các nhóm hàng quan tâm" không?\n(OK = Xóa trắng, Cancel = Giữ danh sách mặc định)')) {
+                        setInterestContent({ col1: '', col2: '' });
+                    } else {
+                        setInterestContent(defaultInterestContent);
+                    }
+                }
+            }, [initialGeneralInfo, initialGroups, defaultInterestContent]);
+
+            const handlePrint = () => window.print();
+
+            // --- HÀM CHỤP ẢNH ---
+            const captureAndProcess = async (callback) => {
+                const element = document.getElementById('dashboard-content-to-capture');
+                if (!element) return;
+
+                const parentElement = element.parentElement;
+                parentElement.classList.add('capture-optimized');
+
+                const inputs = element.querySelectorAll('textarea, input');
+                const replacements = [];
+
+                inputs.forEach(input => {
+                    if (input.type === 'hidden' || input.style.display === 'none') return;
+
+                    const div = document.createElement('div');
+                    const style = window.getComputedStyle(input);
+
+                    div.style.width = style.width;
+                    div.style.height = style.height;
+                    div.style.padding = style.padding;
+                    div.style.border = style.border;
+                    div.style.borderRadius = style.borderRadius;
+                    div.style.fontSize = style.fontSize;
+                    div.style.fontFamily = style.fontFamily;
+                    div.style.lineHeight = style.lineHeight;
+                    div.style.textAlign = style.textAlign;
+                    div.style.color = 'black'; // Ép màu đen
+                    div.style.backgroundColor = 'white'; // Ép nền trắng
+                    div.style.fontWeight = style.fontWeight;
+                    div.style.boxSizing = style.boxSizing;
+                    
+                    div.style.whiteSpace = 'pre-wrap';
+                    div.style.wordBreak = 'break-word';
+                    div.style.overflow = 'hidden';
+                    div.style.display = 'block'; 
+                    
+                    div.textContent = input.value;
+                    
+                    input.parentNode.insertBefore(div, input);
+                    input.style.display = 'none';
+                    
+                    replacements.push({ input, div });
+                });
+
+                try {
+                    const originalBg = document.body.style.backgroundColor;
+                    document.body.style.backgroundColor = 'white'; 
+                    
+                    const canvas = await html2canvas(element, {
+                        useCORS: true,
+                        scale: 2,
+                        allowTaint: true,
+                        ignoreElements: (el) => el.classList.contains('no-print')
+                    });
+
+                    document.body.style.backgroundColor = originalBg;
+                    await callback(canvas);
+
+                } catch (error) {
+                    console.error("Capture error:", error);
+                    alert('Lỗi chụp ảnh.');
+                } finally {
+                    parentElement.classList.remove('capture-optimized');
+                    replacements.forEach(({ input, div }) => {
+                        input.style.display = '';
+                        div.remove();
+                    });
+                }
+            };
+
+            const handleDownloadImage = () => {
+                captureAndProcess((canvas) => {
+                    const link = document.createElement('a');
+                    link.download = `NhatKyBanHang_${new Date().toISOString().slice(0,10)}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            };
+
+            const handleCopyImage = () => {
+                captureAndProcess(async (canvas) => {
+                    try {
+                        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                        await navigator.clipboard.write([new window.ClipboardItem({ "image/png": blob })]);
+                        alert('Đã sao chép ảnh!');
+                    } catch (err) {
+                        alert('Không thể sao chép tự động. Hãy dùng nút Xuất ảnh.');
+                    }
+                });
+            };
+
+            const allItemsToRender = useMemo(() => {
+                const items = groups.map(g => ({ type: 'group', data: g }));
+                items.splice(4, 0, { type: 'interest', id: 'interest-card' });
+                return items;
+            }, [groups]);
+
+            return (
+                <div className="p-4 md:p-6 font-sans text-black max-w-[1600px] mx-auto print:p-0 print:max-w-none">
+                    <div className="mb-4 flex flex-wrap justify-end gap-3 no-print">
+                        <button onClick={handleCopyImage} className="flex items-center gap-2 bg-white text-black border border-black px-4 py-2 rounded-lg hover:bg-gray-200 shadow-sm font-medium text-sm">
+                            <Icon name="Clipboard" size={16} /> Copy ảnh
+                        </button>
+                        <button onClick={handleDownloadImage} className="flex items-center gap-2 bg-white text-black border border-black px-4 py-2 rounded-lg hover:bg-gray-200 shadow-sm font-medium text-sm">
+                            <Icon name="Download" size={16} /> Xuất ảnh
+                        </button>
+                        <button onClick={clearAllData} className="flex items-center gap-2 bg-white text-black border border-black px-4 py-2 rounded-lg hover:bg-gray-200 shadow-sm font-medium text-sm">
+                            <Icon name="RotateCcw" size={16} /> Xóa trắng
+                        </button>
+                        <button onClick={handlePrint} className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg hover:bg-gray-800 shadow-sm font-medium text-sm">
+                            <Icon name="Printer" size={16} /> In / PDF
+                        </button>
+                    </div>
+
+                    <div id="dashboard-content-to-capture">
+                        {/* Header Info */}
+                        <div className="bg-white rounded-xl shadow-md p-4 mb-4 border-t-4 border-black break-inside-avoid print:mb-2 print:p-2 print-compact-mb print-no-shadow print:border-2">
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 print:mb-2 print:gap-2">
+                                <div className="flex items-center gap-3 w-full md:w-auto">
+                                    <div className="bg-gray-200 p-3 rounded-full no-print">
+                                        <Icon name="User" className="text-black" size={24} />
+                                    </div>
+                                    <div className="text-left w-full">
+                                        <label className="block text-[10px] text-black uppercase font-bold tracking-wider print:text-lg">Nhân viên</label>
+                                        <input value={generalInfo.userName} onChange={(e) => setGeneralInfo({...generalInfo, userName: e.target.value})} className="text-lg font-bold text-black border-b border-dashed border-gray-400 focus:outline-none focus:border-black bg-transparent w-full placeholder-gray-400 print:text-xl" placeholder="Nhập tên..." />
+                                    </div>
+                                </div>
+                                <div className="flex gap-4 w-full md:w-auto justify-between md:justify-end">
+                                    <div>
+                                        <label className="block text-[10px] text-black uppercase font-bold print:text-lg">Mã NV</label>
+                                        <input value={generalInfo.userCode} onChange={(e) => setGeneralInfo({...generalInfo, userCode: e.target.value})} className="font-semibold w-24 border-b border-dashed border-gray-400 focus:outline-none text-center bg-transparent print:text-xl" placeholder="..." />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] text-black uppercase font-bold print:text-lg">Tuần</label>
+                                        <input value={generalInfo.week} onChange={(e) => setGeneralInfo({...generalInfo, week: e.target.value})} className="font-semibold w-16 border-b border-dashed border-gray-400 focus:outline-none text-center bg-transparent print:text-xl" placeholder="..." />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white rounded-lg p-3 border border-black print:border-black print:p-0 print:gap-1">
+                                {[
+                                    { label: 'Target (Mục tiêu)', val: generalInfo.mainTarget, setVal: v => setGeneralInfo({...generalInfo, mainTarget: v}) },
+                                    { label: 'Lũy kế hiện tại', val: generalInfo.accumulated, setVal: v => setGeneralInfo({...generalInfo, accumulated: v}) },
+                                    { label: 'Mục tiêu ngày', val: generalInfo.dailyTarget, setVal: v => setGeneralInfo({...generalInfo, dailyTarget: v}) },
+                                    { label: 'Mục tiêu NH đạt', val: generalInfo.categoryTarget, setVal: v => setGeneralInfo({...generalInfo, categoryTarget: v}) },
+                                ].map((kpi, idx) => (
+                                    <div key={idx} className={`flex flex-col items-center justify-center p-2 bg-white rounded shadow-sm border-l-4 border-black print:border print:shadow-none`}>
+                                        <span className="text-black text-[10px] font-bold uppercase mb-1">{kpi.label}</span>
+                                        <input value={kpi.val} onChange={(e) => kpi.setVal(e.target.value)} className={`text-lg font-bold text-black text-center w-full focus:outline-none bg-transparent`} placeholder="0" />
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-3 text-center print:mt-1">
+                                <label className="text-[10px] text-black uppercase mr-2 font-bold">Thời gian:</label>
+                                <input value={generalInfo.dateRange} onChange={(e) => setGeneralInfo({...generalInfo, dateRange: e.target.value})} className="text-center font-medium text-black focus:outline-none border-b border-transparent hover:border-black w-32 bg-transparent" placeholder="dd/mm - dd/mm" />
+                            </div>
+                        </div>
+
+                        {/* Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-4 print-grid-fix print:mb-2 print:gap-1">
+                            {allItemsToRender.map((item) => {
+                                if (item.type === 'group') {
+                                    return <GroupCard 
+                                        key={item.data.id} 
+                                        group={item.data} 
+                                        handleGroupChange={handleGroupChange}
+                                        handleDayChange={handleDayChange}
+                                        handleTotalChange={handleTotalChange}
+                                        removeGroup={removeGroup}
+                                        groupsLength={groups.length}
+                                    />;
+                                } else if (item.type === 'interest') {
+                                    return <InterestGroupCard key={item.id} interestColumns={interestContent} setInterestColumns={setInterestContent} />;
+                                }
+                                return null;
+                            })}
+                            {groups.length < 8 && (
+                                <button onClick={addGroup} className="flex flex-col items-center justify-center min-h-[180px] bg-white border-2 border-dashed border-gray-400 rounded-lg hover:bg-gray-100 transition-all group cursor-pointer no-print">
+                                    <div className="bg-white p-2 rounded-full shadow-sm group-hover:shadow-md mb-2 transition-all"><Icon name="Plus" className="text-gray-400 group-hover:text-black" size={20} /></div>
+                                    <span className="text-gray-400 font-medium group-hover:text-black text-xs">Thêm ngành hàng</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Comments */}
+                        <div className="bg-white rounded-xl shadow-md border-l-8 border-black overflow-hidden break-inside-avoid print-no-shadow print:border-2">
+                            <div className="p-4 print:p-2">
+                                <div className="flex items-center gap-2 mb-2 print:mb-1"><Icon name="MessageSquare" className="text-black" size={20} /><h3 className="text-base font-bold text-black uppercase">Nhận xét của Quản lý</h3></div>
+                                <div className="relative">
+                                    <textarea value={managerComment} onChange={(e) => setManagerComment(e.target.value)} placeholder="Nhập nội dung đánh giá..." className="w-full min-h-[100px] p-3 bg-white rounded-lg border border-black focus:outline-none focus:border-black text-black text-sm resize-y leading-relaxed print-h-auto print:bg-white print:border-none print:p-0 data-capture-textarea"></textarea>
+                                </div>
+                                <div className="mt-4 flex justify-end gap-3 print:mt-2">
+                                    <div className="text-right flex flex-col items-end">
+                                        <input value={generalInfo.signerTitle} onChange={(e) => setGeneralInfo({...generalInfo, signerTitle: e.target.value})} className="text-xs font-bold text-black text-right border-b border-transparent hover:border-black focus:outline-none bg-transparent w-40 mb-1" />
+                                        <div className="h-12 w-24 border-b border-dashed border-gray-400 mb-1 print:h-8"></div>
+                                        <div className="text-[10px] text-gray-400">Ký tên</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SalesDashboard />);
+    </script>
+</body>
+</html>
