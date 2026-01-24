@@ -4,775 +4,2059 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Quản lý - Điện Máy Xanh Savico</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Dashboard Real-time - v218.51 (Summary Detail Update)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            /* Palette đồng bộ với LK.html và NV.html */
+            /* Vibrant but Soft Pastel Palette */
             --primary-accent: #0ABDE3;
             --secondary-accent: #FF9F43;
             --success-color: #00D2D3;
             --danger-color: #FF6B6B;
+            --warning-color: #FECA57;
+
             --text-primary: #2d3436;
             --text-secondary: #636e72;
             --text-on-dark: #FFFFFF;
+            --text-muted: #636e72;
+            /* Sync with LK */
 
             /* Glassmorphism Variables */
             --glass-bg: rgba(255, 255, 255, 0.65);
             --glass-border: #546e7a;
-            --border-main: rgba(255, 255, 255, 0.4);
+            /* Dark Visible Gray-Blue */
+            --border-main: #2d3436;
+            /* Unified Dark Border */
 
-            /* Shadows */
-            --clay-shadow: 8px 8px 16px 0 rgba(0, 0, 0, 0.05), inset -4px -4px 8px 0 rgba(0, 0, 0, 0.03), inset 4px 4px 8px 0 rgba(255, 255, 255, 0.8);
-            --shadow-main: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            /* Claymorphism/Floating Effect - Refined */
+            --clay-shadow:
+                20px 20px 60px #cadbe6,
+                -20px -20px 60px #ffffff;
 
-            /* Header info */
-            --header-height: 70px;
+            --card-radius: 20px;
+            --shadow-main: var(--clay-shadow);
+            --bg-main: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%) no-repeat fixed;
         }
 
-        /* --- Reset & Base --- */
-        body,
-        html {
+        /* YÊU CẦU 1: Ẩn các nút liên quan đến chọn ngành hàng khi chụp màn hình */
+        .capture-mode .card,
+        .capture-mode .input-section,
+        .capture-mode .action-btn,
+        .capture-mode .sub-kpi-card {
+            box-shadow: none !important;
+            transform: none !important;
+            transition: none !important;
+        }
+
+        .capture-mode #contestCategoryFilterControls,
+        .capture-mode .details-toggle {
+            display: none !important;
+        }
+
+        html,
+        body {
+            width: 100%;
             margin: 0;
             padding: 0;
-            height: 100%;
-            /* Font chữ Tahoma theo yêu cầu đồng bộ */
-            font-family: 'Tahoma', 'Arial', sans-serif;
+            overflow-x: hidden;
+            /* White-Gray Tone */
             background-color: #f5f7fa;
             background-image: linear-gradient(to bottom, #ffffff, #eaeff2);
+            min-height: 100vh;
+            /* Changed Font to Tahoma as requested for better Vietnamese support */
+            font-family: 'Tahoma', 'Arial', sans-serif;
             color: var(--text-primary);
-            overflow: hidden;
         }
 
-        /* --- Layout Container --- */
-        .app-container {
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            width: 100vw;
+            gap: 25px;
         }
 
-        /* --- HEADER (Horizontal Layout) --- */
-        .main-header {
-            height: var(--header-height);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border-main);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            z-index: 1000;
-            flex-shrink: 0;
+        header {
+            text-align: center;
+            margin-bottom: 10px;
         }
 
-        .brand-section {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        .brand-logo {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary-accent), #0056b3);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            box-shadow: 0 4px 8px rgba(10, 189, 227, 0.3);
-        }
-
-        .brand-logo svg {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
-
-        .brand-text {
-            font-weight: 800;
-            font-size: 1.1em;
+        header h1 {
             color: var(--text-primary);
-            letter-spacing: -0.5px;
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
         }
 
-        /* --- TOP NAVIGATION (Tabs) --- */
-        .top-nav {
-            flex: 1;
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        /* Glassmorphism Card Style */
+        .input-section,
+        .card,
+        .sub-kpi-card,
+        .chart-wrapper {
+            background: var(--glass-bg);
+            padding: 24px;
+            border-radius: 20px;
+            box-shadow: var(--clay-shadow);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-main);
+            /* Uniform dark border like Contest Cards */
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
             display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card:hover,
+        .sub-kpi-card:hover {
+            transform: translateY(-5px) scale(1.005);
+            box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .input-section h4 {
+            margin-top: 0;
+            color: var(--text-muted);
+            font-size: 0.95em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .input-section h4 a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .input-section h4 a:hover {
+            color: var(--primary-accent);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(236, 240, 243, 0.6);
+            border-radius: 16px;
+            font-size: 14px;
+            box-sizing: border-box;
+            resize: vertical;
+            transition: all 0.3s ease;
+            /* Deep Clay Inset Shadow */
+            box-shadow: inset 6px 6px 10px rgba(163, 177, 198, 0.3), inset -6px -6px 10px rgba(255, 255, 255, 0.8);
+            border: none;
+        }
+
+        textarea:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(10, 189, 227, 0.2);
+            border-color: var(--primary-accent);
+        }
+
+        .mainDataInput,
+        .contestDataInput {
+            height: 100px;
+        }
+
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
             justify-content: center;
             align-items: center;
-            padding: 0 20px;
-            overflow-x: auto;
-        }
-
-        .nav-menu {
-            display: flex;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            gap: 10px;
-            background: rgba(236, 240, 243, 0.5);
-            padding: 6px;
-            border-radius: 16px;
-            box-shadow: inset 2px 2px 5px rgba(163, 177, 198, 0.3), inset -2px -2px 5px rgba(255, 255, 255, 0.8);
-        }
-
-        .nav-item {
-            padding: 8px 12px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95em;
-            color: var(--text-secondary);
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            white-space: nowrap;
-        }
-
-        .nav-item:hover {
-            color: var(--primary-accent);
-            background-color: rgba(255, 255, 255, 0.5);
-        }
-
-        .nav-item.active {
-            background-color: #fff;
-            color: var(--primary-accent);
-            box-shadow: 4px 4px 8px rgba(163, 177, 198, 0.2), -4px -4px 8px rgba(255, 255, 255, 0.8);
-            transform: translateY(-1px);
-        }
-
-        .nav-item i {
-            font-size: 1.1em;
-        }
-
-        /* --- Header Actions --- */
-        .header-actions {
-            flex-shrink: 0;
-        }
-
-        .btn-backup {
-            background: linear-gradient(135deg, var(--primary-accent), #0984e3);
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            white-space: nowrap;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(10, 189, 227, 0.3);
-            transition: all 0.2s ease;
-        }
-
-        .btn-backup:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(10, 189, 227, 0.4);
-        }
-
-        .btn-cloud-save {
-            background: linear-gradient(135deg, #0F9D58, #0B8043);
-            color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            white-space: nowrap;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 10px rgba(15, 157, 88, 0.3);
-            transition: all 0.2s ease;
-        }
-
-        .btn-cloud-save:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(15, 157, 88, 0.4);
-        }
-
-        /* --- CONTENT BODY --- */
-        .content-body {
-            flex: 1;
-            position: relative;
-            background: var(--glass-bg);
-            overflow: hidden;
-            margin: 0;
-        }
-
-        .tab-pane {
-            display: none;
+            gap: 15px;
             width: 100%;
-            height: 100%;
+            margin-top: 25px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .paste-btn-container {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 8px;
+        }
+
+        .paste-btn {
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            background-color: var(--primary-accent);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0.9;
+            transition: all 0.2s;
+        }
+
+        .paste-btn:hover {
+            opacity: 1;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(16, 138, 177, 0.4);
+        }
+
+        /* 3D EMBOSSED BUTTONS */
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px 28px;
+            font-size: 18px;
+            font-weight: 800;
+            font-family: 'Tahoma', 'Arial', sans-serif;
+            /* Explicit Font Fix */
+            color: var(--text-on-dark);
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            /* Soft Clay Button Shadow */
+            box-shadow:
+                6px 6px 12px rgba(163, 177, 198, 0.4),
+                -6px -6px 12px rgba(255, 255, 255, 0.4);
+            transform: translateY(0);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            flex-grow: 1;
+            max-width: 320px;
+        }
+
+        /* Shine effect on buttons */
+        .action-btn::after {
+            content: '';
             position: absolute;
             top: 0;
             left: 0;
-            animation: fadeIn 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .tab-pane.active {
-            display: block;
-        }
-
-        iframe {
             width: 100%;
+            height: 50%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
+            pointer-events: none;
+        }
+
+        .action-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 rgba(0, 0, 0, 0.2), 0 0 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1), -2px -2px 10px rgba(255, 255, 255, 0.5);
+        }
+
+        .action-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .analyzeBtn {
+            background: var(--primary-accent);
+        }
+
+        .captureBtn {
+            background: linear-gradient(45deg, var(--success-color), #05B386);
+        }
+
+        .copySummaryBtn {
+            background: linear-gradient(45deg, var(--primary-accent), #0d6c8b);
+        }
+
+        .dashboard-body {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .report-title {
+            text-align: center;
+            font-size: 1.8em;
+            font-weight: 700;
+            margin: 10px 0 0 0;
+            color: var(--text-primary);
+        }
+
+        #capture-area-rt>*+* {
+            margin-top: 25px;
+        }
+
+        #capture-content-rt>*+* {
+            margin-top: 25px;
+        }
+
+        .progress-bar-container {
+            padding: 15px 25px;
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 14px;
+            background-color: rgba(230, 230, 230, 0.6);
+            border-radius: 7px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), inset 0 -1px 2px rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            position: relative;
+        }
+
+        .progress-fill {
             height: 100%;
+            border-radius: 7px;
+            transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+            /* Glossy Liquid Effect - REDUCED OPACITY for better Color Visibility */
+            background-color: var(--primary-accent);
+            /* Default Color */
+            background-image: linear-gradient(to bottom,
+                    /* Highlight top */
+                    rgba(255, 255, 255, 0.3) 0%,
+                    rgba(255, 255, 255, 0.05) 40%,
+                    rgba(0, 0, 0, 0.05) 100%);
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .progress-text-wrapper {
+            text-align: center;
+            margin-top: 4px;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: var(--text-primary);
+        }
+
+        .kpi-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .sub-kpi-card {
+            background: var(--glass-bg);
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+            padding: 24px 10px;
+            min-height: 160px;
+            border-radius: 20px;
+            /* Updated to match card radius */
+            border: 1px solid var(--border-main);
+            box-shadow: var(--clay-shadow);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.2s ease-in-out;
+        }
+
+        .sub-kpi-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .sub-kpi-card:not(.kpi-installment-card):hover {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .sub-kpi-card h4 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 1.2em;
+            margin: 0;
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .sub-kpi-card h4 svg {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+
+        .sub-kpi-card:hover h4 svg {
+            transform: scale(1.1);
+        }
+
+        .sub-kpi-card .value {
+            font-size: 4em;
+            font-weight: 700;
+            margin: 0;
+            color: var(--primary-accent);
+            line-height: 1;
+        }
+
+        .sub-kpi-card .sub-text {
+            font-size: 1em;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .kpi-installment-card {
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .kpi-installment-card .text-content {
+            text-align: center;
+        }
+
+        .kpi-installment-card .chart-content {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .kpi-installment-card .chart-content .chart-inner-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.8em;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .dashboard-layout-grid {
+            display: grid;
+            gap: 25px;
+            align-items: flex-start;
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .charts-column {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .chart-wrapper,
+        .report-section {
+            padding: 25px;
+            min-width: 0;
+        }
+
+        .report-section h2,
+        .chart-wrapper h2 {
+            font-size: 1.8em;
+            color: var(--primary-accent);
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .chart-wrapper h2 svg,
+        .report-section h2 svg {
+            width: 24px !important;
+            height: 24px !important;
+            flex-shrink: 0;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .summary-textarea {
+            height: 500px;
+            background-color: #f8f9fa;
+            border: 1px solid var(--border-main);
+        }
+
+        .toast-notification {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--success-color);
+            color: white;
+            padding: 16px 30px;
+            border-radius: 8px;
+            z-index: 1001;
+            font-size: 1.1em;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: bottom 0.5s ease-in-out;
+        }
+
+        .toast-notification.show {
+            bottom: 30px;
+        }
+
+        .toast-notification.error {
+            background-color: var(--danger-color);
+        }
+
+        .details-toggle {
+            text-align: center;
+            margin-top: 25px;
+        }
+
+        .details-toggle button {
+            font-size: 0.9em;
+            font-weight: 600;
+            background: #6c757d;
+            color: var(--text-on-dark);
+            padding: 8px 16px;
+            border-radius: 8px;
             border: none;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .details-toggle button:hover {
+            background-color: #5a6268;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        /* --- Backup Modal --- */
+        .rt-styled-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .rt-styled-table tbody tr {
+            border-bottom: 1px solid var(--border-main);
+            transition: background-color 0.2s;
+        }
+
+        .rt-styled-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .rt-styled-table th,
+        .rt-styled-table td {
+            text-align: center !important;
+            vertical-align: middle;
+            padding: 12px 10px;
+            border-right: 1px solid var(--border-main);
+            color: var(--text-primary);
+        }
+
+        .rt-styled-table th:last-child,
+        .rt-styled-table td:last-child {
+            border-right: none;
+        }
+
+        .rt-styled-table td:first-child,
+        .rt-styled-table th:first-child {
+            text-align: left !important;
+        }
+
+        .rt-styled-table thead th {
+            background-color: var(--primary-accent);
+            color: var(--text-on-dark);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            border-bottom: 1px solid var(--border-main);
+        }
+
+        .no-revenue-section {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: 1px dashed var(--border-main);
+            border-radius: 8px;
+        }
+
+        .no-revenue-section h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.1em;
+            font-weight: 600;
+        }
+
+        /* YÊU CẦU 2: Sửa lỗi chữ to trên điện thoại */
+        .no-revenue-grid {
+            display: grid;
+            /* Giảm min-width xuống để không bị ép cột quá mức trên mobile */
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 8px 15px;
+            list-style-type: none;
+            padding-left: 0;
+            margin: 0;
+        }
+
+        .no-revenue-grid li {
+            color: var(--text-primary);
+            font-size: 14px;
+            /* Cố định cỡ chữ để tránh bị to bất thường */
+            line-height: 1.4;
+            display: flex;
+            /* Flex để căn chỉnh text và số tiền */
+            flex-direction: column;
+            /* Trên mobile nên để số tiền xuống dòng nếu dài */
+        }
+
+        .no-revenue-grid li .missing-amount {
+            color: var(--danger-color);
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        /* NEW STYLES FOR CONTEST FILTER */
+        #contestCategoryFilterControls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            margin-top: 10px;
+            padding: 15px 25px;
+            border-radius: 15px;
+            background-color: #eef4f7;
+            width: 100%;
+            justify-content: center;
+            box-sizing: border-box;
+            border: 1px solid var(--border-main);
+        }
+
+        #contestCategoryFilterControls label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* Modal styles for Category Selection */
         .modal {
             display: none;
             position: fixed;
-            z-index: 2000;
+            z-index: 1002;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
+            background-color: rgba(0, 0, 0, 0.4);
+            padding-top: 60px;
         }
 
         .modal-content {
-            background-color: #f8f9fa;
+            background-color: #fefefe;
             margin: 5% auto;
-            padding: 30px;
-            border: none;
-            width: 90%;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
             max-width: 600px;
-            border-radius: 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            font-family: 'Tahoma', sans-serif;
+            border-radius: 15px;
+            box-shadow: var(--shadow-main);
         }
 
-        .close-modal {
-            float: right;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
+        .close-btn {
             color: #aaa;
-            transition: 0.2s;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            transition: color 0.2s;
         }
 
-        .close-modal:hover {
+        .close-btn:hover,
+        .close-btn:focus {
             color: var(--danger-color);
+            text-decoration: none;
+            cursor: pointer;
         }
 
-        .modal-actions {
+        .category-list {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--border-main);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .category-list label {
+            display: block;
+            padding: 5px 0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-bottom: 1px dotted #eee;
+        }
+
+        .category-list label:hover {
+            background-color: #f8f9fa;
+        }
+
+        .category-list input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            margin-top: 20px;
         }
 
-        .action-btn {
-            padding: 10px 16px;
-            border-radius: 10px;
-            border: none;
-            cursor: pointer;
-            font-weight: 700;
-            transition: all 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--primary-accent);
-            color: #fff;
-            box-shadow: 0 4px 6px rgba(10, 189, 227, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(10, 189, 227, 0.3);
-        }
-
-        .btn-danger {
-            background: #fee;
-            color: var(--danger-color);
-        }
-
-        .btn-danger:hover {
-            background: #fdd;
-        }
-
-        .backup-textarea {
-            width: 100%;
-            height: 100px;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            margin: 15px 0;
-            font-family: monospace;
-            background: #fff;
-            box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05);
-        }
-
-        .backup-textarea:focus {
-            outline: 2px solid var(--primary-accent);
-        }
-
-        /* Toast */
-        .toast {
-            visibility: hidden;
-            min-width: 250px;
-            background: var(--text-primary);
-            color: #fff;
-            text-align: center;
-            border-radius: 12px;
-            padding: 16px;
-            position: fixed;
-            z-index: 3000;
-            left: 50%;
-            bottom: 40px;
-            transform: translateX(-50%);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        .action-btn-small {
+            padding: 8px 16px;
+            font-size: 14px;
             font-weight: 600;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.9;
         }
 
-        .toast.show {
-            visibility: visible;
-            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        .action-btn-small:hover {
+            opacity: 1;
+            transform: translateY(-1px);
         }
 
-        @keyframes fadein {
-            from {
-                bottom: 0;
-                opacity: 0;
+        /* Media Queries */
+        @media (max-width: 1200px) {
+            .kpi-panel {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             }
 
-            to {
-                bottom: 40px;
-                opacity: 1;
+            .input-grid {
+                grid-template-columns: 1fr;
             }
         }
 
-        @keyframes fadeout {
-            from {
-                bottom: 40px;
-                opacity: 1;
+        @media (min-width: 992px) {
+            .dashboard-layout-grid {
+                grid-template-columns: 1fr 1fr !important;
             }
 
-            to {
-                bottom: 0;
-                opacity: 0;
+            /* Trên PC thì để text và tiền cùng 1 dòng cho đẹp */
+            .no-revenue-grid li {
+                flex-direction: row;
+                gap: 5px;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .dashboard-layout-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            #contestCategoryFilterControls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 10px;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .report-section h2,
+            .chart-wrapper h2 {
+                font-size: 1.5em;
+            }
+
+            .kpi-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .kpi-installment-card {
+                flex-direction: column;
+            }
+
+            /* Cụ thể hóa fix font cho mobile */
+            .no-revenue-grid {
+                grid-template-columns: 1fr 1fr;
+                /* 2 cột trên mobile */
+                gap: 10px;
+            }
+
+            .no-revenue-grid li {
+                font-size: 13px !important;
+                /* Force size nhỏ hơn */
             }
         }
     </style>
 </head>
 
 <body>
-
-    <div class="app-container">
-
-        <!-- TOP HEADER & NAV -->
-        <header class="main-header">
-            <div class="brand-section">
-                <div class="brand-logo">
-                    <svg viewBox="0 0 24 24">
-                        <path
-                            d="M12,3L2,12V21H22V12L12,3M19,19H17V12H7V19H5V10.19L12,5.69L19,10.19V19M12,14A2,2 0 0,1 14,16A2,2 0 0,1 12,18A2,2 0 0,1 10,16A2,2 0 0,1 12,14Z" />
-                    </svg>
-                </div>
-                <span class="brand-text">NH.Dương 32859</span>
-            </div>
-
-            <nav class="top-nav">
-                <ul class="nav-menu">
-                    <li class="nav-item active" onclick="switchTab(this, 'Rtst')">
-                        <i class="fas fa-chart-line"></i> <span>Realtime</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'Lkst')">
-                        <i class="fas fa-chart-bar"></i> <span>BI Lũy Kế</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'biNhanVien')">
-                        <i class="fas fa-users"></i> <span>BI Nhân viên</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'baoCaoYCX')">
-                        <i class="fas fa-file-contract"></i> <span>Báo cáo YCX</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'tonlap')">
-                        <i class="fas fa-laptop"></i> <span>Tồn Laptop</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'popuploc')">
-                        <i class="fas fa-print"></i> <span>In Popup</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'banhang')">
-                        <i class="fas fa-pen-fancy"></i> <span>Nhật ký BH</span>
-                    </li>
-                </ul>
-            </nav>
-
-            <div class="header-actions" style="display:flex; gap:10px;">
-                <button class="btn-cloud-save" onclick="saveToCloud()">
-                    <i class="fas fa-cloud-upload-alt"></i> Lưu Cloud
-                </button>
-                <button class="btn-backup" onclick="openBackupModal()">
-                    <i class="fas fa-database"></i> Backup
-                </button>
-            </div>
+    <div class="container">
+        <header>
+            <h1>BI SIÊU THỊ (REAL-TIME)</h1>
         </header>
 
-        <!-- MAIN CONTENT -->
-        <main class="content-body">
-            <div id="Rtst" class="tab-pane active"><iframe src="./RT.html"></iframe></div>
-            <div id="Lkst" class="tab-pane"><iframe src="./LK.html"></iframe></div>
-            <div id="biNhanVien" class="tab-pane"><iframe src="./NV.html"></iframe></div>
-            <div id="baoCaoYCX" class="tab-pane"><iframe src="./YCX.html"></iframe></div>
-            <div id="tonlap" class="tab-pane"><iframe src="./tonlap.html"></iframe></div>
-            <div id="popuploc" class="tab-pane"><iframe src="./popuploc.html"></iframe></div>
-            <div id="banhang" class="tab-pane"><iframe src="./banhang.html"></iframe></div>
-        </main>
-    </div>
-
-    <!-- Backup Modal -->
-    <div id="backupModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal" onclick="closeBackupModal()">&times;</span>
-            <h3 style="margin-top:0; color:var(--primary-accent)">Quản lý Dữ liệu</h3>
-            <p style="font-size:0.9em; color:#666">Sao lưu và phục hồi dữ liệu hệ thống.</p>
-
-            <div
-                style="background:#fff; padding:20px; border-radius:15px; margin-bottom:15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                <strong style="color:var(--text-primary)"><i class="fas fa-file-download"></i> File Backup (Khuyên
-                    dùng)</strong>
-                <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="action-btn btn-primary" onclick="downloadBackupFile()" style="flex:1">Tải xuống
-                        .json</button>
-                    <button class="action-btn" onclick="document.getElementById('backupFileInput').click()"
-                        style="flex:1; border:1px solid #ccc; background:#fff; color:var(--text-secondary)">Upload
-                        File</button>
-                    <input type="file" id="backupFileInput" hidden accept=".json" onchange="handleFileSelect(this)">
+        <div id="realtimeInputGrid" class="input-grid"
+            style="grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
+            <div class="input-section">
+                <h4><a href="https://bi.thegioididong.com/sieu-thi-con?id=16753&tab=bcdtnh&rt=1&dm=1" target="_blank"
+                        rel="noopener noreferrer">Dữ liệu Realtime Ngành hàng</a></h4>
+                <div class="input-wrapper">
+                    <textarea id="realtimeDataInput" class="mainDataInput"
+                        placeholder="Dán dữ liệu ngành hàng..."></textarea>
+                    <div class="paste-btn-container">
+                        <button class="paste-btn" data-target="realtimeDataInput">Dán Thông Minh</button>
+                    </div>
+                </div>
+            </div>
+            <div class="input-section">
+                <h4><a href="https://bi.thegioididong.com/thi-dua-st?id=16753&tab=1&rt=1&dm=2&mt=1" target="_blank"
+                        rel="noopener noreferrer">Dữ liệu Realtime Thi đua</a></h4>
+                <div class="input-wrapper">
+                    <textarea id="realtimeContestDataInput" class="contestDataInput"
+                        placeholder="Dán dữ liệu thi đua..."></textarea>
+                    <div class="paste-btn-container">
+                        <button class="paste-btn" data-target="realtimeContestDataInput">Dán Thông Minh</button>
+                    </div>
+                </div>
+            </div>
+            <div class="input-section">
+                <h4>Doanh thu Nhân viên (Dán)</h4>
+                <div class="input-wrapper">
+                    <textarea id="employeeSalesDataInput" class="mainDataInput"
+                        placeholder="Dán dữ liệu doanh thu nhân viên vào đây..."></textarea>
+                    <div class="paste-btn-container">
+                        <button class="paste-btn" data-target="employeeSalesDataInput">Dán Thông Minh</button>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <!-- CLOUD SYNC SECTION (GOOGLE SHEETS) -->
-        <div
-            style="background:#fff; padding:20px; border-radius:15px; margin-bottom:15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border-left: 5px solid #0F9D58;">
-            <strong style="color:var(--text-primary)"><i class="fas fa-cloud"></i> Đồng bộ Google Sheets</strong>
-            <p style="font-size:0.85em; color:#666; margin:5px 0 10px;">Lưu dữ liệu lên Google Sheet và tự động tải về
-                khi mở file.</p>
-            <p style="font-size:0.8em; color:red; margin-top:-5px;">*Lưu ý: Dữ liệu lớn sẽ tự động chia nhỏ để phù hợp
-                với Google Sheet.</p>
-
-            <input type="text" id="gasUrlInput" class="backup-textarea" style="height:40px; margin:0 0 10px 0;"
-                value="https://script.google.com/macros/s/AKfycbw1MCvIVoa9KXtDDmDn2D8C2vQ6BqGwrUvrtAYB5gIk2-v4W2CXY1BDObUBdQn20zHX/exec"
-                placeholder="Dán URL Google Apps Script vào đây..." onchange="saveGasSettings()">
-
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-                <input type="checkbox" id="autoLoadCheckbox" onchange="saveGasSettings()">
-                <label for="autoLoadCheckbox" style="font-size:0.9em; user-select:none; cursor:pointer;">Tự động tải về
-                    khi mở file</label>
-            </div>
-
-            <div style="display:flex; gap:10px;">
-                <!-- Save button moved to header -->
-                <!-- <button class="action-btn" style="background:#0F9D58; color:white; flex:1" onclick="saveToCloud()"><i class="fas fa-cloud-upload-alt"></i> Lưu lên Cloud</button> -->
-                <button class="action-btn" style="background:#4285F4; color:white; flex:1"
-                    onclick="loadFromCloud(true)"><i class="fas fa-cloud-download-alt"></i> Tải về máy</button>
-            </div>
+        <div class="button-container">
+            <button id="analyzeBtn-rt" class="action-btn analyzeBtn">TẠO DASHBOARD REAL-TIME</button>
+            <button id="showInputsBtnRt" class="action-btn" style="display: none; background: #6c757d;">Chỉnh sửa Dữ
+                liệu</button>
+            <button id="captureBtnRt" class="action-btn captureBtn">
+                <svg fill="currentColor" viewBox="0 0 24 24">
+                    <path
+                        d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
+                </svg>
+                Chụp ảnh Báo cáo
+            </button>
         </div>
+        <div id="dashboard-body-rt" class="dashboard-body">
+            <div id="capture-area-rt">
+                <div id="capture-content-rt">
+                    <div id="reportTitleRt" class="report-title"></div>
+                    <div class="progress-bar-container card">
+                        <div class="progress-labels"><span>Tiến độ Thời gian làm việc (8h-22h)</span><span
+                                id="progress-summary-time">0%</span></div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progress-fill-time"></div>
+                        </div>
+                        <div class="progress-text-wrapper"><span id="progress-text-time"></span></div>
+                    </div>
+                    <div class="progress-bar-container card">
+                        <div class="progress-labels"><span>Tiến độ Target Ngày</span><span
+                                id="progress-summary-target-rt"></span></div>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="progress-fill-target-rt"></div>
+                        </div>
+                        <div class="progress-text-wrapper"><span id="progress-text-target-rt"></span></div>
+                    </div>
+                    <div id="kpi-panel-rt" class="kpi-panel"></div>
 
-        <strong style="color:var(--text-primary)"><i class="fas fa-code"></i> Thủ công (Copy/Paste Mã)</strong>
-        <textarea id="globalDataTextarea" class="backup-textarea" placeholder="Dán mã backup vào đây..."></textarea>
+                    <!-- Contest Filter Controls -->
+                    <div id="contestCategoryFilterControls">
+                        <label><input type="checkbox" id="selectAllContestCategoriesRt" checked> Hiển thị TẤT CẢ Ngành
+                            hàng</label>
+                        <button id="openCategorySelectModalRt" class="action-btn-small"
+                            style="background-color: var(--secondary-accent);">
+                            Chọn Ngành hàng cụ thể
+                        </button>
+                        <span id="selectedCategoryCountRt" style="font-weight: 600; color: var(--text-primary);"></span>
+                    </div>
 
-        <div class="modal-actions">
-            <button class="action-btn btn-danger" onclick="clearAllData()">Xóa hết</button>
-            <button class="action-btn" style="background:#eee; color:#555" onclick="copyGlobalData()">Copy</button>
-            <button class="action-btn btn-primary" onclick="restoreGlobalData()">Khôi phục</button>
+                    <div id="employee-sales-chart-wrapper" class="card chart-wrapper"
+                        style="display: none; padding: 25px;"></div>
+                    <div class="dashboard-layout-grid"
+                        style="grid-template-columns: 1fr 1fr; align-items: start; gap: 25px;">
+                        <div id="contest-table-rt-wrapper" class="report-section card"></div>
+                        <div id="category-table-rt-wrapper" class="report-section card"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="summary-report-wrapper-rt" class="report-section card" style="display:none;"></div>
+
+            <div id="summary-report-wrapper-rt-employee" class="report-section card"
+                style="display:none; margin-top: 25px;"></div>
         </div>
     </div>
-    </div>
 
-    <div id="toast" class="toast">Thông báo</div>
+    <!-- Modal for Category Selection -->
+    <div id="categorySelectModalRt" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Chọn Ngành hàng Thi đua</h2>
+            <div class="category-list" id="categoryChecklistRt">
+                <!-- Checkboxes sẽ được render ở đây -->
+            </div>
+
+            <!-- Import/Export Section -->
+            <div class="import-export-section" style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+                <h4 style="margin: 0 0 5px 0; cursor: pointer; font-size: 1em; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between;"
+                    id="toggleImportExport">
+                    <span>📂 Nhập/Xuất Danh sách (Click để mở)</span>
+                    <span>▼</span>
+                </h4>
+                <div id="importExportContainer" style="display: none;">
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 5px;">Sao chép mã dưới đây để chia sẻ hoặc
+                        dán mã vào để nhập danh sách:</p>
+                    <textarea id="categoryConfigInput"
+                        style="width: 100%; height: 60px; font-size: 12px; font-family: monospace; padding: 8px; box-sizing: border-box; border-radius: 5px; border: 1px solid #ccc;"
+                        placeholder='["Ngành A", "Ngành B"]'></textarea>
+                    <div style="display: flex; gap: 10px; margin-top: 8px;">
+                        <button id="btnExportConfig" class="action-btn-small" style="background-color: #6c757d;">Sao
+                            chép (Xuất)</button>
+                        <button id="btnImportConfig" class="action-btn-small"
+                            style="background-color: var(--primary-accent);">Áp dụng (Nhập)</button>
+                    </div>
+                </div>
+            </div>
+            <!-- End Import/Export Section -->
+
+            <div class="modal-footer" style="margin-top: 15px;">
+                <button id="applyCategoryFilterBtnRt" class="action-btn-small"
+                    style="background-color: var(--primary-accent);">Áp dụng Bộ lọc</button>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // --- Navigation Logic ---
-        function switchTab(element, tabId) {
-            // 1. Active Nav Item
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            element.classList.add('active');
-
-            // 2. Show Content
-            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
-            document.getElementById(tabId).classList.add('active');
+        /****************************************************************************
+         * SMART PASTE FUNCTIONS
+         ****************************************************************************/
+        function extractData(fullText, regex) {
+            const match = fullText.match(regex);
+            return (match && match[1]) ? match[1].trim() : '';
         }
 
-        // --- BACKUP LOGIC ---
-        function getAllLocalStorage() {
-            const allData = {};
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                allData[key] = localStorage.getItem(key);
-            }
-            return allData;
-        }
+        async function handleSmartPaste(targetId) {
+            const targetTextarea = document.getElementById(targetId);
+            if (!targetTextarea) return;
 
-        function openBackupModal() {
-            const textarea = document.getElementById('globalDataTextarea');
-            textarea.value = JSON.stringify(getAllLocalStorage(), null, 2);
-            document.getElementById('backupModal').style.display = "block";
-        }
-
-        function closeBackupModal() {
-            document.getElementById('backupModal').style.display = "none";
-        }
-
-        function downloadBackupFile() {
-            const dataStr = JSON.stringify(getAllLocalStorage(), null, 2);
-            const blob = new Blob([dataStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            const date = new Date().toISOString().slice(0, 10);
-            a.href = url;
-            a.download = `Backup_DMX_${date}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-            showToast("Đang tải xuống...");
-        }
-
-        function handleFileSelect(input) {
-            const file = input.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = function (e) { processRestore(e.target.result); input.value = ''; };
-            reader.readAsText(file);
-        }
-
-        function processRestore(jsonStr) {
             try {
-                const data = JSON.parse(jsonStr);
-                if (confirm("Dữ liệu hiện tại sẽ bị thay thế. Tiếp tục?")) {
-                    localStorage.clear();
-                    for (const key in data) localStorage.setItem(key, data[key]);
-                    showToast("Khôi phục thành công! Reloading...");
-                    setTimeout(() => location.reload(), 1000);
+                const text = await navigator.clipboard.readText();
+                if (!text) {
+                    showToast('Clipboard rỗng!', true);
+                    return;
                 }
-            } catch (e) { showToast("Lỗi định dạng file!"); }
-        }
 
-        function copyGlobalData() {
-            const ta = document.getElementById('globalDataTextarea');
-            ta.select(); document.execCommand('copy');
-            showToast("Đã copy mã!");
-        }
-        function restoreGlobalData() {
-            processRestore(document.getElementById('globalDataTextarea').value);
-        }
-        function clearAllData() {
-            if (confirm("Xóa sạch toàn bộ dữ liệu?")) {
-                localStorage.clear(); location.reload();
+                let extractedData = '';
+                switch (targetId) {
+                    case 'realtimeDataInput':
+                        extractedData = extractData(text, /(Nhóm ngành hàng\tSL Realtime[\s\S]+?)Hỗ trợ BI/);
+                        localStorage.setItem('realtimeMainData', extractedData || text);
+                        break;
+                    case 'realtimeContestDataInput':
+                        extractedData = extractData(text, /(Ngành hàng\tDT Realtime \(QĐ\)[\s\S]+?)Hỗ trợ BI/);
+                        localStorage.setItem('realtimeContestData', extractedData || text);
+                        break;
+                    case 'employeeSalesDataInput':
+                        extractedData = extractData(text, /(Nhân viên\s+SL\s+DT[\s\S]+)/);
+                        localStorage.setItem('employeeSalesData', extractedData || text);
+                        break;
+                    default:
+                        extractedData = text;
+                }
+
+                targetTextarea.value = extractedData || text;
+                showToast('Đã dán và lọc dữ liệu thông minh!');
+
+            } catch (err) {
+                console.error('Lỗi khi dán: ', err);
+                showToast('Không thể truy cập clipboard. Vui lòng kiểm tra quyền truy cập của trình duyệt.', true);
             }
         }
-        function showToast(msg) {
-            const x = document.getElementById("toast");
-            x.textContent = msg; x.className = "toast show";
-            setTimeout(() => x.className = x.className.replace("show", ""), 3000);
+
+        function setupSmartPasteButtons() {
+            document.querySelectorAll('.paste-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const targetId = e.target.getAttribute('data-target');
+                    handleSmartPaste(targetId);
+                });
+            });
         }
 
-        // --- CLOUD SYNC LOGIC (GOOGLE SHEETS) ---
-        const GAS_URL_KEY = 'my_gas_url';
-        const GAS_AUTOLOAD_KEY = 'my_gas_autoload';
-
-        // Load settings on startup
-        window.addEventListener('DOMContentLoaded', () => {
-            let savedUrl = localStorage.getItem(GAS_URL_KEY);
-            // Ignore checkbox state, default to auto-load if URL exists per user request
-            // const autoLoad = localStorage.getItem(GAS_AUTOLOAD_KEY) === 'true';
-
-            // Default URL provided by user
-            if (!savedUrl || savedUrl.trim() === "") {
-                savedUrl = "https://script.google.com/macros/s/AKfycbw1MCvIVoa9KXtDDmDn2D8C2vQ6BqGwrUvrtAYB5gIk2-v4W2CXY1BDObUBdQn20zHX/exec";
-                localStorage.setItem(GAS_URL_KEY, savedUrl);
+        /****************************************************************************
+         * SHARED UTILITY & SETUP FUNCTIONS
+         ****************************************************************************/
+        var VIBRANT_PALETTE = ['#0ABDE3', '#00D2D3', '#FECA57', '#FF9F43', '#FF6B6B', '#5f27cd'];
+        var formatNumber = (num, decimals = 0) => {
+            const number = parseFloat(num);
+            if (isNaN(number)) {
+                return '';
             }
+            return number.toLocaleString('vi-VN', { maximumFractionDigits: decimals });
+        };
+        var getColor = (value, threshold1 = 50, threshold2 = 100) => value < threshold1 ? '#FF6B6B' : value < threshold2 ? '#FECA57' : '#00D2D3';
 
-            document.getElementById('gasUrlInput').value = savedUrl;
+        function showToast(message, isError = false) {
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            if (isError) toast.classList.add('error');
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.parentNode && toast.parentNode.removeChild(toast), 500);
+            }, 3000);
+        }
 
-            // Check session to prevent infinite loop but ensure data is fresh
-            if (!sessionStorage.getItem('data_synced_this_session')) {
-                console.log("Auto-loading from cloud (Forced)...");
-                loadFromCloud(false); // false means silent mode
+        // Global filter state for RT Contest
+        const CONTEST_CATEGORY_FILTER_KEY_RT = 'contestCategoryFilter_RT';
+        let allContestCategoriesRt = [];
+        let currentSelectedCategoriesRt = [];
+
+        function loadContestCategoryFilterRt(allNames) {
+            try {
+                const savedFilter = localStorage.getItem(CONTEST_CATEGORY_FILTER_KEY_RT);
+                const selectAllCheckbox = document.getElementById('selectAllContestCategoriesRt');
+
+                if (savedFilter && selectAllCheckbox) {
+                    const parsedFilter = JSON.parse(savedFilter);
+                    currentSelectedCategoriesRt = parsedFilter.filter(name => allNames.includes(name));
+
+                    if (currentSelectedCategoriesRt.length === 0 && allNames.length > 0) {
+                        currentSelectedCategoriesRt = [...allNames];
+                        selectAllCheckbox.checked = true;
+                        saveContestCategoryFilterRt(currentSelectedCategoriesRt);
+                        return currentSelectedCategoriesRt;
+                    }
+
+                    selectAllCheckbox.checked = currentSelectedCategoriesRt.length === allNames.length;
+                    return currentSelectedCategoriesRt;
+                }
+            } catch (e) {
+                console.error("Lỗi khi tải bộ lọc ngành hàng RT:", e);
+            }
+            currentSelectedCategoriesRt = [...allNames];
+            if (document.getElementById('selectAllContestCategoriesRt')) {
+                document.getElementById('selectAllContestCategoriesRt').checked = true;
+            }
+            return currentSelectedCategoriesRt;
+        }
+
+        function saveContestCategoryFilterRt(selectedNames) {
+            try {
+                localStorage.setItem(CONTEST_CATEGORY_FILTER_KEY_RT, JSON.stringify(selectedNames));
+            } catch (e) {
+                console.error("Lỗi khi lưu bộ lọc ngành hàng RT:", e);
+            }
+            currentSelectedCategoriesRt = selectedNames;
+        }
+
+        function getContestCategoriesToDisplayRt() {
+            const isSelectAllChecked = document.getElementById('selectAllContestCategoriesRt')?.checked ?? true;
+
+            if (isSelectAllChecked || currentSelectedCategoriesRt.length === 0) {
+                return allContestCategoriesRt;
+            }
+            return currentSelectedCategoriesRt;
+        }
+
+        function renderCategoryChecklistRt(categories, selectedNames) {
+            const checklist = document.getElementById('categoryChecklistRt');
+            if (!checklist) return;
+
+            checklist.innerHTML = `
+            <label>
+                <input type="checkbox" id="checkAllModalCategoriesRt" ${categories.length === selectedNames.length ? 'checked' : ''}>
+                **Chọn tất cả**
+            </label>
+            <hr style="margin: 5px 0;">
+        `;
+
+            categories.forEach(name => {
+                const isChecked = selectedNames.includes(name);
+                checklist.innerHTML += `
+                <label>
+                    <input type="checkbox" data-category-name="${name}" ${isChecked ? 'checked' : ''}>
+                    ${name}
+                </label>
+            `;
+            });
+
+            const checkAll = document.getElementById('checkAllModalCategoriesRt');
+            if (checkAll) {
+                checkAll.addEventListener('change', (e) => {
+                    checklist.querySelectorAll('input[type="checkbox"]').forEach(input => {
+                        if (input.id !== 'checkAllModalCategoriesRt') {
+                            input.checked = e.target.checked;
+                        }
+                    });
+                });
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            Chart.register(ChartDataLabels);
+            Chart.defaults.color = 'var(--text-muted)';
+            Chart.defaults.font.family = 'system-ui, -apple-system, sans-serif';
+            Chart.defaults.font.weight = '600';
+
+            setupRealtimeTab();
+            setupSmartPasteButtons();
+
+            try {
+                document.getElementById('realtimeDataInput').value = localStorage.getItem('realtimeMainData') || '';
+                document.getElementById('realtimeContestDataInput').value = localStorage.getItem('realtimeContestData') || '';
+                document.getElementById('employeeSalesDataInput').value = localStorage.getItem('employeeSalesData') || '';
+            } catch (e) {
+                console.error("Could not access localStorage. Data will not be saved.", e);
+                showToast("Không thể truy cập bộ nhớ cục bộ. Dữ liệu sẽ không được lưu.", true);
             }
         });
 
-        function saveGasSettings() {
-            const url = document.getElementById('gasUrlInput').value.trim();
-            const autoLoad = document.getElementById('autoLoadCheckbox').checked;
+        /****************************************************************************
+         * TAB 2: REAL-TIME LOGIC                                     *
+         ****************************************************************************/
+        function setupRealtimeTab() {
+            let timeInterval;
+            let employeeChart = null;
+            let installmentChart = null;
+            let lastEmployeeData = [];
 
-            if (url) localStorage.setItem(GAS_URL_KEY, url);
-            localStorage.setItem(GAS_AUTOLOAD_KEY, autoLoad);
-            showToast("Đã lưu cài đặt Cloud!");
-        }
+            document.getElementById('analyzeBtn-rt').addEventListener('click', () => {
+                const mainDataRaw = document.getElementById('realtimeDataInput').value;
+                const contestDataRaw = document.getElementById('realtimeContestDataInput').value;
+                const employeeDataRaw = document.getElementById('employeeSalesDataInput').value;
 
-        async function saveToCloud() {
-            const url = localStorage.getItem(GAS_URL_KEY);
-            if (!url) {
-                alert("Vui lòng nhập URL Google Apps Script trước!");
-                return;
-            }
-
-            const allData = getAllLocalStorage();
-            const chunkedData = {};
-            const MAX_CHUNK_SIZE = 40000; // Reduced to 40k to be safe
-
-            // Chunking logic
-            for (const key in allData) {
-                const value = allData[key];
-                if (value && value.length > MAX_CHUNK_SIZE) {
-                    const totalChunks = Math.ceil(value.length / MAX_CHUNK_SIZE);
-                    chunkedData[key + "_IS_CHUNKED"] = totalChunks;
-                    for (let i = 0; i < totalChunks; i++) {
-                        const chunk = value.substring(i * MAX_CHUNK_SIZE, (i + 1) * MAX_CHUNK_SIZE);
-                        chunkedData[key + "_CHUNK_" + i] = chunk;
-                    }
-                } else {
-                    chunkedData[key] = value;
-                }
-            }
-
-            showToast("Đang lưu lên Google Sheet...");
-
-            try {
-                await fetch(url, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'text/plain' },
-                    body: JSON.stringify(chunkedData)
-                });
-                showToast("Đã gửi yêu cầu lưu! (Check Google Sheet)");
-            } catch (error) {
-                console.error(error);
-                alert("Lỗi kết nối tới Server: " + error.message);
-            }
-        }
-
-        async function loadFromCloud(isManual = true) {
-            const url = localStorage.getItem(GAS_URL_KEY);
-            const autoLoad = document.getElementById('autoLoadCheckbox').checked;
-
-            if (!url) {
-                if (isManual) alert("Vui lòng nhập URL Google Apps Script trước!");
-                return;
-            }
-
-            if (isManual) showToast("Đang tải dữ liệu...");
-
-            try {
-                const response = await fetch(url);
-                if (!response.ok) throw new Error('HTTP Error: ' + response.status);
-
-                const text = await response.text();
-                let cloudData;
                 try {
-                    cloudData = JSON.parse(text);
+                    localStorage.setItem('realtimeMainData', mainDataRaw);
+                    localStorage.setItem('realtimeContestData', contestDataRaw);
+                    localStorage.setItem('employeeSalesData', employeeDataRaw);
                 } catch (e) {
-                    throw new Error("Dữ liệu trả về không đúng định dạng JSON.");
+                    console.error("Could not access localStorage. Data will not be saved.", e);
                 }
 
-                if (cloudData && typeof cloudData === 'object') {
-                    // Pre-process data logic
-                    const mergedData = {};
-                    const chunkInfo = {};
+                if (!mainDataRaw.trim()) { showToast('Vui lòng dán dữ liệu Realtime Ngành hàng.', true); return; }
+                try {
+                    const mainParsedData = parseRealtimeData(mainDataRaw);
+                    const contestDataRawTrimmed = contestDataRaw.trim();
+                    const contestParsedData = contestDataRawTrimmed ? parseRealtimeData(contestDataRawTrimmed) : [];
+                    const employeeDataRawTrimmed = employeeDataRaw.trim();
+                    const employeeParsedData = employeeDataRawTrimmed ? parseEmployeeSalesData(employeeDataRawTrimmed) : [];
 
-                    // First pass: Sort between normal keys and chunk info
-                    for (const key in cloudData) {
-                        if (key.endsWith("_IS_CHUNKED")) {
-                            chunkInfo[key.replace("_IS_CHUNKED", "")] = cloudData[key];
-                        } else if (!key.includes("_CHUNK_")) {
-                            // Only copy non-config keys for now
-                            if (key !== GAS_URL_KEY && key !== GAS_AUTOLOAD_KEY) {
-                                mergedData[key] = cloudData[key];
-                            }
-                        }
-                    }
+                    lastEmployeeData = employeeParsedData;
 
-                    // Second pass: Reassemble
-                    for (const realKey in chunkInfo) {
-                        let fullValue = "";
-                        const count = parseInt(chunkInfo[realKey]);
-                        for (let i = 0; i < count; i++) {
-                            const part = cloudData[realKey + "_CHUNK_" + i];
-                            if (part) fullValue += part;
-                        }
-                        mergedData[realKey] = fullValue;
-                    }
+                    document.getElementById('realtimeInputGrid').style.display = 'none';
+                    document.getElementById('showInputsBtnRt').style.display = 'inline-flex';
 
-                    // Check if empty
-                    if (Object.keys(mergedData).length === 0) {
-                        if (isManual) alert("Kết nối thành công nhưng Dữ liệu trên Cloud đang TRỐNG! (0 keys)");
+                    displayRealtimeDashboard(mainParsedData, contestParsedData, employeeParsedData);
+                } catch (error) {
+                    showToast("Lỗi xử lý dữ liệu Realtime: " + error.message, true);
+                    console.error(error);
+                }
+            });
+
+            document.getElementById('showInputsBtnRt').addEventListener('click', function () {
+                const inputGrid = document.getElementById('realtimeInputGrid');
+                const isHidden = inputGrid.style.display === 'none';
+                inputGrid.style.display = isHidden ? 'grid' : 'none';
+                this.textContent = isHidden ? 'Ẩn Mục Nhập Liệu' : 'Chỉnh sửa Dữ liệu';
+            });
+
+            document.getElementById('captureBtnRt').addEventListener('click', () => {
+                const dashboardBody = document.getElementById('dashboard-body-rt');
+                if (dashboardBody.style.display === 'none') {
+                    showToast('Chưa có dữ liệu Realtime để chụp ảnh.', true);
+                    return;
+                }
+
+                const captureElement = document.getElementById('capture-content-rt');
+
+                const mainContainer = document.querySelector('body');
+                mainContainer.classList.add('capture-mode');
+
+                setTimeout(() => {
+                    html2canvas(captureElement, {
+                        useCORS: true,
+                        backgroundColor: '#F4F7F9',
+                        scale: 2.5
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = `báo cáo realtime ${new Date().toLocaleTimeString('vi-VN')}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    }).catch(err => {
+                        showToast('Lỗi khi chụp ảnh. Hãy thử lại.', true);
+                        console.error(err);
+                    }).finally(() => {
+                        mainContainer.classList.remove('capture-mode');
+                    });
+                }, 100);
+            });
+
+            // --- FILTER MODAL HANDLERS ---
+            const selectAllCheckbox = document.getElementById('selectAllContestCategoriesRt');
+            const modalBtn = document.getElementById('openCategorySelectModalRt');
+            const modal = document.getElementById('categorySelectModalRt');
+            const closeModalButton = modal.querySelector('.close-btn');
+
+            // Toggle Import/Export Section
+            const toggleImportExport = document.getElementById('toggleImportExport');
+            const importExportContainer = document.getElementById('importExportContainer');
+            if (toggleImportExport && importExportContainer) {
+                toggleImportExport.addEventListener('click', () => {
+                    const isHidden = importExportContainer.style.display === 'none';
+                    importExportContainer.style.display = isHidden ? 'block' : 'none';
+                    toggleImportExport.querySelector('span:last-child').textContent = isHidden ? '▲' : '▼';
+                });
+            }
+
+            // Export Configuration
+            const btnExportConfig = document.getElementById('btnExportConfig');
+            const categoryConfigInput = document.getElementById('categoryConfigInput');
+            if (btnExportConfig && categoryConfigInput) {
+                btnExportConfig.addEventListener('click', () => {
+                    const listToExport = currentSelectedCategoriesRt.length > 0 ? currentSelectedCategoriesRt : allContestCategoriesRt;
+                    categoryConfigInput.value = JSON.stringify(listToExport);
+                    categoryConfigInput.select();
+                    document.execCommand('copy');
+                    showToast('Đã sao chép danh sách vào Clipboard!');
+                });
+            }
+
+            // Import Configuration
+            const btnImportConfig = document.getElementById('btnImportConfig');
+            if (btnImportConfig && categoryConfigInput) {
+                btnImportConfig.addEventListener('click', () => {
+                    const rawInput = categoryConfigInput.value.trim();
+                    if (!rawInput) {
+                        showToast('Vui lòng dán danh sách vào ô trống!', true);
                         return;
                     }
 
-                    // Safe to clear now
-                    localStorage.clear();
-
-                    // Restore Config
-                    localStorage.setItem(GAS_URL_KEY, url);
-                    localStorage.setItem(GAS_AUTOLOAD_KEY, autoLoad);
-
-                    // Save Data
-                    let restoreCount = 0;
-                    let debugKey = "dataInput7_T2";
-                    let debugLen = 0;
-
-                    for (const key in mergedData) {
-                        localStorage.setItem(key, mergedData[key]);
-                        restoreCount++;
-                        if (key === debugKey) debugLen = mergedData[key].length;
+                    let importedCategories = [];
+                    try {
+                        importedCategories = JSON.parse(rawInput);
+                        if (!Array.isArray(importedCategories)) throw new Error("Not an array");
+                    } catch (e) {
+                        importedCategories = rawInput.split(/[\n,]+/).map(s => s.trim().replace(/['"]/g, '')).filter(s => s);
                     }
 
-                    if (isManual) {
-                        alert(`Đã khôi phục ${restoreCount} mục dữ liệu.\nTest Key '${debugKey}': ${debugLen > 0 ? 'Có dữ liệu (' + debugLen + ' chars)' : 'RỖNG'}.\nHệ thống sẽ tải lại ngay bây giờ.`);
+                    const validCategories = importedCategories.filter(name => allContestCategoriesRt.includes(name));
+
+                    if (validCategories.length === 0) {
+                        showToast('Không tìm thấy ngành hàng nào hợp lệ trong danh sách nhập vào!', true);
+                        return;
                     }
 
-                    sessionStorage.setItem('data_synced_this_session', 'true');
-                    showToast("Đồng bộ hoàn tất! Reloading...");
+                    currentSelectedCategoriesRt = validCategories;
+                    saveContestCategoryFilterRt(validCategories);
 
-                    // Force cache-busting reload
-                    setTimeout(() => {
-                        // Add timestamp to iframes to force reload content
-                        document.querySelectorAll('iframe').forEach(f => {
-                            let src = f.getAttribute('src').split('?')[0];
-                            f.setAttribute('src', src + '?t=' + new Date().getTime());
-                        });
-                        location.reload();
-                    }, 500);
+                    renderCategoryChecklistRt(allContestCategoriesRt, validCategories);
 
-                } else {
-                    throw new Error("Dữ liệu rỗng hoặc sai định dạng.");
+                    if (selectAllCheckbox) {
+                        selectAllCheckbox.checked = (validCategories.length === allContestCategoriesRt.length);
+                    }
+
+                    showToast(`Đã nhập thành công ${validCategories.length} ngành hàng!`);
+                    updateFilterControlsState();
+                });
+            }
+
+            const updateFilterControlsState = () => {
+                const isAllSelected = selectAllCheckbox ? selectAllCheckbox.checked : true;
+
+                const countLabel = document.getElementById('selectedCategoryCountRt');
+                if (countLabel) {
+                    const selectedCount = isAllSelected ? allContestCategoriesRt.length : currentSelectedCategoriesRt.length;
+                    countLabel.textContent = allContestCategoriesRt.length > 0
+                        ? `(Đã chọn: ${selectedCount} / ${allContestCategoriesRt.length} nhóm)`
+                        : '';
                 }
-            } catch (error) {
-                console.error(error);
-                if (isManual) alert("Lỗi khi tải dữ liệu: " + error.message);
+            }
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener('change', () => {
+                    const isChecked = selectAllCheckbox.checked;
+                    if (isChecked) {
+                        currentSelectedCategoriesRt = [...allContestCategoriesRt];
+                        saveContestCategoryFilterRt(currentSelectedCategoriesRt);
+                    } else {
+                        if (currentSelectedCategoriesRt.length === allContestCategoriesRt.length) {
+                            currentSelectedCategoriesRt = [];
+                            saveContestCategoryFilterRt([]);
+                        }
+                    }
+                    updateFilterControlsState();
+
+                    if (document.getElementById('dashboard-body-rt').style.display !== 'none') {
+                        document.getElementById('analyzeBtn-rt').click();
+                    }
+                });
+            }
+
+            if (modalBtn) {
+                modalBtn.addEventListener('click', () => {
+                    if (allContestCategoriesRt.length === 0) {
+                        showToast('Vui lòng tạo Dashboard trước để lấy danh sách Ngành hàng Thi đua.', true);
+                        return;
+                    }
+                    const listToRender = currentSelectedCategoriesRt;
+
+                    renderCategoryChecklistRt(allContestCategoriesRt, listToRender);
+                    modal.style.display = 'block';
+                });
+            }
+
+            if (closeModalButton) closeModalButton.onclick = () => { modal.style.display = 'none'; };
+            window.onclick = (event) => { if (event.target === modal) { modal.style.display = 'none'; } };
+
+            if (document.getElementById('applyCategoryFilterBtnRt')) {
+                document.getElementById('applyCategoryFilterBtnRt').addEventListener('click', () => {
+                    const checklist = document.getElementById('categoryChecklistRt');
+                    const selected = [];
+                    checklist.querySelectorAll('input[type="checkbox"]').forEach(input => {
+                        if (input.id !== 'checkAllModalCategoriesRt' && input.checked) {
+                            selected.push(input.dataset.categoryName);
+                        }
+                    });
+
+                    saveContestCategoryFilterRt(selected);
+                    modal.style.display = 'none';
+
+                    const isAllSelected = selected.length === allContestCategoriesRt.length;
+                    if (selectAllCheckbox) selectAllCheckbox.checked = isAllSelected;
+
+                    updateFilterControlsState();
+
+                    showToast('Đã lưu bộ lọc Ngành hàng!');
+
+                    if (document.getElementById('dashboard-body-rt').style.display !== 'none') {
+                        document.getElementById('analyzeBtn-rt').click();
+                    }
+                });
+            }
+
+            function parseRealtimeData(text) {
+                const lines = text.trim().split('\n').filter(l => l.trim() !== '');
+                if (lines.length < 1) {
+                    return [];
+                }
+                const headers = lines[0].split('\t').map(h => h.trim().toLowerCase());
+
+                const nameIndex = headers.findIndex(h => h.includes("ngành hàng"));
+                const actualIndex = headers.findIndex(h => h.includes("dt realtime") || h.includes('thực hiện') || h.includes('dtqđ') || h.includes('sllk') || h.includes('dtlk'));
+                const targetIndex = headers.findIndex(h => h.includes("target ngày") || h.includes('target'));
+                const percentIndex = headers.findIndex(h => h.includes("% ht target ngày") || h.includes('% ht'));
+                const installmentIndex = headers.findIndex(h => h.includes("dt trả góp"));
+                const installmentPercentIndex = headers.findIndex(h => h.includes("tỷ trọng trả góp"));
+                const quantityIndex = headers.findIndex(h => h.includes("sl realtime") || h.includes("số lượng"));
+
+                if (nameIndex === -1 || actualIndex === -1 || targetIndex === -1) {
+                    throw new Error("Dữ liệu Realtime thiếu các cột bắt buộc. Vui lòng kiểm tra lại tiêu đề các cột, cần có: 'Ngành hàng', 'Thực hiện' (hoặc 'DT Realtime'), và 'Target' (hoặc 'Target Ngày').");
+                }
+
+                const dataRows = lines.slice(1);
+                return dataRows.map(line => {
+                    const values = line.split('\t');
+
+                    const getFloatValue = (index) => {
+                        if (index === -1 || index >= values.length || !values[index]) return 0;
+                        const cleanedValueStr = values[index].replace(/,/g, '').replace(/%/, '');
+                        return parseFloat(cleanedValueStr) || 0;
+                    }
+
+                    return {
+                        "Nhóm ngành hàng": values[nameIndex] || '',
+                        "DT Realtime (QĐ)": getFloatValue(actualIndex),
+                        "Target Ngày (QĐ)": getFloatValue(targetIndex),
+                        "% HT Target Ngày (QĐ)": getFloatValue(percentIndex),
+                        "DT Trả Góp": getFloatValue(installmentIndex),
+                        "Tỷ trọng trả góp": getFloatValue(installmentPercentIndex),
+                        "Số lượng": getFloatValue(quantityIndex)
+                    };
+                });
+            }
+
+            function parseEmployeeSalesData(text) {
+                const lines = text.trim().split('\n');
+                const data = [];
+
+                lines.forEach(line => {
+                    line = line.trim();
+                    if (!line ||
+                        line.toLowerCase().startsWith('nhân viên') ||
+                        line.toLowerCase().startsWith('tổng') ||
+                        line.toLowerCase().includes('online')) {
+                        return;
+                    }
+
+                    const regex = /^(\d+)\s*-\s*(.+?)\s+\d+\s+(-?[\d,.]+)$/;
+                    const match = line.match(regex);
+
+                    if (match) {
+                        const id = match[1].trim();
+                        const name = match[2].trim();
+                        const revenueStr = match[3] || '0';
+                        const revenue = parseFloat(revenueStr.replace(/,/g, '')) || 0;
+                        data.push({ id, name, revenue });
+                    }
+                });
+
+                return data;
+            }
+
+            function displayRealtimeDashboard(mainData, contestData, employeeData) {
+                const dashboardBody = document.getElementById('dashboard-body-rt');
+                if (dashboardBody) dashboardBody.style.display = 'block';
+
+                if (timeInterval) clearInterval(timeInterval);
+
+                if (employeeChart) { employeeChart.destroy(); employeeChart = null; }
+                if (installmentChart) { installmentChart.destroy(); installmentChart = null; }
+
+                renderTimeProgressBar();
+                timeInterval = setInterval(renderTimeProgressBar, 60000);
+
+                const totalRow = mainData.find(row => row["Nhóm ngành hàng"].toLowerCase() === "tổng");
+                if (!totalRow) throw new Error("Không tìm thấy dòng 'Tổng' trong dữ liệu Realtime.");
+
+                const processedContestData = processRealtimeContestData(contestData);
+
+                const contestCategories = processedContestData.all.map(item => item.name);
+                allContestCategoriesRt = [...new Set(contestCategories)].sort();
+
+                loadContestCategoryFilterRt(allContestCategoriesRt);
+
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+                const currentHour = now.getHours();
+
+                let timeIcon = '';
+                if (currentHour < 12) {
+                    timeIcon = '☀️ ';
+                } else if (currentHour < 18) {
+                    timeIcon = '🌇 ';
+                } else {
+                    timeIcon = '🌙 ';
+                }
+                const titleEl = document.getElementById('reportTitleRt');
+                if (titleEl) titleEl.textContent = `${timeIcon}Báo cáo doanh thu siêu thị đến ${timeString}`;
+
+                renderRealtimeKPIs(totalRow, processedContestData);
+                renderRealtimeTargetProgress(totalRow);
+                renderEmployeeSalesChart(employeeData);
+
+                renderRealtimeContestTable(processedContestData);
+
+                renderRealtimeCategoryTable(mainData);
+
+                renderRealtimeSummary(totalRow, processedContestData);
+
+                const employeeSummaryContainer = document.getElementById('summary-report-wrapper-rt-employee');
+                if (employeeSummaryContainer) employeeSummaryContainer.style.display = 'none';
+
+                updateFilterControlsState();
+            }
+
+            function getTimePassedFraction() {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 8, 0, 0);
+                const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 22, 0, 0);
+                if (now <= start) return 0.001;
+                if (now >= end) return 1;
+                const totalMinutes = (end - start) / 60000;
+                const elapsedMinutes = (now - start) / 60000;
+                return elapsedMinutes / totalMinutes;
+            }
+
+            function processRealtimeContestData(contestData) {
+                if (!contestData || contestData.length === 0) return { all: [], onTrack: [], behind: [], veDich_actual: [], canCoGang_actual: [], canTapTrung_actual: [], baoDong_actual: [] };
+                const timeFraction = getTimePassedFraction();
+
+                const items = contestData
+                    .filter(row => row["Nhóm ngành hàng"].toLowerCase() !== 'tổng' && row["Nhóm ngành hàng"].toLowerCase() !== 'ngành hàng')
+                    .map(row => {
+                        const actual = row['DT Realtime (QĐ)'];
+                        const target = row['Target Ngày (QĐ)'];
+                        const projectedSales = timeFraction > 0 && timeFraction < 1 ? (actual / timeFraction) : actual;
+                        const percentProjected = target > 0 ? (projectedSales / target * 100) : 0;
+                        return {
+                            name: row['Nhóm ngành hàng'],
+                            actual: actual,
+                            target: target,
+                            remaining: target - actual,
+                            percentProjected: percentProjected,
+                            percentActual: row['% HT Target Ngày (QĐ)']
+                        };
+                    })
+                    .sort((a, b) => b.percentProjected - a.percentProjected);
+
+                return {
+                    all: items,
+                    onTrack: items.filter(p => p.percentProjected >= 100),
+                    behind: items.filter(p => p.percentProjected < 100),
+                    veDich_actual: items.filter(p => p.percentActual >= 100),
+                    canCoGang_actual: items.filter(p => p.percentActual >= 80 && p.percentActual < 100),
+                    canTapTrung_actual: items.filter(p => p.percentActual >= 50 && p.percentActual < 80),
+                    baoDong_actual: items.filter(p => p.percentActual < 50)
+                };
+            }
+
+            function renderTimeProgressBar() {
+                const percent = getTimePassedFraction() * 100;
+                const now = new Date();
+                const fill = document.getElementById('progress-fill-time');
+                if (fill) fill.style.width = `${percent}%`;
+
+                const text = document.getElementById('progress-text-time');
+                if (text) text.textContent = `Đã qua ${formatNumber(percent, 1)}% thời gian (${now.toLocaleTimeString('vi-VN')})`;
+
+                const summary = document.getElementById('progress-summary-time');
+                if (summary) summary.textContent = now.toLocaleTimeString('vi-VN');
+            }
+
+            function renderRealtimeTargetProgress(totalRow) {
+                const htThuc = totalRow['% HT Target Ngày (QĐ)'];
+                const progressFill = document.getElementById('progress-fill-target-rt');
+                if (progressFill) {
+                    progressFill.style.width = `${htThuc > 100 ? 100 : htThuc}%`;
+                    progressFill.style.backgroundColor = getColor(htThuc);
+                }
+
+                const text = document.getElementById('progress-text-target-rt');
+                if (text) text.textContent = `Thực tế ${formatNumber(htThuc, 1)}%`;
+
+                const summary = document.getElementById('progress-summary-target-rt');
+                if (summary) summary.textContent = `${formatNumber(totalRow['DT Realtime (QĐ)'])} / ${formatNumber(totalRow['Target Ngày (QĐ)'])}`;
+            }
+
+            function renderRealtimeKPIs(totalRow, contestData) {
+                const kpiPanel = document.getElementById('kpi-panel-rt');
+                if (!kpiPanel) return;
+
+                const ht = totalRow['% HT Target Ngày (QĐ)'];
+                const timeFraction = getTimePassedFraction();
+                const projectedSales = timeFraction > 0 && timeFraction < 1 ? (totalRow['DT Realtime (QĐ)'] / timeFraction) : totalRow['DT Realtime (QĐ)'];
+                const projectedHt = totalRow['Target Ngày (QĐ)'] > 0 ? (projectedSales / totalRow['Target Ngày (QĐ)'] * 100) : 0;
+                const remainingRevenue = totalRow['Target Ngày (QĐ)'] - totalRow['DT Realtime (QĐ)'];
+                const installmentPercent = totalRow['Tỷ trọng trả góp'];
+
+                const categoriesToDisplay = getContestCategoriesToDisplayRt();
+                const filteredAll = contestData.all.filter(item => categoriesToDisplay.includes(item.name));
+                const onTrackCount = filteredAll.filter(p => p.percentProjected >= 100).length;
+                const totalCount = filteredAll.length;
+
+                const getInstallmentColor = (percent) => {
+                    if (percent < 20) return '#F04770';
+                    if (percent < 30) return '#F78C6A';
+                    return '#06D7A0';
+                };
+
+                const kpis = [
+                    { id: 'kpi-target', title: 'Target Ngày', value: formatNumber(totalRow['Target Ngày (QĐ)']), subtext: 'Mục tiêu hôm nay', icon: '<path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20M12,6A6,6 0 0,1 18,12C18,14.21 16.84,16.21 15,17.2V19A1,1 0 0,1 14,20H10A1,1 0 0,1 9,19V17.2C7.16,16.21 6,14.21 6,12A6,6 0 0,1 12,6M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/>', iconColor: 'var(--primary-accent)' },
+                    { id: 'kpi-realtime', title: 'DT Realtime', value: formatNumber(totalRow['DT Realtime (QĐ)']), subtext: `${formatNumber(ht, 1)}% HT`, color: getColor(ht), icon: '<path fill="currentColor" d="M9 14.5A2.5 2.5 0 0 1 6.5 12A2.5 2.5 0 0 1 9 9.5V14.5M9 16.5A4.5 4.5 0 0 0 13.5 12A4.5 4.5 0 0 0 9 7.5V16.5M22 12l-4-4v3H3v2h15v3l4-4Z"/>', iconColor: 'var(--success-color)' },
+                    { id: 'kpi-remaining', title: 'DT Còn lại', value: remainingRevenue <= 0 ? '🏆' : formatNumber(remainingRevenue), subtext: remainingRevenue <= 0 ? 'Đã hoàn thành!' : 'Cần đạt thêm', color: remainingRevenue <= 0 ? '#06D7A0' : '#F04770', icon: '<path fill="currentColor" d="M12,6A6,6 0 0,1 18,12C18,14.21 16.84,16.21 15,17.2V19A1,1 0 0,1 14,20H10A1,1 0 0,1 9,19V17.2C7.16,16.21 6,14.21 6,12A6,6 0 0,1 12,6M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4Z"/>', iconColor: remainingRevenue <= 0 ? 'var(--warning-color)' : 'var(--danger-color)' },
+                    { id: 'kpi-projected', title: 'Dự kiến đạt', value: formatNumber(projectedSales), subtext: `${formatNumber(projectedHt, 1)}%`, color: getColor(projectedHt), icon: '<path fill="currentColor" d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6h-6z"/>', iconColor: 'var(--secondary-accent)' },
+                    { id: 'kpi-contest', title: 'Thi đua đạt', value: totalCount > 0 ? `${onTrackCount}/${totalCount}` : 'N/A', subtext: totalCount > 0 ? `${formatNumber(totalCount > 0 ? (onTrackCount / totalCount * 100) : 0, 1)}% Về Đích` : 'Chưa có dữ liệu', icon: '<path fill="currentColor" d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>', iconColor: '#6654A2' },
+                    { id: 'kpi-installment', title: 'Tỷ trọng Trả góp', value: `${formatNumber(installmentPercent, 2)}%`, subtext: "DT: " + formatNumber(totalRow['DT Trả Góp']), icon: '<path fill="currentColor" d="M21,11H12.42A3,3 0 0,1 12,11.58V13.42A3,3 0 0,1 12.42,14H21V16H12.42A3,3 0 0,1 10,18.42V20H8V18.42A3,3 0 0,1 5.58,16H3V14H5.58A3,3 0 0,1 8,11.58V10H10V11.58A3,3 0 0,1 12.42,14H15V12H12.42A3,3 0 0,1 10,9.58V8H8V9.58A3,3 0 0,1 5.58,12H3V10H5.58A3,3 0 0,1 8,7.58V6H10V7.58A3,3 0 0,1 12.42,10H21V11Z"/>', iconColor: '#D65E9A' },
+                ];
+
+                kpiPanel.innerHTML = kpis.map(kpi => {
+                    if (kpi.id === 'kpi-installment') {
+                        return `<div class="sub-kpi-card kpi-installment-card">
+                                <div class="text-content">
+                                    <h4><svg class="title-icon" viewBox="0 0 24 24" style="color:${kpi.iconColor};">${kpi.icon}</svg>${kpi.title}</h4>
+                                    <p class="sub-text">${kpi.subtext}</p>
+                                </div>
+                                <div class="chart-content">
+                                    <canvas id="installment-pie-chart-rt"></canvas>
+                                    <div id="installment-pie-text" class="chart-inner-text"></div>
+                                </div>
+                            </div>`;
+                    }
+
+                    if (kpi.id === 'kpi-remaining' && remainingRevenue <= 0) {
+                        kpi.icon = '<path fill="currentColor" d="M20.5,11H19V7A1,1 0 0,0 18,6H16A1,1 0 0,0 15,7V11H9V7A1,1 0 0,0 8,6H6A1,1 0 0,0 5,7V11H3.5A1.5,1.5 0 0,0 2,12.5A1.5,1.5 0 0,0 3.5,14H5V18A3,3 0 0,0 8,21H16A3,3 0 0,0 19,18V14H20.5A1.5,1.5 0 0,0 22,12.5A1.5,1.5 0 0,0 20.5,11M17,11H16V8H17V11M7,11H8V8H7V11Z"/>';
+                    }
+
+                    return `<div class="sub-kpi-card">
+                            <h4><svg class="title-icon" viewBox="0 0 24 24" style="color: ${kpi.iconColor};">${kpi.icon}</svg>${kpi.title}</h4>
+                            <p class="value" style="color: ${kpi.color || 'var(--primary-accent)'}">${kpi.value}</p>
+                            <p class="sub-text">${kpi.subtext}</p>
+                        </div>`;
+                }).join('');
+
+                setTimeout(() => {
+                    const canvas = document.getElementById('installment-pie-chart-rt');
+                    const installmentText = document.getElementById('installment-pie-text');
+
+                    if (canvas && installmentText) {
+                        installmentText.textContent = `${formatNumber(installmentPercent, 1)}%`;
+                        const installmentCtx = canvas.getContext('2d');
+
+                        installmentChart = new Chart(installmentCtx, {
+                            type: 'doughnut',
+                            data: {
+                                datasets: [{
+                                    data: [installmentPercent, 100 - installmentPercent],
+                                    backgroundColor: [getInstallmentColor(installmentPercent), '#e9ecef'],
+                                    borderWidth: 2,
+                                    borderColor: '#fff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                cutout: '75%',
+                                plugins: {
+                                    legend: { display: false },
+                                    tooltip: { enabled: false },
+                                    datalabels: { display: false }
+                                }
+                            }
+                        });
+                    }
+                }, 0);
+            }
+
+            function renderEmployeeSalesChart(data) {
+                const wrapper = document.getElementById('employee-sales-chart-wrapper');
+                if (!data || data.length === 0) {
+                    if (wrapper) wrapper.style.display = 'none';
+                    return;
+                }
+                if (wrapper) wrapper.style.display = 'block';
+
+                const sortedData = data.sort((a, b) => b.revenue - a.revenue);
+
+                const numEmployees = sortedData.length;
+                const minChartHeight = 400;
+                const barHeight = 40;
+                const dynamicHeight = Math.max(minChartHeight, numEmployees * barHeight + 100);
+
+                wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M12,4A4,4 0 0,1 16,8A4,4 0 0,1 12,12A4,4 0 0,1 8,8A4,4 0 0,1 12,4M12,14C16.42,14 20,15.79 20,18V20H4V18C4,15.79 7.58,14 12,14Z" /></svg>Xếp hạng Doanh thu Nhân viên</h2><div class="chart-container" style="min-height: ${dynamicHeight}px;"><canvas id="employeeSalesChart"></canvas></div>`;
+
+                const canvas = document.getElementById('employeeSalesChart');
+                const ctx = canvas.getContext('2d');
+
+                const totalRevenue = sortedData.filter(d => d.revenue > 0).reduce((sum, item) => sum + item.revenue, 0);
+                const chartData = sortedData;
+
+                const labels = chartData.map((d, index) => {
+                    const rank = index + 1;
+                    const percentageVal = totalRevenue > 0 && d.revenue > 0 ? (d.revenue / totalRevenue * 100).toFixed(1) : 0;
+
+                    let revStr = "";
+                    if (Math.abs(d.revenue) >= 1000000) {
+                        revStr = formatNumber(d.revenue / 1000000, 1) + 'tr';
+                    } else {
+                        revStr = formatNumber(d.revenue);
+                    }
+
+                    const percentStr = d.revenue > 0 ? `, ${percentageVal}%` : '';
+
+                    let icon = '';
+                    if (rank === 1) icon = '🥇 ';
+                    else if (rank === 2) icon = '🥈 ';
+                    else if (rank === 3) icon = '🥉 ';
+
+                    return `${icon}${rank}. ${d.name} (${revStr}${percentStr})`;
+                });
+
+                const revenues = chartData.map(d => d.revenue);
+                const positiveRevenues = revenues.filter(r => r > 0);
+                const maxRevenue = positiveRevenues.length > 0 ? Math.max(...positiveRevenues) : 0;
+                const minRevenue = positiveRevenues.length > 0 ? Math.min(...positiveRevenues) : 0;
+
+                const highColor = { r: 6, g: 215, b: 160 };
+                const midColor = { r: 255, g: 209, b: 103 };
+                const lowColor = { r: 240, g: 71, b: 112 };
+
+                function interpolateColor(color1, color2, factor) {
+                    let result = { ...color1 };
+                    for (let i in result) {
+                        result[i] = Math.round(result[i] + factor * (color2[i] - color1[i]));
+                    }
+                    return `rgb(${result.r}, ${result.g}, ${result.b})`;
+                }
+
+                function getRevenueColor(value) {
+                    if (value <= 0) return `rgb(${lowColor.r}, ${lowColor.g}, ${lowColor.b})`;
+                    if (maxRevenue === minRevenue) return `rgb(${highColor.r}, ${highColor.g}, ${highColor.b})`;
+
+                    const normalizedValue = Math.max(0, value - minRevenue);
+                    const normalizedMax = maxRevenue - minRevenue;
+
+                    const percentage = normalizedMax > 0 ? normalizedValue / normalizedMax : 1;
+
+                    if (percentage > 0.5) {
+                        return interpolateColor(midColor, highColor, (percentage - 0.5) * 2);
+                    } else {
+                        return interpolateColor(lowColor, midColor, percentage * 2);
+                    }
+                }
+
+                employeeChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Doanh thu',
+                            data: revenues,
+                            backgroundColor: (context) => getRevenueColor(context.raw),
+                            borderColor: 'rgba(7, 58, 75, 0.4)',
+                            borderWidth: 1,
+                            borderRadius: 8,
+                            borderSkipped: false,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0, 0, 0, 0.05)', borderDash: [2, 4] },
+                                ticks: {
+                                    callback: (value) => formatNumber(value / 1000000, 1) + 'tr'
+                                }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: {
+                                    font: { size: 12, weight: '600' },
+                                    color: '#073A4B'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                enabled: true,
+                                backgroundColor: 'rgba(7, 58, 75, 0.9)',
+                                callbacks: {
+                                    title: (context) => {
+                                        const item = chartData[context[0].dataIndex];
+                                        return item.name;
+                                    },
+                                    label: (context) => `Doanh thu: ${formatNumber(context.raw)} VNĐ`
+                                }
+                            },
+                            datalabels: {
+                                anchor: 'end',
+                                align: 'end',
+                                rotation: 0,
+                                color: 'var(--text-primary)',
+                                font: { weight: 'bold', size: 12 },
+                                formatter: (value) => value !== 0 ? formatNumber(value / 1000000, 1) + 'tr' : '',
+                                offset: 4,
+                                clamp: false
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderRealtimeContestTable(processedContest) {
+                const wrapper = document.getElementById('contest-table-rt-wrapper');
+
+                const categoriesToDisplay = getContestCategoriesToDisplayRt();
+                const filteredAll = processedContest.all.filter(item => categoriesToDisplay.includes(item.name));
+
+                if (!filteredAll || filteredAll.length === 0) {
+                    const totalContestCategories = allContestCategoriesRt.length;
+                    let message = 'Không có dữ liệu thi đua.';
+                    if (totalContestCategories > 0 && categoriesToDisplay.length === 0) {
+                        message = `Không có ngành hàng nào được chọn trong ${totalContestCategories} nhóm thi đua. Vui lòng chọn ngành hàng cụ thể hoặc chọn "Hiển thị TẤT CẢ".`;
+                    } else if (totalContestCategories > 0) {
+                        message = `Không có dữ liệu thi đua cho các ngành hàng đã chọn (${categoriesToDisplay.length}/${totalContestCategories} nhóm).`;
+                    }
+
+                    wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M5,4H19A2,2 0 0,1 21,6V18A2,2 0 0,1 19,20H5A2,2 0 0,1 3,18V6A2,2 0 0,1 5,4M5,8V12H11V8H5M13,8V12H19V8H13M5,14V18H11V14H5M13,14V18H19V14H13Z" /></svg>Bảng chi tiết Thi đua Real-time</h2><p>${message}</p>`;
+                    return;
+                }
+                wrapper.style.display = 'block';
+
+                const itemsWithRevenue = filteredAll.filter(item => item.actual > 0);
+                const itemsWithoutRevenue = filteredAll.filter(item => item.actual <= 0);
+
+                const completedItems = filteredAll.filter(p => p.percentProjected >= 100).length;
+                const totalItems = filteredAll.length;
+
+                const progressPercentContest = totalItems > 0 ? (completedItems / totalItems * 100) : 0;
+                const contestProgressColor = getColor(progressPercentContest);
+                const progressBarHtml = `
+                <div class="progress-bar-container" style="padding: 0 0 20px 0;">
+                    <div class="progress-labels">
+                        <span>Tiến độ Về Đích</span>
+                        <span>${completedItems} / ${totalItems} Nhóm</span>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" style="width: ${progressPercentContest}%; background-color: ${contestProgressColor};"></div>
+                    </div>
+                    <div class="progress-text-wrapper"><span class="progress-text">${formatNumber(progressPercentContest, 1)}%</span></div>
+                </div>`;
+
+                let tableHtml = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M5,4H19A2,2 0 0,1 21,6V18A2,2 0 0,1 19,20H5A2,2 0 0,1 3,18V6A2,2 0 0,1 5,4M5,8V12H11V8H5M13,8V12H19V8H13M5,14V18H11V14H5M13,14V18H19V14H13Z" /></svg>Bảng chi tiết Thi đua Real-time</h2>
+                                 ${progressBarHtml}
+                                 <table class="rt-styled-table">
+                                     <thead>
+                                         <tr><th>#</th><th>Ngành hàng</th><th>DT Realtime</th><th>Còn lại</th><th>Target Ngày</th><th>% HT</th><th>% HT Dự kiến</th></tr>
+                                     </thead>
+                                     <tbody>`;
+
+                itemsWithRevenue.forEach((item, index) => {
+                    const remainingCell = item.remaining <= 0 ? `<td style="color: var(--success-color); font-weight: bold; font-size: 1.5em;">🏆</td>` : `<td style="color: var(--danger-color); font-weight: bold;">${formatNumber(item.remaining, 1)}</td>`;
+                    const icon = item.percentProjected >= 100 ? ' <span title="Dự kiến hoàn thành!">🚀</span>' : '';
+                    tableHtml += `<tr>
+                    <td>${index + 1}${icon}</td>
+                    <td style="text-align: left !important;">${item.name}</td>
+                    <td>${formatNumber(item.actual)}</td>
+                    ${remainingCell}
+                    <td>${formatNumber(item.target)}</td>
+                    <td style="color: ${getColor(item.percentActual)}; font-weight: bold;">${formatNumber(item.percentActual, 1)}%</td>
+                    <td style="color: ${getColor(item.percentProjected)}; font-weight: bold;">${formatNumber(item.percentProjected, 1)}%</td>
+                </tr>`;
+                });
+                tableHtml += '</tbody></table>';
+                wrapper.innerHTML = tableHtml;
+
+                if (itemsWithoutRevenue.length > 0) {
+                    // YÊU CẦU 3: Hiển thị thêm số tiền thiếu
+                    const noRevenueHtml = `<div id="contest-no-revenue-section" class="no-revenue-section">
+                                     <h4>Nhóm chưa phát sinh doanh thu (${itemsWithoutRevenue.length} nhóm):</h4>
+                                     <ul class="no-revenue-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                                         ${itemsWithoutRevenue.map((item, index) =>
+                        `<li>
+                                                <span>${index + 1}. ${item.name}</span>
+                                                <span class="missing-amount">(-${formatNumber(item.target)})</span>
+                                             </li>`
+                    ).join('')}
+                                     </ul>
+                                   </div>`;
+                    const buttonHtml = `<div class="details-toggle" style="margin-top: 15px;">
+                                    <button id="toggle-contest-no-revenue-btn">
+                                        Ẩn ${itemsWithoutRevenue.length} nhóm chưa có DT
+                                    </button>
+                                </div>`;
+
+                    wrapper.insertAdjacentHTML('beforeend', buttonHtml + noRevenueHtml);
+
+                    const noRevenueSection = document.getElementById('contest-no-revenue-section');
+                    const toggleBtn = document.getElementById('toggle-contest-no-revenue-btn');
+
+                    if (noRevenueSection) noRevenueSection.style.display = 'block';
+
+                    if (toggleBtn && noRevenueSection) {
+                        toggleBtn.addEventListener('click', () => {
+                            const isHidden = noRevenueSection.style.display !== 'block';
+                            noRevenueSection.style.display = isHidden ? 'block' : 'none';
+                            toggleBtn.textContent = isHidden ? `Ẩn ${itemsWithoutRevenue.length} nhóm chưa có DT` : `Hiện ${itemsWithoutRevenue.length} nhóm chưa có DT`;
+                        });
+                    }
+                }
+            }
+
+            function renderRealtimeCategoryTable(mainData) {
+                const wrapper = document.getElementById('category-table-rt-wrapper');
+                if (!mainData || mainData.length === 0) {
+                    if (wrapper) wrapper.style.display = 'none';
+                    return;
+                }
+                if (wrapper) wrapper.style.display = 'block';
+
+                const totalRow = mainData.find(row => row["Nhóm ngành hàng"].toLowerCase() === "tổng");
+                const categoryData = mainData.filter(row =>
+                    row["Nhóm ngành hàng"].toLowerCase() !== "tổng" &&
+                    row["Target Ngày (QĐ)"] > 0
+                );
+
+                const categoriesWithRevenue = categoryData.filter(row => row["DT Realtime (QĐ)"] > 0).sort((a, b) => b["DT Realtime (QĐ)"] - a["DT Realtime (QĐ)"]);
+                const categoriesWithoutRevenue = categoryData.filter(row => row["DT Realtime (QĐ)"] <= 0);
+
+                let mainProgressBarHtml = '';
+                if (totalRow) {
+                    const htThuc = totalRow['% HT Target Ngày (QĐ)'];
+                    mainProgressBarHtml = `<div class="progress-bar-container" style="padding: 0 0 20px 0;">
+                                    <div class="progress-labels"><span>Tiến độ Target Ngày (Tổng)</span><span>${formatNumber(totalRow['DT Realtime (QĐ)'])} / ${formatNumber(totalRow['Target Ngày (QĐ)'])}</span></div>
+                                    <div class="progress-track"><div class="progress-fill" style="width: ${htThuc > 100 ? 100 : htThuc}%; background-color: ${getColor(htThuc)};"></div></div>
+                                    <div class="progress-text-wrapper"><span class="progress-text">${formatNumber(htThuc, 1)}%</span></div>
+                                </div>`;
+                }
+
+                let tableHtml = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M3,4H21V6H3V4M3,7H21V9H3V7M3,10H21V12H3V10M3,13H21V15H3V13M3,16H21V18H3V16Z"/></svg>Bảng chi tiết Ngành hàng</h2>
+                                 ${mainProgressBarHtml}
+                                 <table class="rt-styled-table">
+                                     <thead><tr><th>Ngành hàng</th><th>SL</th><th>DT Realtime</th><th>Target Ngày</th><th>% HT</th><th>% Trả Góp</th></tr></thead>
+                                     <tbody>`;
+                if (totalRow) {
+                    tableHtml += `<tr style="font-weight:bold; background-color: #e9ecef;">
+                                     <td style="text-align: left !important;">${totalRow["Nhóm ngành hàng"]}</td><td>${formatNumber(totalRow["Số lượng"])}</td><td>${formatNumber(totalRow["DT Realtime (QĐ)"])}</td><td>${formatNumber(totalRow["Target Ngày (QĐ)"])}</td><td style="color: ${getColor(totalRow["% HT Target Ngày (QĐ)"])};">${formatNumber(totalRow["% HT Target Ngày (QĐ)"], 1)}%</td><td>${formatNumber(totalRow["Tỷ trọng trả góp"], 2)}%</td>
+                                 </tr>`;
+                }
+                categoriesWithRevenue.forEach(row => {
+                    tableHtml += `<tr><td style="text-align: left !important;">${row["Nhóm ngành hàng"]}</td><td>${formatNumber(row["Số lượng"])}</td><td>${formatNumber(row["DT Realtime (QĐ)"])}</td><td>${formatNumber(row["Target Ngày (QĐ)"])}</td><td style="color: ${getColor(row["% HT Target Ngày (QĐ)"])}; font-weight: bold;">${formatNumber(row["% HT Target Ngày (QĐ)"], 1)}%</td><td>${formatNumber(row["Tỷ trọng trả góp"], 2)}%</td></tr>`;
+                });
+                tableHtml += '</tbody></table>';
+                wrapper.innerHTML = tableHtml;
+
+                if (categoriesWithoutRevenue.length > 0) {
+                    // YÊU CẦU 3: Hiển thị thêm số tiền thiếu
+                    const noRevenueHtml = `<div id="category-no-revenue-section" class="no-revenue-section">
+                                     <h4>Ngành hàng chưa phát sinh doanh thu (${categoriesWithoutRevenue.length}):</h4>
+                                     <ul class="no-revenue-grid">
+                                         ${categoriesWithoutRevenue.map((item, index) =>
+                        `<li>
+                                                <span>${index + 1}. ${item["Nhóm ngành hàng"]}</span>
+                                                <span class="missing-amount">(-${formatNumber(item["Target Ngày (QĐ)"])})</span>
+                                             </li>`
+                    ).join('')}
+                                     </ul>
+                                   </div>`;
+
+                    const buttonHtml = `<div class="details-toggle" style="margin-top: 15px;">
+                                    <button id="toggle-category-no-revenue-btn">
+                                        Ẩn ${categoriesWithoutRevenue.length} ngành hàng chưa có DT
+                                    </button>
+                                </div>`;
+
+                    wrapper.insertAdjacentHTML('beforeend', buttonHtml + noRevenueHtml);
+
+                    const noRevenueSection = document.getElementById('category-no-revenue-section');
+                    const toggleBtn = document.getElementById('toggle-category-no-revenue-btn');
+
+                    if (noRevenueSection) noRevenueSection.style.display = 'block';
+
+                    if (toggleBtn && noRevenueSection) {
+                        toggleBtn.addEventListener('click', () => {
+                            const isHidden = noRevenueSection.style.display !== 'block';
+                            noRevenueSection.style.display = isHidden ? 'block' : 'none';
+                            toggleBtn.textContent = isHidden ? `Ẩn ${categoriesWithoutRevenue.length} ngành hàng chưa có DT` : `Hiện ${categoriesWithoutRevenue.length} ngành hàng chưa có DT`;
+                        });
+                    }
+                }
+            }
+
+            function renderRealtimeSummary(totalRow, contestData) {
+                const container = document.getElementById('summary-report-wrapper-rt');
+                if (container) container.style.display = 'block';
+                if (!totalRow) { if (container) container.innerHTML = ''; return; }
+
+                const categoriesToDisplay = getContestCategoriesToDisplayRt();
+                const filteredAllContest = contestData.all.filter(item => categoriesToDisplay.includes(item.name));
+
+                const filteredVeDich = filteredAllContest.filter(p => p.percentActual >= 100);
+                const filteredCanCoGang = filteredAllContest.filter(p => p.percentActual >= 80 && p.percentActual < 100);
+                const filteredCanTapTrung = filteredAllContest.filter(p => p.percentActual >= 50 && p.percentActual < 80);
+                const filteredBaoDong = filteredAllContest.filter(p => p.percentActual < 50);
+
+                const onTrackCount = filteredAllContest.filter(p => p.percentProjected >= 100).length;
+                const totalCount = filteredAllContest.length;
+
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('vi-VN');
+                const ht = totalRow['% HT Target Ngày (QĐ)'];
+                const timeFraction = getTimePassedFraction();
+                const projectedSales = timeFraction > 0 && timeFraction < 1 ? (totalRow['DT Realtime (QĐ)'] / timeFraction) : totalRow['DT Realtime (QĐ)'];
+                const projectedHt = totalRow['Target Ngày (QĐ)'] > 0 ? (projectedSales / totalRow['Target Ngày (QĐ)'] * 100) : 0;
+                const remaining = totalRow['Target Ngày (QĐ)'] - totalRow['DT Realtime (QĐ)'];
+
+                const createSubListWithActual = (items) => {
+                    if (!items || items.length === 0) return '';
+                    return items.map(item => {
+                        const missingText = item.remaining > 0 ? ` - Thiếu: ${formatNumber(item.remaining)}` : '';
+                        return `  - ${item.name} (${formatNumber(item.percentActual, 1)}%${missingText})`;
+                    }).join('\n');
+                };
+
+                let contestSummarySections = [];
+
+                if (totalCount > 0) {
+                    contestSummarySections.push(`\n-------------------\n🏁 TÌNH HÌNH THI ĐUA (THEO ${totalCount} NGÀNH HÀNG) 🏁`);
+
+                    if (filteredVeDich.length > 0) {
+                        contestSummarySections.push(`✅ ĐÃ VỀ ĐÍCH (${filteredVeDich.length} nhóm):\n${createSubListWithActual(filteredVeDich)}`);
+                    }
+                    if (filteredCanCoGang.length > 0) {
+                        contestSummarySections.push(`💪 CẦN CỐ GẮNG (${filteredCanCoGang.length} nhóm - HT >80%):\n${createSubListWithActual(filteredCanCoGang)}`);
+                    }
+                    if (filteredCanTapTrung.length > 0) {
+                        contestSummarySections.push(`🎯 CẦN TẬP TRUNG (${filteredCanTapTrung.length} nhóm - HT >50%):\n${createSubListWithActual(filteredCanTapTrung)}`);
+                    }
+                    if (filteredBaoDong.length > 0) {
+                        contestSummarySections.push(`🚨 BÁO ĐỘNG (${filteredBaoDong.length} nhóm - HT <50%):\n${createSubListWithActual(filteredBaoDong)}`);
+                    }
+                } else {
+                    contestSummarySections.push(`\n-------------------\n🏁 TÌNH HÌNH THI ĐUA 🏁\nKhông có ngành hàng nào được chọn trong bộ lọc hiện tại.`);
+                }
+
+                const summaryText = `📊 BÁO CÁO NHANH REAL-TIME - ${timeString} 📊
+-------------------
+- 🎯 Target Ngày: ${formatNumber(totalRow['Target Ngày (QĐ)'])}
+- 📈 Realtime: ${formatNumber(totalRow['DT Realtime (QĐ)'])} (${formatNumber(ht, 1)}%)
+- 📉 Còn lại: ${formatNumber(remaining)}
+- 🚀 Dự kiến: ${formatNumber(projectedSales)} (${formatNumber(projectedHt, 1)}%)
+- 🏆 Thi đua dự kiến đạt (Theo bộ lọc): ${onTrackCount}/${totalCount}
+-------------------
+- 💳 DT Trả góp: ${formatNumber(totalRow['DT Trả Góp'])} (${formatNumber(totalRow['Tỷ trọng trả góp'], 1)}%)
+- 📱 Số lượng bán: ${formatNumber(totalRow['Số lượng'])}
+${contestSummarySections.join('\n\n')}`.trim();
+
+                const html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                    <h2 style="margin: 0; margin-bottom: 0 !important;"><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12,19L8,15H10.5V12H13.5V15H16L12,19Z" /></svg>Nhận xét</h2>
+                                    <button class="action-btn-small copySummaryBtn" style="display: flex; align-items: center; gap: 5px;">
+                                        <svg fill="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;"><path d="M19,21H8V7H19M19,5H8A2,2 0 0,0 6,7V21A2,2 0 0,0 8,23H19A2,2 0 0,0 21,21V7A2,2 0 0,0 19,5M16,1H4A2,2 0 0,0 2,3V17H4V3H16V1Z" /></svg>
+                                        Sao chép
+                                    </button>
+                                 </div>
+                                 <textarea class="summary-textarea" readonly>${summaryText}</textarea>`;
+                container.innerHTML = html;
+                container.querySelector('.copySummaryBtn').addEventListener('click', (e) => {
+                    // Button is now inside a div header, textarea is the next sibling of that header div
+                    const textarea = container.querySelector('.summary-textarea');
+                    textarea.select();
+                    document.execCommand('copy');
+                    showToast('Đã sao chép nhận xét!');
+                });
             }
         }
-
-
-
     </script>
-
 </body>
 
 </html>
