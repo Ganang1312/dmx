@@ -31,6 +31,143 @@
             --header-height: 70px;
         }
 
+        /* --- Sub-Navigation (Tiện ích) --- */
+        .sub-nav-bar {
+            display: flex;
+            gap: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            justify-content: center;
+            overflow-x: auto;
+        }
+
+        .sub-nav-btn {
+            padding: 6px 16px;
+            border: 1px solid var(--text-secondary);
+            /* Border for visibility */
+            border-radius: 20px;
+            background: transparent;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .sub-nav-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .sub-nav-btn.active {
+            background: var(--primary-accent);
+            color: #fff;
+            border-color: var(--primary-accent);
+            box-shadow: 0 2px 6px rgba(10, 189, 227, 0.3);
+        }
+
+        .utility-frame {
+            display: none;
+            /* Hidden by default */
+            width: 100%;
+            height: calc(100% - 50px);
+            /* Remaining height */
+            border: none;
+        }
+
+        .utility-frame.active {
+            display: block;
+        }
+
+        /* --- Mobile Responsive --- */
+        @media screen and (max-width: 768px) {
+            :root {
+                --header-height: auto;
+            }
+
+            .main-header {
+                flex-wrap: wrap;
+                height: auto;
+                /* Dynamic height */
+                padding: 8px 15px;
+                gap: 10px;
+            }
+
+            .brand-section {
+                flex: 1;
+            }
+
+            .brand-text {
+                display: none;
+                /* Hide brand name */
+            }
+
+            .header-actions {
+                gap: 5px;
+            }
+
+            .btn-header {
+                padding: 8px 12px;
+                font-size: 0.9em;
+            }
+
+            .btn-header span {
+                display: none;
+                /* Hide button text */
+            }
+
+            .top-nav {
+                order: 3;
+                /* Move nav to new line */
+                width: 100%;
+                padding: 0;
+                margin-top: 5px;
+                border-top: 1px solid rgba(0, 0, 0, 0.05);
+                padding-top: 8px;
+            }
+
+            .nav-menu {
+                justify-content: flex-start;
+                background: transparent;
+                box-shadow: none;
+                padding: 0;
+                gap: 8px;
+            }
+
+            .nav-item {
+                background: #fff;
+                padding: 6px 12px;
+                font-size: 0.85em;
+                border: 1px solid #eee;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                flex-shrink: 0;
+            }
+
+            .nav-item.active {
+                background: var(--primary-accent);
+                color: #fff;
+            }
+
+            /* Adjust Toast position for mobile */
+            .toast {
+                width: 90%;
+                min-width: unset;
+                bottom: 20px;
+            }
+
+            /* Adjust Modal Width */
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 20px;
+            }
+        }
+
         /* --- Reset & Base --- */
         body,
         html {
@@ -412,24 +549,18 @@
                     <li class="nav-item" onclick="switchTab(this, 'baoCaoYCX')">
                         <i class="fas fa-file-contract"></i> <span>Báo cáo YCX</span>
                     </li>
-                    <li class="nav-item" onclick="switchTab(this, 'tonlap')">
-                        <i class="fas fa-laptop"></i> <span>Tồn Laptop</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'popuploc')">
-                        <i class="fas fa-print"></i> <span>In Popup</span>
-                    </li>
-                    <li class="nav-item" onclick="switchTab(this, 'banhang')">
-                        <i class="fas fa-pen-fancy"></i> <span>Nhật ký BH</span>
+                    <li class="nav-item" onclick="switchTab(this, 'tienichPanel')">
+                        <i class="fas fa-tools"></i> <span>Tiện ích</span>
                     </li>
                 </ul>
             </nav>
 
             <div class="header-actions">
                 <button class="btn-header btn-cloud" id="btnSave" onclick="saveToCloud()">
-                    <i class="fas fa-cloud-upload-alt"></i> Lưu dữ liệu
+                    <i class="fas fa-cloud-upload-alt"></i> <span>Lưu dữ liệu</span>
                 </button>
                 <button class="btn-header btn-backup" onclick="openBackupModal()">
-                    <i class="fas fa-database"></i> Backup
+                    <i class="fas fa-database"></i> <span>Backup</span>
                 </button>
             </div>
         </header>
@@ -440,9 +571,24 @@
             <div id="Lkst" class="tab-pane"><iframe src="./LK.html"></iframe></div>
             <div id="biNhanVien" class="tab-pane"><iframe src="./NV.html"></iframe></div>
             <div id="baoCaoYCX" class="tab-pane"><iframe src="./YCX.html"></iframe></div>
-            <div id="tonlap" class="tab-pane"><iframe src="./tonlap.html"></iframe></div>
-            <div id="popuploc" class="tab-pane"><iframe src="./popuploc.html"></iframe></div>
-            <div id="banhang" class="tab-pane"><iframe src="./banhang.html"></iframe></div>
+
+            <!-- Combined Utility Tab -->
+            <div id="tienichPanel" class="tab-pane">
+                <div class="sub-nav-bar">
+                    <button class="sub-nav-btn active" onclick="switchSubTab(this, 'u-tonlap')">
+                        <i class="fas fa-laptop"></i> Laptop
+                    </button>
+                    <button class="sub-nav-btn" onclick="switchSubTab(this, 'u-popuploc')">
+                        <i class="fas fa-print"></i> In Popup
+                    </button>
+                    <button class="sub-nav-btn" onclick="switchSubTab(this, 'u-banhang')">
+                        <i class="fas fa-pen-fancy"></i> Nhật ký BH
+                    </button>
+                </div>
+                <iframe id="u-tonlap" class="utility-frame active" src="./tonlap.html"></iframe>
+                <iframe id="u-popuploc" class="utility-frame" src="./popuploc.html"></iframe>
+                <iframe id="u-banhang" class="utility-frame" src="./banhang.html"></iframe>
+            </div>
         </main>
     </div>
 
@@ -492,6 +638,17 @@
             // 2. Show Content
             document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
+        }
+
+        // --- Sub-Tab Logic ---
+        function switchSubTab(btn, frameId) {
+            // Remove active from all buttons
+            document.querySelectorAll('.sub-nav-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            // Hide all utility frames
+            document.querySelectorAll('.utility-frame').forEach(f => f.classList.remove('active'));
+            document.getElementById(frameId).classList.add('active');
         }
 
         // --- CLOUD SAVE LOGIC (Compatible with Local File) ---
