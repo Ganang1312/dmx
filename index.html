@@ -494,12 +494,12 @@
             document.getElementById(tabId).classList.add('active');
         }
 
-        // --- CLOUD SAVE LOGIC (Restored) ---
+        // --- CLOUD SAVE LOGIC (Compatible with Local File) ---
         async function saveToCloud() {
             const btn = document.getElementById('btnSave');
             const old = btn.innerHTML;
 
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang gửi...';
             btn.style.pointerEvents = 'none';
 
             const data = {};
@@ -509,15 +509,21 @@
             }
 
             try {
+                // Use URLSearchParams (Form Data) -> sent as application/x-www-form-urlencoded
+                // This is properly parsed by Google Apps Script into e.parameter.data
+                const formData = new URLSearchParams();
+                formData.append('data', JSON.stringify(data));
+
                 await fetch(GOOGLE_SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
-                    body: JSON.stringify(data)
+                    body: formData
                 });
-                showToast("✅ Đã lưu dữ liệu lên Cloud");
+
+                showToast("✅ Đã gửi lệnh lưu (Vui lòng kiểm tra Google Sheet)");
             } catch (e) {
                 console.error(e);
-                showToast("❌ Lỗi kết nối Cloud");
+                showToast("❌ Lỗi gửi: " + e.message);
             }
 
             btn.innerHTML = old;
@@ -526,27 +532,32 @@
 
         async function loadFromCloud() {
             try {
-                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const btn = document.getElementById('btnSave');
+                // Optional: Indicate loading state if triggered manually or on load
+                // Add timestamp to prevent caching
+                const res = await fetch(GOOGLE_SCRIPT_URL + "?v=" + new Date().getTime());
+
+                if (!res.ok) throw new Error("Server error: " + res.status);
+
                 const data = await res.json();
+
+                if (Object.keys(data).length === 0) {
+                    console.log("No data found on cloud or empty object.");
+                    return;
+                }
 
                 Object.keys(data).forEach(k => localStorage.setItem(k, data[k]));
 
-                // Reload active iframes if needed or just notify
-                // document.querySelectorAll('iframe').forEach(i=>{
-                //     try{i.contentWindow.location.reload()}catch{}
-                // });
-
-                // We typically run this on load. If it updates localStorage, the iframes (main content) 
-                // might need to re-read it. Since iframes load roughly at same time, 
-                // they might already be reading old data. Ideally we reload them.
+                // Reload all iframes to reflect new data
                 document.querySelectorAll('iframe').forEach(i => {
                     try { i.contentWindow.location.reload() } catch { }
                 });
 
-                showToast("📥 Đã đồng bộ dữ liệu");
+                showToast("📥 Đã tải dữ liệu từ Google Sheet");
             } catch (e) {
-                // Silent fail or log
-                console.log("Cloud load optional or failed: " + e);
+                console.log("Cloud load failed: " + e);
+                // Don't show toast on auto-load fail to avoid annoyance, unless manual?
+                // For now keep silent on auto-load error or show discrete message
             }
         }
 
