@@ -863,37 +863,66 @@
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: rgba(0, 0, 0, 0.6);
-            padding-top: 50px;
+            background-color: rgba(0, 0, 0, 0.85);
+            /* Darker backdrop for better contrast */
+            backdrop-filter: blur(4px);
+            /* Blur effect for focus */
         }
 
         .modal-content {
-            background-color: var(--bg-main);
+            background-color: #FFFFFF;
+            /* High contrast white background */
             margin: auto;
-            padding: 20px;
-            border: 1px solid #888;
+            padding: 25px;
+            border: 1px solid #ddd;
             width: 95%;
             max-width: 1400px;
-            border-radius: 12px;
+            border-radius: 16px;
             position: relative;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal-close-btn {
-            color: #aaa;
+            color: #fff;
+            background-color: #ff4757;
+            /* Red background for visibility */
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: absolute;
-            top: 10px;
-            right: 25px;
-            font-size: 35px;
+            top: 15px;
+            /* Moved down slightly */
+            right: 15px;
+            /* Moved left slightly */
+            font-size: 20px;
             font-weight: bold;
             cursor: pointer;
-            z-index: 1002;
+            z-index: 10000 !important;
+            /* Force on top with high priority */
+            box-shadow: 0 4px 10px rgba(255, 71, 87, 0.4);
+            transition: all 0.2s ease;
         }
 
         .modal-close-btn:hover,
         .modal-close-btn:focus {
-            color: black;
-            text-decoration: none;
+            background-color: #ff6b81;
+            transform: scale(1.1);
         }
 
         .modal .data-table {
@@ -3110,21 +3139,24 @@
 
     <div id="kpi-modal" class="modal">
         <div class="modal-content">
-            <span class="modal-close-btn" data-modal-id="kpi-modal">&times;</span>
+            <div class="modal-close-btn" onclick="window.closeModal('kpi-modal')"><i class="fa-solid fa-xmark"></i>
+            </div>
             <div id="modal-body"></div>
         </div>
     </div>
 
     <div id="stram-modal" class="modal">
         <div class="modal-content">
-            <span class="modal-close-btn" data-modal-id="stram-modal">&times;</span>
+            <div class="modal-close-btn" onclick="window.closeModal('stram-modal')"><i class="fa-solid fa-xmark"></i>
+            </div>
             <h2 id="stram-modal-title" style="margin-top:0; color: var(--primary-accent);"></h2>
             <div id="stram-modal-body"></div>
         </div>
     </div>
     <div id="contest-selection-modal" class="modal">
         <div class="modal-content">
-            <span class="modal-close-btn" data-modal-id="contest-selection-modal">&times;</span>
+            <div class="modal-close-btn" onclick="window.closeModal('contest-selection-modal')"><i
+                    class="fa-solid fa-xmark"></i></div>
             <h2 style="margin-top:0; color: var(--primary-accent);">Chọn Ngành hàng Thi đua</h2>
 
             <!-- NEW: Nhập/Xuất Panel (với nút Áp dụng Bộ lọc cùng hàng) -->
@@ -3200,6 +3232,14 @@
         ];
 
         // --- KHỞI TẠO ---
+        // GLOBAL MODAL CLOSE FUNCTION
+        window.closeModal = function (modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = "none";
+            }
+        };
+
         function initDashboard() {
             // Load saved values from localStorage
             const idsToLoad = ['dataInput7', 'dataInput6', 'dataInput2', 'storeTargetInput', 'allContestsCheckbox'];
@@ -3330,17 +3370,13 @@
 
 
             // Modal close buttons (chỉ còn cho Contest và Stram)
-            document.querySelectorAll('.modal-close-btn').forEach(btn => {
-                btn.onclick = () => {
-                    document.getElementById(btn.dataset.modalId).style.display = "none";
-                };
-            });
-
-            window.onclick = (event) => {
+            // Improved Modal Handling (Backdrop Click Only)
+            document.addEventListener('click', (event) => {
+                // Handle Backdrop Click (Click outside content)
                 if (event.target.classList.contains('modal')) {
                     event.target.style.display = "none";
                 }
-            };
+            });
 
             updateContestStatusUI(); // Cập nhật trạng thái ngay khi load
             // Thử load nhân viên nếu đã có dữ liệu trong localStorage
