@@ -2512,19 +2512,22 @@
                     return parseFloat(str.replace(/\./g, '').replace(/,/g, '.')); // VN: 1.234,56 -> 1234.56
                 }
 
-                // Case 2: Only Dot (e.g. 1.234 or 12.34)
+                // Case 2: Only Dot
                 if (lastDot !== -1) {
-                    // Assume Dot is Thousand Separator (VN) for Revenue context
-                    return parseFloat(str.replace(/\./g, ''));
+                    // Check if multiple dots exist -> Definitely Thousands (VN)
+                    if ((str.match(/\./g) || []).length > 1) return parseFloat(str.replace(/\./g, ''));
+
+                    // Single dot -> Treat as Decimal (EN style or Raw Float)
+                    // User Feedback: 1.900 should be 1.9, not 1900. 183.90 should be 183.9.
+                    return parseFloat(str);
                 }
 
-                // Case 3: Only Comma (e.g. 1,234 or 12,34)
+                // Case 3: Only Comma
                 if (lastComma !== -1) {
-                    // If multiple commas (1,234,567) -> Definitely Thousand (EN)
+                    // Check if multiple commas exist -> Definitely Thousands (EN)
                     if ((str.match(/,/g) || []).length > 1) return parseFloat(str.replace(/,/g, ''));
-                    // If comma is followed by exactly 3 digits (1,000) -> Likely Thousand (EN)
-                    if (/,\d{3}$/.test(str)) return parseFloat(str.replace(/,/g, ''));
-                    // Otherwise Decimal (VN): 1,5 -> 1.5
+
+                    // Single comma -> Treat as Decimal (VN style)
                     return parseFloat(str.replace(/,/g, '.'));
                 }
 
