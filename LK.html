@@ -2496,6 +2496,41 @@
         function processFullContestData(allContests, daysRemaining) {
             let processedItems = [];
             if (!allContests || allContests.length === 0) return { all: [], veDich: [], canCoGwang: [], canTapTrung: [], baoDong: [], onTrack: [], behind: [] };
+
+            // SMART PARSER: Handles both VN (1.234,56) and EN (1,234.56) formats automatically
+            const parseSmart = (str) => {
+                if (!str) return 0;
+                str = str.trim();
+                if (str === '') return 0;
+
+                const lastDot = str.lastIndexOf('.');
+                const lastComma = str.lastIndexOf(',');
+
+                // Case 1: Both separators exist
+                if (lastDot !== -1 && lastComma !== -1) {
+                    if (lastDot > lastComma) return parseFloat(str.replace(/,/g, '')); // EN: 1,234.56 -> 1234.56
+                    return parseFloat(str.replace(/\./g, '').replace(/,/g, '.')); // VN: 1.234,56 -> 1234.56
+                }
+
+                // Case 2: Only Dot (e.g. 1.234 or 12.34)
+                if (lastDot !== -1) {
+                    // Assume Dot is Thousand Separator (VN) for Revenue context
+                    return parseFloat(str.replace(/\./g, ''));
+                }
+
+                // Case 3: Only Comma (e.g. 1,234 or 12,34)
+                if (lastComma !== -1) {
+                    // If multiple commas (1,234,567) -> Definitely Thousand (EN)
+                    if ((str.match(/,/g) || []).length > 1) return parseFloat(str.replace(/,/g, ''));
+                    // If comma is followed by exactly 3 digits (1,000) -> Likely Thousand (EN)
+                    if (/,\d{3}$/.test(str)) return parseFloat(str.replace(/,/g, ''));
+                    // Otherwise Decimal (VN): 1,5 -> 1.5
+                    return parseFloat(str.replace(/,/g, '.'));
+                }
+
+                return parseFloat(str) || 0;
+            };
+
             allContests.forEach(contest => {
                 const percentIndex = contest.headers.findIndex(h => h.toLowerCase().includes('% ht dự kiến') || h.toLowerCase().includes('%ht'));
                 const actualIndex = contest.headers.findIndex(h => h.toLowerCase().includes('thực hiện') || h.toLowerCase().includes('dtqđ') || h.toLowerCase().includes('sllk') || h.toLowerCase().includes('dtlk'));
@@ -2503,16 +2538,17 @@
                 if (percentIndex === -1 || actualIndex === -1 || targetIndex === -1) return;
                 const items = contest.rows.filter(row => row.length > 1 && row[0].toLowerCase() !== 'tổng' && row[0].toLowerCase() !== 'ngành hàng');
                 items.forEach(row => {
-                    // FIX: Parse Vietnamese format: Remove dots (thousands), replace comma with dot (decimal)
-                    const actualStr = (row[actualIndex] || '').replace(/\./g, '').replace(/,/g, '.');
-                    const targetStr = (row[targetIndex] || '').replace(/\./g, '').replace(/,/g, '.');
-                    const actual = parseFloat(actualStr) || 0;
-                    const target = parseFloat(targetStr) || 0;
+                    const actualStr = row[actualIndex] || '';
+                    const targetStr = row[targetIndex] || '';
+
+                    // Apply Smart Parsing
+                    const actual = parseSmart(actualStr);
+                    const target = parseSmart(targetStr);
 
                     const remaining = target - actual;
                     processedItems.push({
                         name: row[0],
-                        percentProjected: parseFloat((row[percentIndex] || '').replace(/,/g, '.')) || 0, // Also fix percent if needed
+                        percentProjected: parseFloat((row[percentIndex] || '').replace(/,/g, '.')) || 0, // Percent usually uses comma decimal in VN
                         percentActual: target > 0 ? (actual / target * 100) : 0,
                         actual, target, remaining,
                         dailyTarget: remaining > 0 && daysRemaining > 0 ? remaining / daysRemaining : 0,
