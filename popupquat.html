@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống In POPUP Chuyên Nghiệp 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@700;800;900&family=Oswald:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f1f5f9;
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- CẤU HÌNH IN TRONG SUỐT --- */
+        @media print {
+            @page { 
+                margin: 0; 
+                padding: 0;
+            }
+            body {
+                background: white;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .no-print { display: none !important; }
+            
+            #preview-container { 
+                display: block !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+
+            /* Cấu hình khổ giấy A4 Ngang */
+            body.print-a4-landscape @page { size: A4 landscape; }
+            body.print-a4-landscape .print-page {
+                width: 297mm;
+                height: 210mm;
+                page-break-after: always;
+                break-after: page;
+                overflow: hidden;
+            }
+
+            /* Cấu hình khổ giấy A4 Dọc (Chứa 2 A5 Ngang) */
+            body.print-a5-portrait @page { size: A4 portrait; }
+            body.print-a5-portrait .print-page {
+                width: 210mm;
+                height: 297mm;
+                page-break-after: always;
+                break-after: page;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            body.print-a5-portrait .popup-card {
+                height: 50% !important;
+                border-bottom: 1px dashed #ccc !important;
+            }
+
+            /* Reset style card khi in */
+            .popup-card {
+                box-shadow: none !important;
+                border: none !important;
+                border-radius: 0 !important;
+            }
+        }
+
+        /* --- STYLE THẺ POPUP --- */
+        .popup-card {
+            container-type: inline-size; 
+            background: white;
+            color: black;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 5cqw; 
+            box-sizing: border-box;
+            text-align: center;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+        }
+
+        .header-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Đã bỏ overflow: hidden để không cắt xén dấu Tiếng Việt */
+        }
+
+        .slogan-text {
+            font-family: 'Oswald', sans-serif;
+            font-size: 8cqw; /* Giá trị mặc định, JS sẽ ghi đè */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2cqw;
+            line-height: 1.4; /* Tăng line-height để không bị cắt phần dấu phía trên */
+            margin-bottom: 0.5cqw;
+            white-space: nowrap; /* Bắt buộc để đo kích thước 1 dòng */
+        }
+
+        .slogan-divider {
+            width: 100%;
+            height: 0.4cqw;
+            background: black;
+            margin-bottom: 1cqw;
+        }
+
+        .price-section {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .price-old {
+            font-size: 4cqw;
+            text-decoration: line-through;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: -1cqw;
+        }
+
+        .price-main {
+            font-family: 'Roboto Condensed', sans-serif;
+            font-size: 26cqw; 
+            font-weight: 900;
+            line-height: 0.8;
+            letter-spacing: -0.8cqw;
+            white-space: nowrap;
+        }
+
+        .footer-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Đã bỏ overflow: hidden */
+        }
+
+        .model-divider {
+            width: 100%;
+            border-top: 0.3cqw dotted #aaa;
+            margin-bottom: 1.5cqw;
+        }
+
+        .model-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 5cqw; 
+            text-transform: uppercase;
+            font-weight: 700;
+            width: 100%;
+            white-space: nowrap; /* Bắt buộc để không rớt dòng */
+            overflow: hidden;
+            line-height: 1.4; /* Tăng từ 1.1 lên 1.4 để bảo toàn phần dấu của chữ */
+            padding-top: 0.5cqw; /* Thêm đệm nhẹ phía trên */
+        }
+
+        /* --- PREVIEW TRÊN WEB --- */
+        .web-preview-a4 .print-page { 
+            width: 900px; 
+            aspect-ratio: 297 / 210; 
+            margin-bottom: 30px; 
+            background: white; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        .web-preview-a5 .print-page { 
+            width: 650px; 
+            aspect-ratio: 210 / 297; 
+            margin-bottom: 30px; 
+            background: white; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            display: flex;
+            flex-direction: column;
+        }
+        .web-preview-a5 .popup-card {
+            height: 50%;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        /* Bảng danh sách sản phẩm */
+        .product-table th { background-color: #f8fafc; text-transform: uppercase; font-size: 0.75rem; }
+        .editable-input { border: 1px solid transparent; width: 100%; padding: 4px; border-radius: 4px; transition: all 0.2s; }
+        .editable-input:hover { border-color: #cbd5e1; background-color: #f8fafc; }
+        .editable-input:focus { border-color: #3b82f6; background-color: white; outline: none; }
+        .search-container { position: relative; }
+        .search-container input { padding-left: 2.5rem; }
+        .search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto no-print">
+        <div class="bg-white p-6 rounded-3xl shadow-xl border border-gray-200 mb-8">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b pb-6">
+                <div>
+                    <h1 class="text-3xl font-black text-gray-900 tracking-tighter uppercase">Hệ Thống In POPUP 2026</h1>
+                    <p class="text-gray-500 font-medium text-sm">Cơ chế tự động co giãn 1 dòng thông minh</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="handlePrint()" class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-lg hover:bg-blue-700 transition-all flex items-center gap-2 shadow-lg shadow-blue-200">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                        TIẾN HÀNH IN
+                    </button>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="space-y-4">
+                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200">
+                        <label class="block font-bold text-xs text-gray-400 uppercase mb-2">1. Tải dữ liệu</label>
+                        <input type="file" id="excel-file" accept=".xls,.xlsx,.csv" class="w-full text-sm cursor-pointer file:bg-black file:text-white file:border-0 file:rounded file:px-3 file:py-1 file:font-bold">
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200">
+                        <label class="block font-bold text-xs text-gray-400 uppercase mb-2">2. Tiêu đề (Slogan)</label>
+                        <input type="text" id="slogan-input" value="GIẢI NHIỆT MÙA HÈ" class="w-full border p-2 rounded-lg font-bold focus:ring-2 focus:ring-blue-500 outline-none text-lg">
+                    </div>
+                    <div class="p-4 bg-gray-50 rounded-2xl border border-gray-200">
+                        <label class="block font-bold text-xs text-gray-400 uppercase mb-2">3. Khổ giấy</label>
+                        <select id="print-mode" class="w-full border p-2 rounded-lg font-bold bg-white outline-none">
+                            <option value="a4_single">A4 Ngang (1 mẫu/tờ)</option>
+                            <option value="a5_double">A5 Ngang (2 mẫu/A4 dọc)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 bg-gray-50 rounded-2xl border border-gray-200 overflow-hidden flex flex-col" style="max-height: 400px;">
+                    <div class="p-3 bg-white border-b flex flex-wrap justify-between items-center gap-3">
+                        <div class="search-container flex-grow max-w-xs">
+                            <svg class="w-5 h-5 search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            <input type="text" id="search-input" placeholder="Lọc theo tên hoặc giá..." class="w-full border border-gray-300 rounded-lg py-2 pr-4 text-sm outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer text-xs font-bold text-blue-600">
+                                <input type="checkbox" id="select-all" checked class="w-4 h-4 rounded"> Chọn tất cả
+                            </label>
+                            <span id="stat-count" class="text-xs font-bold text-gray-500 bg-gray-200 px-2 py-1 rounded">0 sản phẩm</span>
+                        </div>
+                    </div>
+                    <div class="overflow-auto flex-grow bg-white">
+                        <table class="w-full text-left text-sm product-table">
+                            <thead class="sticky top-0 z-10 bg-gray-50 shadow-sm">
+                                <tr>
+                                    <th class="p-3 w-10">Chọn</th>
+                                    <th class="p-3">Tên Model</th>
+                                    <th class="p-3 w-32 text-center">Giá gốc</th>
+                                    <th class="p-3 w-32 text-center">Giá cuối</th>
+                                </tr>
+                            </thead>
+                            <tbody id="product-list-body">
+                                <tr>
+                                    <td colspan="4" class="p-10 text-center text-gray-400 italic">Vui lòng tải file để hiển thị danh sách...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="text-xl font-black mb-4 flex items-center gap-2">
+            <span class="w-2 h-8 bg-blue-600 rounded-full"></span> BẢN XEM TRƯỚC VÀ IN
+        </h2>
+    </div>
+
+    <!-- Vùng hiển thị Preview -->
+    <div id="preview-container" class="flex flex-col items-center pb-20 web-preview-a4">
+        <!-- Sample Page wrapper -->
+        <div class="print-page no-print">
+            <div class="popup-card">
+                <div class="header-section">
+                    <div class="slogan-text slogan-target">GIẢI NHIỆT MÙA HÈ</div>
+                    <div class="slogan-divider"></div>
+                </div>
+                <div class="price-section">
+                    <div class="price-old">3.063.000</div>
+                    <div class="price-main-container">
+                        <div class="price-main">2.850.000</div>
+                    </div>
+                </div>
+                <div class="footer-section">
+                    <div class="model-divider"></div>
+                    <div class="model-name">TÊN MỘT SẢN PHẨM MẪU VÍ DỤ CỰC DÀI ĐỂ KIỂM TRA TÍNH NĂNG TỰ CO RÚT LẠI VỪA 1 DÒNG</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('excel-file');
+        const printMode = document.getElementById('print-mode');
+        const sloganInput = document.getElementById('slogan-input');
+        const searchInput = document.getElementById('search-input');
+        const previewContainer = document.getElementById('preview-container');
+        const productListBody = document.getElementById('product-list-body');
+        const selectAllCheckbox = document.getElementById('select-all');
+        const statCount = document.getElementById('stat-count');
+
+        let dataItems = [];
+        let searchTerm = "";
+
+        // ==========================================
+        // THUẬT TOÁN CO GIÃN TỶ LỆ (RATIO SCALING)
+        // ==========================================
+        function fitText() {
+            // Khung thời gian chờ render DOM để đo lường chính xác
+            requestAnimationFrame(() => {
+                // 1. CHỈNH SLOGAN (Mục tiêu: chiếm 90% chiều rộng thẻ)
+                document.querySelectorAll('.slogan-target').forEach(el => {
+                    const containerWidth = el.parentElement.clientWidth;
+                    if (!containerWidth) return;
+                    
+                    // Đặt cỡ mặc định làm thước đo
+                    el.style.fontSize = '10cqw'; 
+                    const currentWidth = el.scrollWidth;
+                    
+                    if (currentWidth > 0) {
+                        const targetWidth = containerWidth * 0.90; // 90% chiều rộng
+                        let newSize = 10 * (targetWidth / currentWidth);
+                        
+                        // Giới hạn để chữ không to quá lố nếu chỉ có 1-2 từ
+                        newSize = Math.min(newSize, 9); 
+                        newSize = Math.max(newSize, 3);
+                        
+                        el.style.fontSize = newSize + 'cqw';
+                    }
+                });
+
+                // 2. CHỈNH TÊN MODEL (Mục tiêu: chiếm 98% chiều rộng thẻ)
+                document.querySelectorAll('.model-name').forEach(el => {
+                    const containerWidth = el.parentElement.clientWidth;
+                    if (!containerWidth) return;
+                    
+                    el.style.fontSize = '10cqw'; 
+                    const currentWidth = el.scrollWidth;
+                    
+                    if (currentWidth > 0) {
+                        const targetWidth = containerWidth * 0.98; // Ép ra sát viền 98%
+                        let newSize = 10 * (targetWidth / currentWidth);
+                        
+                        // Giới hạn tên sản phẩm to tối đa 7.5cqw để không đè lên phần Giá
+                        newSize = Math.min(newSize, 7.5); 
+                        newSize = Math.max(newSize, 2);
+                        
+                        el.style.fontSize = newSize + 'cqw';
+                    }
+                });
+
+                // 3. CHỈNH GIÁ TIỀN (Phòng trường hợp giá quá khủng)
+                document.querySelectorAll('.price-main').forEach(el => {
+                    const containerWidth = el.parentElement.clientWidth;
+                    if (!containerWidth) return;
+
+                    el.style.fontSize = '26cqw'; 
+                    const currentWidth = el.scrollWidth;
+                    const targetWidth = containerWidth * 0.95;
+                    
+                    if (currentWidth > targetWidth && currentWidth > 0) {
+                        let newSize = 26 * (targetWidth / currentWidth);
+                        el.style.fontSize = newSize + 'cqw';
+                    }
+                });
+            });
+        }
+
+        // Chạy lần đầu khi trang load
+        setTimeout(fitText, 100);
+
+        // Sự kiện gõ tiêu đề (Slogan)
+        sloganInput.addEventListener('input', () => {
+            const val = sloganInput.value.toUpperCase();
+            document.querySelectorAll('.slogan-target').forEach(el => el.innerText = val);
+            // Gõ xong tự động đo và co giãn lại
+            fitText();
+        });
+
+        searchInput.addEventListener('input', (e) => {
+            searchTerm = e.target.value.toLowerCase();
+            updateTable();
+        });
+
+        selectAllCheckbox.addEventListener('change', () => {
+            const checked = selectAllCheckbox.checked;
+            const filtered = getFilteredData();
+            filtered.forEach(item => item.selected = checked);
+            updateTable();
+            render();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const workbook = XLSX.read(evt.target.result, { type: 'binary' });
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+                
+                dataItems = [];
+                for(let i = 1; i < rows.length; i++) {
+                    const r = rows[i];
+                    if (!r) continue;
+                    const priceVal = r[9]; 
+                    const modelVal = r[27]; 
+                    if (!priceVal && !modelVal) continue;
+
+                    dataItems.push({
+                        id: Date.now() + Math.random(),
+                        model: modelVal ? String(modelVal).trim() : "CHƯA CÓ MODEL",
+                        price: formatPrice(priceVal),    
+                        oldPrice: r[21] ? formatPrice(r[21]) : null,
+                        selected: true
+                    });
+                }
+                updateTable();
+                render();
+            };
+            reader.readAsBinaryString(file);
+        });
+
+        printMode.addEventListener('change', render);
+
+        function formatPrice(val) {
+            if (!val) return "";
+            let num = String(val).replace(/[^0-9]/g, '');
+            if (!num) return "";
+            return parseInt(num).toLocaleString('vi-VN').replace(/,/g, '.');
+        }
+
+        function getFilteredData() {
+            if (!searchTerm) return dataItems;
+            return dataItems.filter(item => 
+                item.model.toLowerCase().includes(searchTerm) || 
+                (item.price && item.price.toLowerCase().includes(searchTerm))
+            );
+        }
+
+        function updateTable() {
+            productListBody.innerHTML = '';
+            const filtered = getFilteredData();
+            
+            if (filtered.length === 0) {
+                productListBody.innerHTML = '<tr><td colspan="4" class="p-10 text-center text-gray-400 italic">Không tìm thấy sản phẩm phù hợp...</td></tr>';
+                statCount.innerText = "0 sản phẩm";
+                return;
+            }
+
+            statCount.innerText = `${filtered.length} sản phẩm / Tổng ${dataItems.length}`;
+
+            filtered.forEach((item) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-3 text-center">
+                        <input type="checkbox" class="w-4 h-4 cursor-pointer item-select" data-id="${item.id}" ${item.selected ? 'checked' : ''}>
+                    </td>
+                    <td class="p-2">
+                        <input type="text" class="editable-input font-bold model-edit" data-id="${item.id}" value="${item.model}">
+                    </td>
+                    <td class="p-2">
+                        <input type="text" class="editable-input text-center oldprice-edit" data-id="${item.id}" value="${item.oldPrice || ''}" placeholder="Trống">
+                    </td>
+                    <td class="p-2">
+                        <input type="text" class="editable-input font-bold text-center text-blue-600 price-edit" data-id="${item.id}" value="${item.price}">
+                    </td>
+                `;
+                productListBody.appendChild(tr);
+            });
+
+            document.querySelectorAll('.item-select').forEach(el => el.onchange = (e) => {
+                const id = parseFloat(e.target.dataset.id);
+                dataItems.find(i => i.id === id).selected = e.target.checked;
+                render();
+            });
+
+            // Gán event cập nhật text trực tiếp và tính lại cỡ chữ
+            document.querySelectorAll('.model-edit').forEach(el => el.oninput = (e) => {
+                const id = parseFloat(e.target.dataset.id);
+                dataItems.find(i => i.id === id).model = e.target.value;
+                render();
+            });
+
+            document.querySelectorAll('.oldprice-edit').forEach(el => el.oninput = (e) => {
+                const id = parseFloat(e.target.dataset.id);
+                dataItems.find(i => i.id === id).oldPrice = e.target.value;
+                render();
+            });
+
+            document.querySelectorAll('.price-edit').forEach(el => el.oninput = (e) => {
+                const id = parseFloat(e.target.dataset.id);
+                dataItems.find(i => i.id === id).price = e.target.value;
+                render();
+            });
+        }
+
+        function render() {
+            const mode = printMode.value;
+            const currentSlogan = sloganInput.value.toUpperCase();
+            previewContainer.innerHTML = '';
+
+            previewContainer.className = `flex flex-col items-center pb-20 ${mode === 'a4_single' ? 'web-preview-a4' : 'web-preview-a5'}`;
+
+            const selectedItems = dataItems.filter(i => i.selected);
+
+            if (selectedItems.length === 0) {
+                previewContainer.innerHTML = '<div class="no-print p-20 text-gray-300 font-black uppercase text-2xl tracking-widest border-4 border-dashed border-gray-200 rounded-3xl">Vui lòng chọn sản phẩm cần in ở bảng trên</div>';
+                return;
+            }
+
+            if (mode === 'a4_single') {
+                selectedItems.forEach(item => {
+                    const pageWrapper = document.createElement('div');
+                    pageWrapper.className = 'print-page'; 
+                    pageWrapper.innerHTML = createCardHTML(item, currentSlogan);
+                    previewContainer.appendChild(pageWrapper);
+                });
+            } else {
+                for (let i = 0; i < selectedItems.length; i += 2) {
+                    const pageWrapper = document.createElement('div');
+                    pageWrapper.className = 'print-page'; 
+                    
+                    let html = createCardHTML(selectedItems[i], currentSlogan);
+                    if (selectedItems[i+1]) {
+                        html += createCardHTML(selectedItems[i+1], currentSlogan);
+                    }
+                    pageWrapper.innerHTML = html;
+                    previewContainer.appendChild(pageWrapper);
+                }
+            }
+
+            // Kích hoạt thuật toán tính kích thước sau khi thẻ được gắn vào màn hình
+            setTimeout(fitText, 50);
+        }
+
+        function createCardHTML(item, slogan) {
+            return `
+                <div class="popup-card">
+                    <div class="header-section">
+                        <div class="slogan-text slogan-target">${slogan}</div>
+                        <div class="slogan-divider"></div>
+                    </div>
+                    <div class="price-section">
+                        ${item.oldPrice ? `<div class="price-old">${item.oldPrice}</div>` : '<div class="price-old" style="visibility:hidden">.</div>'}
+                        <div class="price-main-container">
+                            <div class="price-main">${item.price}</div>
+                        </div>
+                    </div>
+                    <div class="footer-section">
+                        <div class="model-divider"></div>
+                        <div class="model-name" title="${item.model}">${item.model}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handlePrint() {
+            const selected = dataItems.filter(i => i.selected);
+            if (selected.length === 0) {
+                alert("Bạn chưa chọn sản phẩm nào để in!");
+                return;
+            }
+
+            const mode = printMode.value;
+            document.body.classList.remove('print-a4-landscape', 'print-a5-portrait');
+            if (mode === 'a4_single') {
+                document.body.classList.add('print-a4-landscape');
+            } else {
+                document.body.classList.add('print-a5-portrait');
+            }
+            
+            window.print();
+        }
+    </script>
+</body>
+</html>
