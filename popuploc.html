@@ -221,14 +221,24 @@
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
             
-            excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }).slice(1);
+            excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
             productListDiv.innerHTML = '';
             selectAllCheckbox.checked = false;
             let productCounter = 1;
             excelData.forEach((row, index) => {
                 const productName = row[COLS.AT];
-                if (productName && productName.trim() !== '') {
+                if (productName && typeof productName === 'string' && productName.trim() !== '') {
+                    const nameLower = productName.toLowerCase().trim();
+                    // Skip if this row looks like a header
+                    if (nameLower === 'tên sản phẩm' || nameLower === 'tên hàng' || nameLower === 'tên hh' || nameLower === 'tên hàng hóa' || nameLower === 'tên siêu thị') {
+                        return;
+                    }
+                    const priceStr = String(row[COLS.X] || '').toLowerCase();
+                    if (priceStr.includes('giá') || priceStr.includes('giá bán') || priceStr.includes('đơn giá')) {
+                        return;
+                    }
+
                     const price = parseCurrency(row[COLS.X]);
                     const div = document.createElement('div');
                     div.className = 'p-1.5 hover:bg-blue-50 rounded flex items-center justify-between';

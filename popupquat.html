@@ -58,7 +58,9 @@
             }
             body.print-a5-portrait .popup-card {
                 height: 50% !important;
-                border-bottom: 1px dashed #ccc !important;
+            }
+            body.print-a5-portrait .popup-card:first-child {
+                border-bottom: 2px dashed #444 !important;
             }
 
             /* Reset style card khi in */
@@ -184,7 +186,9 @@
         }
         .web-preview-a5 .popup-card {
             height: 50%;
-            border-bottom: 1px dashed #ccc;
+        }
+        .web-preview-a5 .popup-card:first-child {
+            border-bottom: 2px dashed #444;
         }
 
         /* Bảng danh sách sản phẩm */
@@ -314,7 +318,7 @@
         function fitText() {
             // Khung thời gian chờ render DOM để đo lường chính xác
             requestAnimationFrame(() => {
-                // 1. CHỈNH SLOGAN (Mục tiêu: chiếm 90% chiều rộng thẻ)
+                // 1. CHỈNH SLOGAN (Mục tiêu: chiếm 98% chiều rộng thẻ)
                 document.querySelectorAll('.slogan-target').forEach(el => {
                     const containerWidth = el.parentElement.clientWidth;
                     if (!containerWidth) return;
@@ -324,11 +328,11 @@
                     const currentWidth = el.scrollWidth;
                     
                     if (currentWidth > 0) {
-                        const targetWidth = containerWidth * 0.90; // 90% chiều rộng
+                        const targetWidth = containerWidth * 0.98; // 98% chiều rộng
                         let newSize = 10 * (targetWidth / currentWidth);
                         
-                        // Giới hạn để chữ không to quá lố nếu chỉ có 1-2 từ
-                        newSize = Math.min(newSize, 9); 
+                        // Giới hạn để chữ không to quá lố nếu chỉ có 1-2 từ (Tăng max cap lên 25 để tràn viền)
+                        newSize = Math.min(newSize, 25); 
                         newSize = Math.max(newSize, 3);
                         
                         el.style.fontSize = newSize + 'cqw';
@@ -407,18 +411,26 @@
                 const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                 
                 dataItems = [];
-                for(let i = 1; i < rows.length; i++) {
+                for(let i = 0; i < rows.length; i++) {
                     const r = rows[i];
                     if (!r) continue;
-                    const priceVal = r[9]; 
-                    const modelVal = r[27]; 
-                    if (!priceVal && !modelVal) continue;
+                    const nameA = r[0] ? String(r[0]).trim() : "";
+                    const nameB = r[1] ? String(r[1]).trim() : "";
+                    const codeAK = r[36] ? String(r[36]).trim() : "";
+                    
+                    const productName = [nameA, nameB].filter(Boolean).join(' ');
+                    const modelStr = [productName, codeAK].filter(Boolean).join(' - ');
+                    
+                    const oldPriceVal = r[4]; 
+                    const priceVal = r[5]; 
+                    
+                    if (!priceVal && !modelStr) continue;
 
                     dataItems.push({
                         id: Date.now() + Math.random(),
-                        model: modelVal ? String(modelVal).trim() : "CHƯA CÓ MODEL",
+                        model: modelStr || "CHƯA CÓ MODEL",
                         price: formatPrice(priceVal),    
-                        oldPrice: r[21] ? formatPrice(r[21]) : null,
+                        oldPrice: oldPriceVal ? formatPrice(oldPriceVal) : null,
                         selected: true
                     });
                 }
@@ -550,7 +562,7 @@
                         <div class="slogan-divider"></div>
                     </div>
                     <div class="price-section">
-                        ${item.oldPrice ? `<div class="price-old">${item.oldPrice}</div>` : '<div class="price-old" style="visibility:hidden">.</div>'}
+                        ${item.oldPrice ? `<div class="price-old">${item.oldPrice}</div>` : ''}
                         <div class="price-main-container">
                             <div class="price-main">${item.price}</div>
                         </div>
