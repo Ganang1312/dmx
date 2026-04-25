@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Báo Cáo Doanh Thu DMX</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
+    
+    body { font-family: 'Nunito', sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    
+    #report-container { 
+      background: #ffffff; width: 950px; padding: 25px 20px; border: 1px solid #ced4da; 
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden; z-index: 1; border-radius: 12px; 
+    }
+    
+    .header-title { text-align: center; color: #00A1E4; font-family: 'Montserrat', sans-serif; font-size: 38px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .store-badge { display: flex; justify-content: center; margin-bottom: 5px; }
+    .store-name { background: #FFE000; color: #000; padding: 6px 30px; border-radius: 6px; font-weight: 900; font-size: 20px; text-transform: uppercase; border: 1px solid #f1c40f; }
+    .date-text { text-align: center; font-weight: 800; color: #636e72; margin-bottom: 25px; font-size: 16px; }
+
+    .summary-grid { display: grid; gap: 10px; margin-bottom: 12px; grid-template-columns: repeat(4, 1fr); }
+    
+    .card { background: #f8f9fa; padding: 18px 5px; text-align: center; border: 1px solid #dfe6e9; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+    
+    .card-title { 
+      font-size: 16px; font-weight: 900; text-transform: uppercase; margin-bottom: 10px; color: #1e272e; display: flex; justify-content: center; align-items: center; gap: 6px; 
+    }
+    .card-value { font-size: 30px; font-family: 'Montserrat', sans-serif; font-weight: 900; }
+
+    .c-blue .card-value { color: #00A1E4; } .c-red .card-value { color: #fc5c65; } .c-green .card-value { color: #20bf6b; } .c-orange .card-value { color: #fa8231; } .c-dark .card-value { color: #2d3436; }
+
+    table { 
+        width: 100%; border-collapse: collapse; background: #ffffff; margin-top: 15px; 
+        border: 2px solid #00A1E4; 
+    }
+    th { 
+        background: #00A1E4; color: #ffffff; padding: 14px 4px; font-size: 13px; font-weight: 900; text-transform: uppercase; border: 1px solid #0073b1; 
+    }
+    td { 
+        padding: 14px 4px; text-align: center; font-size: 15px; font-weight: 800; color: #2d3436;
+        border-bottom: 1px dashed #a4b0be; border-right: 1px solid #a4b0be;
+    }
+    
+    td:last-child { border-right: none; }
+    tr:last-child td { border-bottom: none; }
+
+    .text-left { text-align: left; padding-left: 8px; }
+    .footer { text-align: center; margin-top: 25px; font-size: 13px; color: #b2bec3; font-weight: bold; }
+    
+    .btn-send { margin-top: 20px; background: #00A1E4; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+    .btn-send:hover { background: #0082c8; }
+
+    .row-total td { background: #fff2cc; font-weight: 900 !important; font-size: 16px; border-top: 2px solid #f1c40f; }
+  </style>
+</head>
+<body>
+  <div id="report-container">
+    <div class="header-title">DOANH THU LUỸ KẾ</div>
+    <div class="store-badge"><div class="store-name">CỤM SAVICO</div></div>
+    <div class="date-text">HẾT NGÀY: <span id="current-date"></span></div>
+
+    <div class="summary-grid">
+      <div class="card c-red"><div class="card-title">💰 DOANH THU</div><div class="card-value" id="c-doanhthu">0</div></div>
+      <div class="card c-blue"><div class="card-title">🎯 TARGET</div><div class="card-value" id="c-target">0</div></div>
+      <div class="card c-orange"><div class="card-title">📈 %HT</div><div class="card-value" id="c-ht">0%</div></div>
+      <div class="card c-green"><div class="card-title">🚀 %HT DK</div><div class="card-value" id="c-ht-dk">0%</div></div>
+      
+      <div class="card c-green"><div class="card-title">⏱️ MỤC TIÊU NGÀY</div><div class="card-value" id="c-muctieu-ngay">0</div></div>
+      <div class="card c-red"><div class="card-title">📊 +/- CÙNG KỲ</div><div class="card-value" id="c-cungky">0% (0)</div></div>
+      <div class="card c-orange"><div class="card-title">💳 % TRẢ CHẬM</div><div class="card-value" id="c-tracham">0%</div></div>
+      <div class="card c-blue"><div class="card-title">🔮 DỰ KIẾN THÁNG</div><div class="card-value" id="c-dukien-thang">0</div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th width="4%">STT</th>
+          <th class="text-left" width="22%">NGÀNH HÀNG</th>
+          <th width="6%">SL</th>
+          <th width="12%">DTQĐ(TR)</th>
+          <th width="12%">TARGET</th>
+          <th width="12%">% HT TARGET</th>
+          <th width="12%">+/- DTCK THÁNG</th>
+          <th width="10%">DT TRẢ CHẬM</th>
+          <th width="10%">TỶ TRỌNG TC</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    <div class="footer">SỨC KHOẺ SIÊU THỊ REPORT © BY NH.Dương-32859</div>
+  </div>
+
+  <button class="btn-send" id="btnSend">🚀 CHỤP ẢNH & GỬI TELEGRAM</button>
+
+  <script>
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    document.getElementById('current-date').innerText = yesterday.toLocaleDateString('vi-VN');
+
+    const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
+    const CHAT_ID = "-5072214230"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
+
+    function parseVnNumber(val) {
+      if (val === null || val === undefined || val === '') return 0;
+      if (typeof val === 'number') return val; 
+      let str = String(val).trim().replace(/\s/g, ''); 
+      if (str.includes(',') && str.includes('.')) {
+          if (str.lastIndexOf(',') > str.lastIndexOf('.')) { str = str.replace(/\./g, '').replace(',', '.'); } 
+          else { str = str.replace(/,/g, ''); }
+      } else if (str.includes(',')) { str = str.replace(',', '.'); }
+      let num = parseFloat(str); return isNaN(num) ? 0 : num;
+    }
+
+    function getKey(rowObj, ...possibleNames) {
+      let keys = Object.keys(rowObj);
+      for (let name of possibleNames) {
+        let matched = keys.find(k => k.trim().toLowerCase() === name.toLowerCase());
+        if (matched) return rowObj[matched];
+      }
+      return undefined;
+    }
+
+    function getColorByPercent(percent) {
+        if (percent >= 1) return "#20bf6b"; 
+        if (percent >= 0.8) return "#00A1E4"; 
+        if (percent >= 0.5) return "#fa8231"; 
+        return "#fc5c65"; 
+    }
+
+    const formatMoney = (val) => val.toLocaleString('vi-VN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 2}) + '%';
+
+    async function loadDataFromSheet() {
+      const btn = document.getElementById('btnSend');
+      btn.innerText = "⏳ Đang phân tích thuật toán BI...";
+
+      try {
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
+        
+        const currentDay = today.getDate();
+        let reportMonth = today.getMonth(); let reportYear = today.getFullYear();
+        if (currentDay === 1) { reportMonth -= 1; if (reportMonth < 0) { reportMonth = 11; reportYear--; } }
+        
+        const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
+        const daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
+        let daysRemaining = daysInMonth - daysPassed; if (daysRemaining <= 0) daysRemaining = 1;
+        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+
+        let dataParsed = [];
+        let tongDoanhThu = 0; let tongTarget = 0; let tongDoanhThuCK = 0; let tongDTTraCham = 0; let tongSoLuong = 0;
+        let tongDoanhThuGoc = 0;
+
+        for(let i=0; i < data.length; i++) {
+          let row = data[i];
+          let nganhHang = getKey(row, "nhóm ngành hàng", "ngành hàng", "salegroupmastername");
+          if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
+
+          let soLuong = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let dt = parseVnNumber(getKey(row, "doanh thu quy đổi")); 
+          let dtGoc = parseVnNumber(getKey(row, "doanh thu")); 
+          let tg = parseVnNumber(getKey(row, "target")); 
+          let htTarget = parseVnNumber(getKey(row, "rev_kft_riserate_ave3mth", "% ht target (qđ)")) / 100;
+          let tangGiamCK = parseVnNumber(getKey(row, "rev_kft_riserate_lastmonth", "+/- dtck")) / 100;
+          let dtTraCham = parseVnNumber(getKey(row, "revenue_installment", "doanh thu trả chậm"));
+          let tyTrongTC = parseVnNumber(getKey(row, "installment_ratio", "tỷ trọng trả chậm", "tỷ trọng tc")) / 100;
+
+          tongDoanhThu += dt;
+          tongTarget += tg;
+          tongDTTraCham += dtTraCham;
+          tongSoLuong += soLuong;
+          tongDoanhThuGoc += dtGoc;
+
+          let mauSo = 1 + tangGiamCK;
+          let dtCK = (mauSo === 0) ? 0 : (dt / mauSo);
+          tongDoanhThuCK += dtCK;
+
+          dataParsed.push({ nganhHang, soLuong, dt, tg, htTarget, tangGiamCK, dtTraCham, tyTrongTC });
+        }
+
+        dataParsed.sort((a, b) => b.tg - a.tg);
+
+        let htmlRows = ""; let stt = 1;
+
+        for(let item of dataParsed) {
+          if (item.soLuong <= 0) continue; 
+
+          let colorHT = getColorByPercent(item.htTarget);
+          let colorTangTruong = item.tangGiamCK < 0 ? "#fc5c65" : "#20bf6b";
+
+          htmlRows += `
+            <tr>
+              <td>${stt++}</td>
+              <td class="text-left" style="color:#00A1E4; font-weight: 900;">${item.nganhHang}</td>
+              <td>${item.soLuong.toLocaleString('vi-VN')}</td>
+              <td style="color:#00A1E4; font-weight: 900;">${formatMoney(item.dt)}</td>
+              <td style="color:#2d3436; font-weight: 900;">${formatMoney(item.tg)}</td>
+              <td style="color:${colorHT}">${formatPercent(item.htTarget)}</td>
+              <td style="color:${colorTangTruong}">${formatPercent(item.tangGiamCK)}</td>
+              <td>${formatMoney(item.dtTraCham)}</td>
+              <td style="color:#2d98da">${formatPercent(item.tyTrongTC)}</td>
+            </tr>
+          `;
+        }
+
+        let totalHtTarget = tongTarget > 0 ? (tongDoanhThu / tongTarget) : 0;
+        let totalTangGiamCK = tongDoanhThuCK !== 0 ? (tongDoanhThu - tongDoanhThuCK) / tongDoanhThuCK : 0;
+        let totalTyTrongTC = tongDoanhThuGoc > 0 ? (tongDTTraCham / tongDoanhThuGoc) : 0;
+
+        htmlRows += `
+          <tr class="row-total">
+            <td>⭐</td>
+            <td class="text-left">TỔNG CỘNG</td>
+            <td>${tongSoLuong.toLocaleString('vi-VN')}</td>
+            <td style="color:#00A1E4;">${formatMoney(tongDoanhThu)}</td>
+            <td>${formatMoney(tongTarget)}</td>
+            <td style="color:${getColorByPercent(totalHtTarget)};">${formatPercent(totalHtTarget)}</td>
+            <td style="color:${totalTangGiamCK < 0 ? '#fc5c65' : '#20bf6b'};">${formatPercent(totalTangGiamCK)}</td>
+            <td>${formatMoney(tongDTTraCham)}</td>
+            <td style="color:#2d98da;">${formatPercent(totalTyTrongTC)}</td>
+          </tr>
+        `;
+
+        document.getElementById("table-body").innerHTML = htmlRows;
+        
+        let viewDT = tongDoanhThu; 
+        let viewTarget = tongTarget; 
+        let viewDTCK = tongDoanhThuCK; 
+
+        document.getElementById("c-doanhthu").innerText = Math.round(viewDT).toLocaleString('vi-VN');
+        document.getElementById("c-target").innerText = Math.round(viewTarget).toLocaleString('vi-VN');
+        
+        let ht = viewTarget > 0 ? (viewDT / viewTarget) : 0;
+        document.getElementById("c-ht").innerText = formatPercent(ht);
+
+        let duKienThang = (viewDT / daysPassed) * daysInMonth;
+        document.getElementById("c-dukien-thang").innerText = Math.round(duKienThang).toLocaleString('vi-VN');
+
+        let htDk = viewTarget > 0 ? (duKienThang / viewTarget) : 0;
+        document.getElementById("c-ht-dk").innerText = formatPercent(htDk);
+
+        let mucTieuNgay = 0;
+        if (isWeekend) { mucTieuNgay = (viewTarget / daysInMonth) * 2; } 
+        else {
+            mucTieuNgay = (viewTarget - viewDT) / daysRemaining;
+            if (mucTieuNgay <= 0) mucTieuNgay = viewTarget / daysInMonth;
+        }
+        document.getElementById("c-muctieu-ngay").innerText = Math.round(mucTieuNgay).toLocaleString('vi-VN');
+
+        let tangTruongToanST = viewDTCK !== 0 ? (viewDT - viewDTCK) / viewDTCK : 0;
+        let chenhLechCK = viewDT - viewDTCK;
+        let ckColor = tangTruongToanST < 0 ? '#fc5c65' : '#20bf6b';
+        let dauCK = tangTruongToanST > 0 ? '+' : '';
+        document.getElementById("c-cungky").innerHTML = `<span style="color:${ckColor}">${dauCK}${formatPercent(tangTruongToanST)} <span style="font-size:18px;">(${Math.round(chenhLechCK)})</span></span>`;
+
+        let tyLeTraCham = tongDoanhThuGoc > 0 ? (tongDTTraCham / tongDoanhThuGoc) : 0;
+        document.getElementById("c-tracham").innerText = formatPercent(tyLeTraCham);
+
+        btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM";
+        btn.disabled = false;
+        
+        // TỰ ĐỘNG BẤM GỬI SAU 2 GIÂY
+        setTimeout(() => {
+            btn.innerText = "⏳ Đang Auto-Capture...";
+            btn.click();
+        }, 2000);
+
+      } catch (error) { alert("Lỗi kéo dữ liệu: " + error); }
+    }
+
+    window.onload = loadDataFromSheet;
+
+    document.getElementById('btnSend').addEventListener('click', () => {
+      const btn = document.getElementById('btnSend');
+      btn.innerText = "⏳ Đang xử lý..."; btn.disabled = true;
+      html2canvas(document.getElementById('report-container'), { scale: 2, useCORS: true }).then(canvas => {
+        canvas.toBlob(blob => {
+          const formData = new FormData();
+          formData.append("chat_id", CHAT_ID); formData.append("photo", blob, "baocao_dmx.png");
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
+          .then(res => res.json()).then(data => {
+            if (data.ok) { 
+                // ĐÃ BỎ WINDOW.CLOSE() - Giữ tab và hiện lại nút bấm
+                alert("🎉 Gửi Báo Cáo Doanh Thu thành công!");
+                btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM"; 
+                btn.disabled = false;
+            } 
+            else { 
+                alert("Lỗi Telegram: " + data.description); 
+                btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM"; 
+                btn.disabled = false;
+            }
+          });
+        }, "image/png");
+      });
+    });
+  </script>
+</body>
+</html>

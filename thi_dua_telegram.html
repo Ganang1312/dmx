@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Báo Cáo Thi Đua</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
+    
+    body { font-family: 'Nunito', sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 20px; }
+    
+    #report-container { 
+      background: #ffffff; width: 950px; padding: 25px 20px; border: 1px solid #ced4da; 
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden; z-index: 1; border-radius: 12px; 
+    }
+
+    #report-container::before {
+      content: ""; position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
+      width: 450px; height: 450px;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Logo_The_Gioi_Di_Dong.svg/512px-Logo_The_Gioi_Di_Dong.svg.png') no-repeat center;
+      background-size: contain; opacity: 0.03; z-index: -1;
+    }
+
+    .header-title { text-align: center; color: #00A1E4; font-family: 'Montserrat', sans-serif; font-size: 38px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .store-badge { display: flex; justify-content: center; margin-bottom: 5px; }
+    .store-name { background: #FFE000; color: #000; padding: 6px 30px; border-radius: 6px; font-weight: 900; font-size: 20px; text-transform: uppercase; border: 1px solid #f1c40f; }
+    .date-text { text-align: center; font-weight: 800; color: #636e72; margin-bottom: 25px; font-size: 16px; }
+
+    .kpi-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px; }
+    
+    .card { background: #f8f9fa; padding: 18px 5px; text-align: center; border: 1px solid #dfe6e9; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);}
+    .card-title { font-size: 16px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; color: #1e272e; display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .card-value { font-size: 40px; font-family: 'Montserrat', sans-serif; font-weight: 900; line-height: 1; }
+    .card-sub { font-size: 20px; opacity: 0.7; color: #636e72; }
+
+    .c-blue .card-value { color: #00A1E4; } .c-orange .card-value { color: #fa8231; } .c-green .card-value { color: #20bf6b; }
+
+    table { 
+        width: 100%; border-collapse: collapse; margin-top: 10px; background: #ffffff;
+        border: 2px solid #00A1E4;
+    }
+    th { 
+        background: #00A1E4; color: #ffffff; padding: 14px 4px; font-size: 13px; 
+        font-weight: 900; text-transform: uppercase; border: 1px solid #0073b1; 
+    }
+    td { 
+        padding: 14px 4px; text-align: center; font-size: 16px; font-weight: 800; color: #2d3436;
+        border-bottom: 1px dashed #a4b0be; border-right: 1px solid #a4b0be;
+    }
+    
+    td:last-child { border-right: none; }
+    tr:last-child td { border-bottom: none; }
+    
+    .text-left { text-align: left; padding-left: 10px !important; white-space: nowrap; }
+    
+    .footer { text-align: center; margin-top: 25px; font-size: 14px; color: #b2bec3; font-weight: bold; text-transform: uppercase; }
+    .btn-send { margin-top: 20px; background: #00A1E4; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s;}
+    .btn-send:hover { background: #0082c8; }
+  </style>
+</head>
+<body>
+
+  <div id="report-container">
+    <div class="header-title">THI ĐUA LUỸ KẾ</div>
+    <div class="store-badge"><div class="store-name">CỤM SAVICO</div></div>
+    <div class="date-text">Hết ngày: <span id="current-date"></span></div>
+
+    <div class="kpi-cards">
+      <div class="card c-blue">
+        <div class="card-title">⭐ NH DỰ KIẾN ĐẠT</div>
+        <div class="card-value" id="kpi-1">0 <span class="card-sub">/ 0</span></div>
+      </div>
+      <div class="card c-orange">
+        <div class="card-title">⭐ NH ĐÃ VỀ ĐÍCH</div>
+        <div class="card-value" id="kpi-2">0 <span class="card-sub">| 0%</span></div>
+      </div>
+      <div class="card c-green">
+        <div class="card-title">👑 % VƯỢT TRỘI D.KIẾN</div>
+        <div class="card-value" id="kpi-3">0%</div>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th width="4%">STT</th>
+          <th class="text-left" width="28%">NGÀNH HÀNG</th>
+          <th width="13%">THỰC HIỆN</th>
+          <th width="13%">TARGET</th>
+          <th width="14%">% HT TARGET</th>
+          <th width="14%">% HT D.KIẾN</th>
+          <th width="14%">MT/NGÀY</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+    
+    <div class="footer">SỨC KHỎE SIÊU THỊ REPORT © BY NH.Dương-32859</div>
+  </div>
+
+  <button class="btn-send" id="btnSend">🚀 CHỤP ẢNH & GỬI TELEGRAM</button>
+
+  <script>
+    const today = new Date();
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    document.getElementById('current-date').innerText = yesterday.toLocaleDateString('vi-VN');
+
+    const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
+    const CHAT_ID = "-5072214230"; 
+    const GAS_URL_DATA = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec?sheet=Data_ThiDua";
+    const GAS_URL_CONFIG = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec?sheet=Config_ThiDua";
+
+    function parseVnNumber(val) {
+      if (val === null || val === undefined || val === '') return 0;
+      if (typeof val === 'number') return val;
+      let str = String(val).trim().replace(/\s/g, ''); 
+      if (str.includes(',') && str.includes('.')) {
+          if (str.lastIndexOf(',') > str.lastIndexOf('.')) { str = str.replace(/\./g, '').replace(',', '.'); } 
+          else { str = str.replace(/,/g, ''); }
+      } else if (str.includes(',')) { str = str.replace(',', '.'); }
+      let num = parseFloat(str); return isNaN(num) ? 0 : num;
+    }
+
+    function getKey(rowObj, ...possibleNames) {
+      let keys = Object.keys(rowObj);
+      for (let name of possibleNames) {
+        let matched = keys.find(k => k.trim().toLowerCase() === name.toLowerCase());
+        if (matched) return rowObj[matched];
+      }
+      return undefined;
+    }
+
+    const formatMoney = (val) => val.toLocaleString('vi-VN', {minimumFractionDigits: 0, maximumFractionDigits: 1});
+    const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
+
+    async function loadDataFromSheet() {
+      const btn = document.getElementById('btnSend');
+      btn.innerText = "⏳ Đang đồng bộ Cấu Hình & Dữ Liệu...";
+
+      try {
+        const [resData, resConfig] = await Promise.all([
+            fetch(GAS_URL_DATA), 
+            fetch(GAS_URL_CONFIG)
+        ]);
+
+        const data = await resData.json();
+        const configData = await resConfig.json();
+
+        let configMap = {};
+        if (!configData.error && configData.length > 0) {
+            for(let c of configData) {
+                let ten = getKey(c, "ngành hàng", "nhóm ngành hàng");
+                let phanLoai = parseVnNumber(getKey(c, "phân loại", "loại", "mức độ"));
+                let thuTuRaw = getKey(c, "thứ tự", "thu tu", "ưu tiên", "sắp xếp");
+                let thuTu = (thuTuRaw === null || thuTuRaw === undefined || String(thuTuRaw).trim() === '') 
+                            ? 999 
+                            : parseVnNumber(thuTuRaw);
+
+                if (ten) {
+                    configMap[String(ten).toLowerCase().trim()] = {
+                        phanLoai: phanLoai,
+                        thuTu: thuTu
+                    };
+                }
+            }
+        }
+
+        const currentDay = today.getDate();
+        let daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        let daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
+        let daysRemaining = daysInMonth - daysPassed; if (daysRemaining <= 0) daysRemaining = 1;
+
+        let htmlRows = "";
+        let dataParsed = [];
+
+        for(let i=0; i < data.length; i++) {
+          let row = data[i];
+          let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính");
+          if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
+
+          let target = parseVnNumber(getKey(row, "target", "mục tiêu"));
+          if (target <= 0) continue; 
+
+          let nganhHangClean = String(nganhHang).toLowerCase().trim();
+          let configObj = configMap[nganhHangClean] || {};
+          let phanLoai = configObj.phanLoai;
+          let thuTu = configObj.thuTu !== undefined ? configObj.thuTu : 999;
+          
+          if (Object.keys(configMap).length > 0 && (!phanLoai || phanLoai === 0)) {
+              continue;
+          }
+          
+          let isTrongDiem = (phanLoai === 2);
+
+          let sl = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let dt = parseVnNumber(getKey(row, "doanh thu")); 
+          
+          let thucHien = sl; 
+          if (dt > 0) {
+              if (sl === 0) { thucHien = dt; } 
+              else {
+                  let tyLeDT = Math.abs((dt / target) - 1);
+                  let tyLeSL = Math.abs((sl / target) - 1);
+                  if (tyLeDT < tyLeSL) thucHien = dt;
+              }
+          }
+
+          let htTarget = thucHien / target;
+          let htDuKien = ((thucHien / daysPassed) * daysInMonth) / target;
+          let mtNgay = (target - thucHien) / daysRemaining;
+          if (mtNgay < 0) mtNgay = 0; 
+
+          dataParsed.push({ nganhHang, thucHien, target, htTarget, htDuKien, mtNgay, isTrongDiem, thuTu });
+        }
+
+        dataParsed.sort((a, b) => {
+            if (a.thuTu !== b.thuTu) return a.thuTu - b.thuTu;
+            if (a.isTrongDiem && !b.isTrongDiem) return -1;
+            if (!a.isTrongDiem && b.isTrongDiem) return 1;
+            return b.htDuKien - a.htDuKien;
+        });
+
+        let countDuKienDat = 0;
+        let countDaVeDich = 0;
+        let stt = 1;
+
+        for(let item of dataParsed) {
+            if (item.htDuKien >= 1) countDuKienDat++;
+            if (item.htTarget >= 1) countDaVeDich++;
+
+            let colorHT = item.htTarget >= 1 ? '#20bf6b' : (item.htTarget >= 0.5 ? '#fa8231' : '#2f3640');
+            let colorHTDK = item.htDuKien >= 1 ? '#20bf6b' : '#00A1E4';
+            
+            let nameDisplay = item.isTrongDiem 
+                ? `<span style="color:#e15f41;">🔥 ${item.nganhHang}</span>` 
+                : `<span style="color:#00A1E4;">⭐ ${item.nganhHang}</span>`;
+
+            htmlRows += `
+              <tr>
+                <td style="color:#2f3640; font-weight: 900;">${stt}</td>
+                <td class="text-left" style="font-weight: 900; font-size: 15px;">${nameDisplay}</td>
+                <td style="color:#2f3640;">${formatMoney(item.thucHien)}</td>
+                <td style="color:#2f3640;">${formatMoney(item.target)}</td>
+                <td style="color:${colorHT}; font-weight: 900;">${formatPercent(item.htTarget)}</td>
+                <td style="color:${colorHTDK}; font-weight: 900;">${formatPercent(item.htDuKien)}</td>
+                <td style="color:#2f3640;">${formatMoney(item.mtNgay)}</td>
+              </tr>
+            `;
+            stt++;
+        }
+
+        document.getElementById("table-body").innerHTML = htmlRows;
+
+        let totalItems = dataParsed.length;
+        document.getElementById("kpi-1").innerHTML = `${countDuKienDat} <span class="card-sub">/ ${totalItems}</span>`;
+        
+        let tyLeVeDich = totalItems > 0 ? (countDaVeDich / totalItems) : 0;
+        document.getElementById("kpi-2").innerHTML = `${countDaVeDich} <span class="card-sub">| ${Math.round(tyLeVeDich * 100)}%</span>`;
+        
+        let vuotTroi = totalItems > 0 ? (countDuKienDat / totalItems) : 0;
+        document.getElementById("kpi-3").innerText = `${Math.round(vuotTroi * 100)}%`;
+
+        btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM";
+        btn.disabled = false;
+        
+        // TỰ ĐỘNG BẤM GỬI SAU 2 GIÂY
+        setTimeout(() => {
+            btn.innerText = "⏳ Đang Auto-Capture...";
+            btn.click();
+        }, 2000);
+
+      } catch (error) { alert("Lỗi kéo dữ liệu: " + error); }
+    }
+
+    window.onload = loadDataFromSheet;
+
+    document.getElementById('btnSend').addEventListener('click', () => {
+      const btn = document.getElementById('btnSend');
+      btn.innerText = "⏳ Đang xuất ảnh Ultra HD..."; btn.disabled = true;
+      html2canvas(document.getElementById('report-container'), { scale: 3, useCORS: true }).then(canvas => {
+        canvas.toBlob(blob => {
+          const formData = new FormData();
+          formData.append("chat_id", CHAT_ID); formData.append("photo", blob, "thi_dua.png");
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
+          .then(res => res.json()).then(data => {
+            if (data.ok) { 
+                // ĐÃ BỎ WINDOW.CLOSE() - Giữ tab và hiện lại nút bấm
+                alert("🎉 Gửi Báo Cáo Thi Đua thành công!"); 
+                btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM"; 
+                btn.disabled = false;
+            } 
+            else { 
+                alert("Lỗi Telegram: " + data.description); 
+                btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM"; 
+                btn.disabled = false;
+            }
+          });
+        }, "image/png");
+      });
+    });
+  </script>
+</body>
+</html>
