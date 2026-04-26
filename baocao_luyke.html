@@ -504,18 +504,20 @@
         // HÀM CHỤP ẢNH VÀ GỬI
         function executeCaptureAndSend() {
             const sendBtn = document.getElementById('btnSend');
-            sendBtn.innerText = "⏳ Đang xuất ảnh..."; 
+            sendBtn.innerText = "⏳ Đang xuất File Ảnh Ultra HD..."; 
             sendBtn.disabled = true;
             
             try {
-                // Đặt scale: 2 để đảm bảo độ nét mà không vượt giới hạn Telegram
-                html2canvas(document.getElementById('report-container'), { scale: 2, useCORS: true }).then(canvas => {
+                // Tăng scale lên 3 để ảnh nét căng
+                html2canvas(document.getElementById('report-container'), { scale: 3, useCORS: true }).then(canvas => {
                     canvas.toBlob(blob => {
                         const formData = new FormData();
                         formData.append("chat_id", CHAT_ID); 
-                        formData.append("photo", blob, "executive_report.png");
+                        // Đổi từ 'photo' sang 'document' để Telegram gửi dưới dạng File gốc không bị nén
+                        formData.append("document", blob, "Bao_Cao_Savico_UltraHD.png");
                         
-                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
+                        // Gọi API sendDocument thay vì sendPhoto
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: formData })
                         .then(res => res.json()).then(data => {
                             if (data.ok) { 
                                 fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
@@ -523,12 +525,12 @@
                                     headers: {"Content-Type": "application/json"},
                                     body: JSON.stringify({ chat_id: CHAT_ID, text: window.reportMessageText })
                                 }).then(() => {
-                                    alert("🎉 Đã gửi Báo cáo Ảnh và Nhận định AI thành công!");
+                                    alert("🎉 Đã gửi File Ảnh gốc và Nhận định AI thành công!");
                                     sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
                                     sendBtn.disabled = false;
                                 });
                             } else { 
-                                alert("Lỗi Gửi Ảnh Telegram: " + data.description); 
+                                alert("Lỗi Gửi File Telegram: " + data.description); 
                                 sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
                                 sendBtn.disabled = false;
                             }
