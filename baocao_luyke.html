@@ -186,14 +186,10 @@
   <button class="btn-send" id="btnSend">🚀 CHỤP ẢNH & GỬI TELEGRAM</button>
 
   <script>
-    // ---------------------------------------------------------
     // CÀI ĐẶT THỜI GIAN
-    // ---------------------------------------------------------
     const today = new Date();
     const yesterday = new Date(today); 
     yesterday.setDate(today.getDate() - 1);
-    
-    // Giao diện ảnh: Lấy ngày hôm qua (chốt sổ liệu)
     document.getElementById('current-date').innerText = yesterday.toLocaleDateString('vi-VN');
 
     const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
@@ -483,7 +479,6 @@
         document.getElementById("table-thidua").innerHTML = htmlThiDua;
 
         // G. TẠO CHUỖI TEXT CHO TELEGRAM
-        // TRONG TIN NHẮN TEXT: Hiển thị ngày hôm nay (ngày gửi báo cáo)
         let msg = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ - ngày ${today.toLocaleDateString('vi-VN')} 📊\n`;
         msg += `-------------------\n`;
         msg += `- 🎯 Target Tháng: ${formatMoney(tTG)}\n`;
@@ -506,48 +501,72 @@
 
         window.reportMessageText = msg;
 
-        // XỬ LÝ AUTO GỬI ẢNH
-        btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM";
-        btn.disabled = false;
-        
+        // HÀM CHỤP ẢNH VÀ GỬI
+        function executeCaptureAndSend() {
+            const sendBtn = document.getElementById('btnSend');
+            sendBtn.innerText = "⏳ Đang xuất ảnh..."; 
+            sendBtn.disabled = true;
+            
+            try {
+                // Đặt scale: 2 để đảm bảo độ nét mà không vượt giới hạn Telegram
+                html2canvas(document.getElementById('report-container'), { scale: 2, useCORS: true }).then(canvas => {
+                    canvas.toBlob(blob => {
+                        const formData = new FormData();
+                        formData.append("chat_id", CHAT_ID); 
+                        formData.append("photo", blob, "executive_report.png");
+                        
+                        fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
+                        .then(res => res.json()).then(data => {
+                            if (data.ok) { 
+                                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                                    method: "POST",
+                                    headers: {"Content-Type": "application/json"},
+                                    body: JSON.stringify({ chat_id: CHAT_ID, text: window.reportMessageText })
+                                }).then(() => {
+                                    alert("🎉 Đã gửi Báo cáo Ảnh và Nhận định AI thành công!");
+                                    sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
+                                    sendBtn.disabled = false;
+                                });
+                            } else { 
+                                alert("Lỗi Gửi Ảnh Telegram: " + data.description); 
+                                sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
+                                sendBtn.disabled = false;
+                            }
+                        }).catch(err => {
+                            alert("Lỗi kết nối API Telegram: " + err);
+                            sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
+                            sendBtn.disabled = false;
+                        });
+                    }, "image/png");
+                }).catch(err => {
+                    alert("Lỗi tạo ảnh HTML2Canvas: " + err);
+                    sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
+                    sendBtn.disabled = false;
+                });
+            } catch (e) {
+                alert("Lỗi hệ thống: " + e);
+                sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
+                sendBtn.disabled = false;
+            }
+        }
+
+        // Gắn sự kiện click
+        btn.addEventListener('click', executeCaptureAndSend);
+
+        // KÍCH HOẠT AUTO GỬI NẾU CÓ URL PARAM
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auto') === 'true') {
             btn.innerText = "⏳ Đang Auto-Capture...";
-            setTimeout(() => btn.click(), 2500); 
+            btn.disabled = true; // Khóa nút tránh click đúp
+            // Chờ một chút để biểu đồ và font chữ render mượt rồi mới chụp
+            setTimeout(executeCaptureAndSend, 2500); 
         }
 
-      } catch (error) { console.error("Lỗi:", error); }
+      } catch (error) { console.error("Lỗi tải data:", error); }
     }
 
     window.onload = loadData;
 
-    document.getElementById('btnSend').addEventListener('click', () => {
-      const btn = document.getElementById('btnSend');
-      btn.innerText = "⏳ Đang xuất ảnh..."; btn.disabled = true;
-      
-      html2canvas(document.getElementById('report-container'), { scale: 2, useCORS: true }).then(canvas => {
-        canvas.toBlob(blob => {
-          const formData = new FormData();
-          formData.append("chat_id", CHAT_ID); formData.append("photo", blob, "executive_report.png");
-          
-          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
-          .then(res => res.json()).then(data => {
-            if (data.ok) { 
-                fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({ chat_id: CHAT_ID, text: window.reportMessageText })
-                }).then(() => {
-                    alert("🎉 Đã gửi Báo cáo Ảnh và Nhận định AI thành công!");
-                    btn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; btn.disabled = false;
-                });
-            } else { 
-                alert("Lỗi Gửi Ảnh: " + data.description); btn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; btn.disabled = false;
-            }
-          });
-        }, "image/png");
-      });
-    });
   </script>
 </body>
 </html>
