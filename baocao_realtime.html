@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Realtime Dashboard - Cụm Savico</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
+    
+    body { font-family: 'Nunito', sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+    
+    /* Thiết kế phẳng */
+    .report-box { 
+      background: #ffffff; width: 950px; padding: 30px; border-radius: 16px; 
+      border: 1px solid #ced4da; position: relative; overflow: hidden; margin-bottom: 20px;
+    }
+
+    /* HEADER */
+    .header-title { text-align: center; color: #1e272e; font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
+    .date-text { text-align: center; font-weight: 800; color: #f39c12; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;}
+    
+    /* ------------------------------------------- */
+    /* THANH SO SÁNH TIẾN ĐỘ THỜI GIAN & DOANH THU */
+    /* ------------------------------------------- */
+    .compare-bar-wrap { width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; background: #ffffff; padding: 15px 20px; border-radius: 12px; border: 2px solid #ced4da; box-sizing: border-box; }
+    .cb-row { display: flex; align-items: center; gap: 15px; font-size: 14px; font-weight: 900; color: #2d3436; }
+    .cb-label { width: 180px; display:flex; justify-content: space-between; align-items: center; }
+    .cb-track { flex: 1; height: 16px; background: #f1f2f6; border-radius: 8px; overflow: hidden; position: relative; }
+    .cb-fill { height: 100%; border-radius: 8px; transition: width 0.5s ease; }
+
+    /* 1. HEALTH BAR */
+    .status-bar { display: flex; align-items: stretch; border: 2px solid #ced4da; border-radius: 10px; margin-bottom: 25px; overflow: hidden; background: white;}
+    .sb-item { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px 5px; flex: 1; position: relative;}
+    .sb-item:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 20%; height: 60%; width: 1px; background: #e2e8f0; }
+    
+    .sb-left { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 12px; flex: 1.3; padding: 10px 15px; }
+    .sb-left-icon { font-size: 28px; background: white; width: 45px; height: 45px; display: flex; justify-content: center; align-items: center; border-radius: 12px; border: 1px solid #e2e8f0; }
+    
+    .sb-label { font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;}
+    .sb-val { font-size: 22px; font-weight: 900; color: #1e272e; line-height: 1; text-align: center; }
+
+    /* SECTION TITLES */
+    .sec-title { display: flex; align-items: center; font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 900; color: #00A1E4; margin: 25px 0 15px 0; text-transform: uppercase; }
+    .sec-title span { background: #00A1E4; color: white; width: 30px; height: 30px; display: inline-flex; justify-content: center; align-items: center; border-radius: 50%; margin-right: 10px; font-size: 18px; }
+    .sub-sec-title { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 900; color: #1e272e; margin: 15px 0 15px 0; text-transform: uppercase; border-left: 4px solid #00A1E4; padding-left: 8px; }
+
+    /* 2. KPI TIERS (5 CỘT) */
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; row-gap: 16px; }
+    .card { background: #ffffff; padding: 12px 6px; text-align: center; border: 2px solid #ced4da; border-radius: 12px; }
+    .card-title { font-size: 12px; font-weight: 900; color: #636e72; margin-bottom: 6px; text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .card-val { font-size: 32px; font-family: 'Montserrat', sans-serif; font-weight: 900; line-height: 1.1; margin: 0; }
+    .card-sub { font-size: 12px; font-weight: 800; color: #636e72; margin-top: 8px; display: block; }
+    
+    .highlight-target { 
+        background-color: #ffffff; color: #1e272e; padding: 5px 0px; border-radius: 8px; 
+        border: 2px solid #e2e8f0; font-weight: 800; display: block; margin: 0 auto;
+        text-align: center; width: 85%; box-shadow: none; 
+    }
+
+    /* TABLES */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #00A1E4; }
+    th { background: #00A1E4; color: white; padding: 12px 4px; font-size: 12px; font-weight: 900; text-transform: uppercase; border: 1px solid #0073b1; }
+    td { padding: 10px 4px; text-align: center; font-size: 14px; font-weight: 800; color: #2d3436; border-bottom: 1px dashed #a4b0be; border-right: 1px solid #a4b0be; }
+    td:last-child { border-right: none; } tr:last-child td { border-bottom: none; }
+    .text-left { text-align: left; padding-left: 10px !important; }
+    .row-total td { background: #fff2cc; font-weight: 900 !important; font-size: 15px; border-top: 2px solid #f1c40f; }
+
+    /* LAYOUT BẢNG INSIGHT CÂN ĐỐI */
+    .ib-board { display: flex; gap: 12px; margin-top: 20px; align-items: flex-start; }
+    .ib-col-wrapper { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+    .ib-col-wrapper.wide { flex: 2; } 
+    
+    .ib-box { background: #fff; border-radius: 8px; border: 1px solid #ced4da; display: flex; flex-direction: column; overflow: hidden; }
+    .ib-header { text-align: center; color: #fff; font-weight: 900; font-size: 12px; padding: 10px 4px; text-transform: uppercase; }
+    .ib-header.green { background: #00b894; } 
+    .ib-header.yellow { background: #f39c12; } 
+    .ib-header.blue { background: #0984e3; } 
+    .ib-header.red { background: #d63031; }
+    
+    .ib-list { padding: 12px 10px; display: flex; flex-direction: column; gap: 10px; }
+    .ib-list.grid-2 { display: grid; grid-template-columns: 1fr 1fr; column-gap: 15px; row-gap: 10px; }
+    
+    .ib-item { display: flex; flex-direction: column; gap: 4px; padding-bottom: 8px; border-bottom: 1px dashed #eee; }
+    .ib-list:not(.grid-2) .ib-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .ib-list.grid-2 .ib-item { border-bottom: 1px dashed #eee; }
+    
+    .ib-row { display: flex; justify-content: space-between; align-items: center; }
+    .ib-left { display: flex; align-items: center; gap: 6px; overflow: hidden; flex: 1;}
+    .ib-icon { font-size: 16px; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
+    .ib-name { font-size: 11px; font-weight: 900; color: #2d3436; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .ib-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .ib-sub { font-size: 9px; color: #636e72; font-weight: 800; text-transform: lowercase; }
+    .ib-val { font-size: 14px; font-weight: 900; }
+    
+    .ib-bar-bg { height: 4px; background: #f1f2f6; border-radius: 2px; width: 100%; overflow: hidden; }
+    .ib-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+
+    .td-summary-bar { display: flex; justify-content: space-around; background: #ffffff; border: 2px solid #ced4da; padding: 12px; border-radius: 10px; margin-bottom: 15px; }
+    .td-sum-item { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: #2d3436; }
+    .td-sum-item b { font-size: 20px; }
+
+    .footer { text-align: center; margin-top: 25px; font-size: 13px; color: #636e72; font-weight: bold; text-transform: uppercase; }
+    .btn-send { background: #f39c12; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 30px;}
+  </style>
+</head>
+<body>
+
+  <div id="part1" class="report-box">
+    <div class="header-title">BÁO CÁO REALTIME CỤM SAVICO</div>
+    <div class="date-text">⚡ CẬP NHẬT LÚC: <span id="current-date"></span></div>
+
+    <div class="compare-bar-wrap">
+        <div class="cb-row">
+            <div class="cb-label"><span style="color:#636e72;">⏱️ QUỸ THỜI GIAN</span> <span id="val-time-ratio" style="color:#636e72;">0%</span></div>
+            <div class="cb-track"><div class="cb-fill" id="fill-time-ratio" style="width: 0%; background: #b2bec3;"></div></div>
+        </div>
+        <div class="cb-row">
+            <div class="cb-label"><span style="color:#00A1E4;">🎯 TIẾN ĐỘ DOANH THU</span> <span id="val-target-ratio">0%</span></div>
+            <div class="cb-track"><div class="cb-fill" id="fill-target-ratio" style="width: 0%;"></div></div>
+        </div>
+    </div>
+
+    <div class="status-bar">
+        <div class="sb-bg sb-left" id="sb-bg">
+            <div class="sb-left-icon" id="sb-icon">🛡️</div>
+            <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
+                <div class="sb-label" style="justify-content: flex-start; margin-bottom: 2px;">TÌNH TRẠNG SIÊU THỊ</div>
+                <div class="sb-val" id="sb-status" style="color: #1d4ed8; font-size: 16px;">ỔN ĐỊNH</div>
+            </div>
+        </div>
+        
+        <div class="sb-item" style="flex: 1.1;">
+            <div class="sb-label"><i style="font-size: 14px;">💰</i> DT THỰC HIỆN</div>
+            <div class="sb-val" id="sb-dt" style="color: #00A1E4;">0</div>
+            <div style="font-size: 10px; color: #d63031; font-weight: 800; margin-top: 2px;" id="sb-con-thieu-sub">CÒN LẠI: 0</div>
+        </div>
+        
+        <div class="sb-item">
+            <div class="sb-label"><i style="font-size: 14px;">⚡</i> % THỰC HIỆN</div>
+            <div class="sb-val" id="sb-ht">0%</div>
+        </div>
+        
+        <div class="sb-item">
+            <div class="sb-label"><i style="font-size: 14px;">🎯</i> MT NGÀY</div>
+            <div class="sb-val" id="sb-mt-ngay" style="color: #00b894;">0</div>
+        </div>
+        
+        <div class="sb-item">
+            <div class="sb-label"><i style="font-size: 14px;">💳</i> TỶ TRỌNG TG</div>
+            <div class="sb-val" id="sb-ty-trong-tg" style="color: #f39c12;">0%</div>
+        </div>
+        
+        <div class="sb-item" style="background: #fff0f2;">
+            <div class="sb-label" style="color: #d63031;"><i style="font-size: 14px;">⚠️</i> NGUY CƠ</div>
+            <div class="sb-val" id="sb-nguy-co" style="color: #d63031;">0 nhóm</div>
+        </div>
+
+        <div class="sb-item" style="background: #f0fdf4; border-left: 1px solid #dcfce7; flex: 1.1;">
+            <div class="sb-label" style="color: #00b894;"><i style="font-size: 14px;">🚀</i> DỰ BÁO L.KẾ</div>
+            <div class="sb-val" id="sb-dubao-ht" style="color: #00b894;">0%</div>
+            <div style="font-size: 10px; color: #00b894; font-weight: 800; margin-top: 2px;" id="sb-dubao-dt">0 TR</div>
+        </div>
+    </div>
+
+    <div class="sec-title"><span>1</span> DOANH THU & THI ĐUA TRONG NGÀY</div>
+    <div class="grid-5">
+      <div class="card"><div class="card-title">💰 DT THỰC HIỆN</div><div class="card-val" id="c-dt-th" style="color: #0984e3;">0</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG</div></div>
+      <div class="card"><div class="card-title">🎯 MỤC TIÊU NGÀY</div><div class="card-val" id="c-mt-ngay-card" style="color: #00b894;">0</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG</div></div>
+      <div class="card"><div class="card-title">⚡ % THỰC HIỆN</div><div class="card-val" id="c-ht-th" style="color: #f39c12;">0%</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TIẾN ĐỘ TRONG NGÀY</div></div>
+      <div class="card"><div class="card-title">💳 TỶ TRỌNG TRẢ GÓP</div><div class="card-val" id="c-tc-rt" style="color: #d63031;">0%</div><div class="card-sub"><div class="highlight-target" id="c-tc-rt-sub">DT TG: 0 TR</div></div></div>
+      <div class="card"><div class="card-title">🏆 THI ĐUA VỀ ĐÍCH</div><div class="card-val" id="c-nd-rt" style="color: #00b894;">0</div><div class="card-sub"><div class="highlight-target" id="c-nd-rt-sub">/ 0 NGÀNH HÀNG</div></div></div>
+    </div>
+
+    <div class="sec-title"><span>2</span> CHI TIẾT DOANH THU & THI ĐUA REALTIME</div>
+    <div class="sub-sec-title">2.1 DOANH THU THEO NGÀNH HÀNG</div>
+    <table>
+      <thead>
+        <tr>
+          <th width="5%">#</th>
+          <th class="text-left" width="28%">NGÀNH HÀNG</th>
+          <th width="7%">SL</th>
+          <th width="15%">DTQĐ (TR)</th>
+          <th width="12%">TARGET</th>
+          <th width="12%">% HT TARGET</th>
+          <th width="12%">DT TRẢ CHẬM</th>
+          <th width="9%">TỶ TRỌNG TC</th>
+        </tr>
+      </thead>
+      <tbody id="table-bi"></tbody>
+    </table>
+  </div>
+
+  <div id="part2" class="report-box">
+    <div class="sub-sec-title">2.2 THI ĐUA THEO NGÀNH HÀNG</div>
+    
+    <div class="td-summary-bar">
+        <div class="td-sum-item"><span style="font-size: 18px;">🏆</span> Đã về đích (>=100%): <b id="td-sum-vd" style="color: #00b894;">0</b></div>
+        <div class="td-sum-item"><span style="font-size: 18px;">⚠️</span> Cảnh báo (<50%): <b id="td-sum-cb" style="color: #d63031;">0</b></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th width="5%">#</th>
+          <th class="text-left" width="35%">NGÀNH HÀNG</th>
+          <th width="15%">THỰC HIỆN</th>
+          <th width="15%">TARGET NGÀY</th>
+          <th width="30%">% HT TARGET (TRONG NGÀY)</th>
+        </tr>
+      </thead>
+      <tbody id="table-thidua"></tbody>
+    </table>
+
+    <div class="ib-board" id="ib-board"></div>
+
+    <div class="footer">REALTIME SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
+  </div>
+
+  <button class="btn-send" id="btnSend">🚀 CHỤP ẢNH REALTIME & GỬI TELEGRAM</button>
+
+  <script>
+    const today = new Date();
+    const timeStrFull = today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const timeStr = today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = today.toLocaleDateString('vi-VN');
+    document.getElementById('current-date').innerText = `${timeStr} - ${dateStr}`;
+
+    const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
+    const CHAT_ID = "-5072214230"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
+    
+    window.reportMessageText = "";
+
+    const parseVnNumber = (val) => {
+      if (val == null || val === '') return 0;
+      if (typeof val === 'number') return val; 
+      let str = String(val).trim().replace(/\s/g, ''); 
+      if (str.includes(',') && str.includes('.')) {
+          str = (str.lastIndexOf(',') > str.lastIndexOf('.')) ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
+      } else if (str.includes(',')) { str = str.replace(',', '.'); }
+      let num = parseFloat(str); return isNaN(num) ? 0 : num;
+    };
+    const formatMoney = (val) => Math.round(val).toLocaleString('vi-VN'); 
+    const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
+    const getKey = (obj, ...names) => { let keys = Object.keys(obj); for(let n of names){ let m = keys.find(k=>k.trim().toLowerCase()===n.toLowerCase()); if(m) return obj[m]; } return undefined; };
+    
+    const getStatusIcon = (htTarget) => {
+        if (htTarget >= 1) return "🌟"; 
+        if (htTarget >= 0.8) return "✅"; 
+        if (htTarget >= 0.5) return "⚠️"; 
+        return "🚨"; 
+    };
+    
+    const getColorClass = (percent) => {
+        if (percent >= 1) return "#00b894";
+        if (percent >= 0.8) return "#0984e3";
+        if (percent >= 0.5) return "#f39c12";
+        return "#d63031";
+    };
+
+    function getEmoji(name) {
+        let n = String(name).toUpperCase();
+        if (n.includes("QUẠT")) return "🎐";
+        if (n.includes("ĐIỆN TỬ") || n.includes("TIVI") || n.includes("SONY")) return "📺";
+        if (n.includes("GIẶT") || n.includes("SẤY")) return "🧺";
+        if (n.includes("PIN") || n.includes("SẠC")) return "🔋";
+        if (n.includes("LAPTOP")) return "💻";
+        if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "🧊";
+        if (n.includes("LỌC") || n.includes("NƯỚC")) return "🚰";
+        if (n.includes("GIA DỤNG")) return "🍳";
+        if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE")) return "📱";
+        if (n.includes("CAMERA")) return "📷";
+        if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "❄️";
+        if (n.includes("ĐỒNG HỒ") || n.includes("THỜI TRANG")) return "⌚";
+        if (n.includes("BẢO HIỂM") || n.includes("FINANCE") || n.includes("CREDIT") || n.includes("VÍ") || n.includes("CAKE") || n.includes("HC")) return "💳";
+        if (n.includes("SIM")) return "📶";
+        if (n.includes("PHỤ KIỆN")) return "🎧";
+        return "📦";
+    }
+
+    function shortName(name) {
+        let n = String(name).toUpperCase();
+        if(n.includes("TỦ LẠNH")) return "Tủ lạnh";
+        if(n.includes("MÁY LỌC KHÔNG KHÍ")) return "MLKK";
+        if(n.includes("MÁY LỌC NƯỚC")) return "MLN";
+        if(n.includes("ĐIỆN THOẠI")) return "ĐMX Phone";
+        if(n.includes("LAPTOP")) return "Laptop";
+        if(n.includes("ĐIỆN TỬ") && n.includes("SONY")) return "Sony";
+        if(n.includes("ĐIỆN TỬ")) return "Điện tử";
+        if(n.includes("MÁY GIẶT")) return "Máy giặt";
+        if(n.includes("GIA DỤNG")) return "Gia dụng";
+        if(n.includes("PHỤ KIỆN")) return "Phụ kiện";
+        if(n.includes("ĐỒNG HỒ")) return "Đồng hồ";
+        if(n.includes("QUẠT")) return "Quạt gió";
+        if(n.includes("CAMERA")) return "Camera";
+        if(n.includes("MÁY LẠNH")) return "Máy lạnh";
+        if(n.includes("PIN SẠC")) return "Pin sạc";
+        if(n.includes("HOMECREDIT")) return "HC";
+        if(n.includes("FECREDIT") || n.includes("FINANCE")) return "Finance";
+        if(n.includes("FLAGSHIP")) return "Flagship";
+        if(n.includes("BẢO HIỂM")) return "Bảo hiểm";
+        if(n.includes("SIM")) return "SIM";
+        if(n.includes("VÍ")) return "Ví";
+        if(n.includes("CAKE")) return "Cake";
+        let res = name.replace("NNH ", "");
+        return res.length > 12 ? res.substring(0, 12) : res;
+    }
+
+    function buildIbList(arr, colorHex) {
+        return arr.map(i => {
+            let icon = getEmoji(i.nganhHang);
+            let name = shortName(i.nganhHang);
+            let p = Math.min(i.htTarget * 100, 100);
+            let thieu = Math.round(i.mtNgay - i.thucHien);
+            let sub = (i.htTarget < 1 && thieu > 0) ? `thiếu ${thieu}` : '';
+            let subHtml = sub ? `<span class="ib-sub">${sub}</span>` : '';
+
+            return `
+            <div class="ib-item">
+                <div class="ib-row">
+                    <div class="ib-left">
+                        <span class="ib-icon" style="color:${colorHex}">${icon}</span>
+                        <span class="ib-name" title="${i.nganhHang}">${name}</span>
+                    </div>
+                    <div class="ib-right">
+                        ${subHtml}
+                        <span class="ib-val" style="color:${colorHex}">${formatPercent(i.htTarget)}</span>
+                    </div>
+                </div>
+                <div class="ib-bar-bg"><div class="ib-bar-fill" style="width:${p}%; background:${colorHex};"></div></div>
+            </div>`;
+        }).join('');
+    }
+
+    async function loadData() {
+      const btn = document.getElementById('btnSend');
+      btn.innerText = "⏳ Đang tổng hợp 5 luồng Data (Realtime + Lũy Kế)...";
+
+      try {
+        const [resBI, resThiDua, resConfig, resRTBI, resRTThiDua] = await Promise.all([
+            fetch(GAS_URL + "?sheet=Data_BI"), 
+            fetch(GAS_URL + "?sheet=Data_ThiDua"),
+            fetch(GAS_URL + "?sheet=Config_ThiDua"),
+            fetch(GAS_URL + "?sheet=Data_Realtime_BI"),
+            fetch(GAS_URL + "?sheet=Data_Realtime_ThiDua")
+        ]);
+
+        const dataBI = await resBI.json();
+        const dataThiDua = await resThiDua.json();
+        const configData = await resConfig.json();
+        const dataRTBI = await resRTBI.json();
+        const dataRTThiDua = await resRTThiDua.json();
+
+        const currentDay = today.getDate();
+        let reportMonth = today.getMonth(); let reportYear = today.getFullYear();
+        if (currentDay === 1) { reportMonth -= 1; if (reportMonth < 0) { reportMonth = 11; reportYear--; } }
+        const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
+        const daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
+        let daysRemaining = daysInMonth - daysPassed; if (daysRemaining <= 0) daysRemaining = 1;
+        const isWeekend = today.getDay() === 0 || today.getDay() === 6;
+
+        // TÍNH QUỸ THỜI GIAN ĐÃ SỬ DỤNG (9h-22h)
+        let currentH = today.getHours();
+        let currentM = today.getMinutes();
+        let elapsedHours = (currentH + currentM / 60) - 9;
+        if (elapsedHours < 0) elapsedHours = 0;
+        if (elapsedHours > 13) elapsedHours = 13;
+        let timeRatio = elapsedHours / 13;
+
+        let luyke_tDT = 0, luyke_tTG = 0;
+        for(let row of dataBI) {
+          luyke_tDT += parseVnNumber(getKey(row, "doanh thu quy đổi")); 
+          luyke_tTG += parseVnNumber(getKey(row, "target")); 
+        }
+        let mucTieuNgayAll = (isWeekend) ? (luyke_tTG / daysInMonth) * 2 : (luyke_tTG - luyke_tDT) / daysRemaining;
+        if (mucTieuNgayAll < 0) mucTieuNgayAll = 0;
+
+        let thiDuaLuyKeMap = {};
+        for(let row of dataThiDua) {
+          let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính");
+          if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
+          let target = parseVnNumber(getKey(row, "target", "mục tiêu"));
+          let sl = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let dt = parseVnNumber(getKey(row, "doanh thu")); 
+          
+          let thucHien = sl; let isRevenueBased = false;
+          if (dt > 0) {
+              if (sl === 0) { thucHien = dt; isRevenueBased = true; }
+              else {
+                  let tyLeDT = Math.abs((dt / target) - 1);
+                  let tyLeSL = Math.abs((sl / target) - 1);
+                  if (tyLeDT < tyLeSL) { thucHien = dt; isRevenueBased = true; }
+              }
+          }
+          let mtNgay = (target - thucHien) / daysRemaining;
+          if (mtNgay < 0) mtNgay = 0; 
+          
+          thiDuaLuyKeMap[String(nganhHang).toLowerCase().trim()] = { mtNgay: mtNgay, isRevenueBased: isRevenueBased };
+        }
+
+        let parsedRealtimeBI = [];
+        let rt_tDT = 0, rt_tTC = 0, rt_tSL = 0, rt_tTarget = 0;
+
+        for(let row of dataRTBI) {
+          let nganhHang = getKey(row, "nhóm ngành hàng", "salegroupmastername");
+          if (!nganhHang || String(nganhHang).trim() === "" || String(nganhHang).trim().toUpperCase() === "N/A") continue;
+          
+          let dtqd = parseVnNumber(getKey(row, "revenue_KFactor_RT", "revenue_kfactor_rt", "dtqd rt"));
+          let sl = parseVnNumber(getKey(row, "quantity_RT", "quantity_rt", "sl rt"));
+          let targetDay = parseVnNumber(getKey(row, "revenue_KFactor_AVEDay", "revenue_kfactor_aveday", "target ngày"));
+          let dtTC = parseVnNumber(getKey(row, "revenue_Installment", "revenue_installment", "doanh thu trả chậm"));
+
+          rt_tDT += dtqd; rt_tTC += dtTC; rt_tSL += sl; rt_tTarget += targetDay;
+
+          let htTarget = targetDay > 0 ? (dtqd / targetDay) : 0;
+          let tyTrongTC = dtqd > 0 ? (dtTC / dtqd) : 0;
+
+          parsedRealtimeBI.push({ nganhHang, sl, dtqd, targetDay, htTarget, dtTC, tyTrongTC });
+        }
+        parsedRealtimeBI.sort((a, b) => b.dtqd - a.dtqd);
+
+        let configMap = {};
+        if (!configData.error && configData.length > 0) {
+            for(let c of configData) {
+                let ten = getKey(c, "ngành hàng", "nhóm ngành hàng");
+                let phanLoai = parseVnNumber(getKey(c, "phân loại", "loại", "mức độ"));
+                let thuTu = parseVnNumber(getKey(c, "thứ tự", "thu tu"));
+                if (ten) configMap[String(ten).toLowerCase().trim()] = { phanLoai, thuTu: thuTu > 0 ? thuTu : 999 };
+            }
+        }
+
+        let parsedRTThiDua = [];
+        let rt_cntVD = 0;
+        let gr1 = [], gr2 = [], gr3 = [], gr4 = []; 
+
+        for(let row of dataRTThiDua) {
+          let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính");
+          if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
+
+          let nganhClean = String(nganhHang).toLowerCase().trim();
+          let cObj = configMap[nganhClean] || {};
+          if (Object.keys(configMap).length > 0 && (!cObj.phanLoai || cObj.phanLoai === 0)) continue;
+
+          let lkInfo = thiDuaLuyKeMap[nganhClean] || { mtNgay: 0, isRevenueBased: false };
+          let mtNgay = lkInfo.mtNgay;
+
+          let sl = parseVnNumber(getKey(row, "quantity_RT", "quantity_rt", "số lượng rt"));
+          let dt = parseVnNumber(getKey(row, "revenue_RT", "revenue_rt", "doanh thu rt")); 
+          
+          let thucHien = lkInfo.isRevenueBased ? dt : sl;
+          if (thucHien === 0 && sl > 0) thucHien = sl;
+          if (thucHien === 0 && dt > 0) thucHien = dt;
+
+          let htTarget = mtNgay > 0 ? (thucHien / mtNgay) : (thucHien > 0 ? 1 : 0);
+
+          let item = { nganhHang, thucHien, mtNgay, htTarget, thuTu: cObj.thuTu || 999, isTrongDiem: cObj.phanLoai === 2 };
+          parsedRTThiDua.push(item);
+
+          if (item.htTarget >= 1) gr1.push(item);
+          else if (item.htTarget >= 0.8) gr2.push(item);
+          else if (item.htTarget >= 0.5) gr3.push(item);
+          else gr4.push(item);
+        }
+
+        parsedRTThiDua.sort((a, b) => {
+            if (a.thuTu !== b.thuTu) return a.thuTu - b.thuTu;
+            if (a.isTrongDiem && !b.isTrongDiem) return -1;
+            if (!a.isTrongDiem && b.isTrongDiem) return 1;
+            return b.htTarget - a.htTarget;
+        });
+
+        rt_cntVD = gr1.length;
+        let totalThiDua = parsedRTThiDua.length;
+
+        // CẬP NHẬT THANH TIẾN ĐỘ THỜI GIAN VÀ MỤC TIÊU MỚI THÊM
+        let htChung = mucTieuNgayAll > 0 ? (rt_tDT / mucTieuNgayAll) : 0;
+        
+        document.getElementById("val-time-ratio").innerText = formatPercent(timeRatio);
+        document.getElementById("fill-time-ratio").style.width = `${Math.min(timeRatio * 100, 100)}%`;
+
+        document.getElementById("val-target-ratio").innerText = formatPercent(htChung);
+        document.getElementById("val-target-ratio").style.color = getColorClass(htChung);
+        document.getElementById("fill-target-ratio").style.width = `${Math.min(htChung * 100, 100)}%`;
+        document.getElementById("fill-target-ratio").style.background = getColorClass(htChung);
+
+        // STATUS BAR (TÌNH TRẠNG SIÊU THỊ)
+        let tyTrongTCChung = rt_tDT > 0 ? (rt_tTC / rt_tDT) : 0;
+        let delta = htChung - timeRatio;
+        let sbStatusText = "CHƯA MỞ CỬA"; let sbStatusColor = "#636e72"; let sbLeftBg = "#f1f2f6"; let sbIcon = "🏪";
+        
+        if (timeRatio > 0 && timeRatio < 1) {
+            if (delta >= 0) { sbStatusText = "VƯỢT TIẾN ĐỘ"; sbStatusColor = "#00b894"; sbLeftBg = "#f0fdf4"; sbIcon = "🚀"; }
+            else if (delta >= -0.1) { sbStatusText = "BÁM SÁT MỤC TIÊU"; sbStatusColor = "#0984e3"; sbLeftBg = "#eff6ff"; sbIcon = "🎯"; }
+            else { sbStatusText = "CHẬM TIẾN ĐỘ"; sbStatusColor = "#d63031"; sbLeftBg = "#fef2f2"; sbIcon = "⚠️"; }
+        } else if (timeRatio >= 1) {
+            if (htChung >= 1) { sbStatusText = "HOÀN THÀNH TỐT"; sbStatusColor = "#00b894"; sbLeftBg = "#f0fdf4"; sbIcon = "🌟"; }
+            else { sbStatusText = "CHƯA ĐẠT MỤC TIÊU"; sbStatusColor = "#d63031"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
+        }
+
+        document.getElementById("sb-bg").style.background = sbLeftBg;
+        document.getElementById("sb-icon").innerText = sbIcon;
+        document.getElementById("sb-status").innerText = sbStatusText;
+        document.getElementById("sb-status").style.color = sbStatusColor;
+        
+        document.getElementById("sb-dt").innerText = formatMoney(rt_tDT);
+        document.getElementById("sb-con-thieu-sub").innerText = `CÒN LẠI: ${formatMoney(Math.max(0, mucTieuNgayAll - rt_tDT))}`;
+        
+        document.getElementById("sb-ht").innerText = formatPercent(htChung);
+        document.getElementById("sb-ht").style.color = getColorClass(htChung);
+        
+        document.getElementById("sb-mt-ngay").innerText = formatMoney(mucTieuNgayAll);
+        document.getElementById("sb-ty-trong-tg").innerText = formatPercent(tyTrongTCChung);
+        document.getElementById("sb-nguy-co").innerText = `${gr4.length} nhóm`;
+
+        let tongDtHienTai = luyke_tDT + rt_tDT;
+        let duKienThang = (tongDtHienTai / currentDay) * daysInMonth;
+        let htDuKienThang = luyke_tTG > 0 ? (duKienThang / luyke_tTG) : 0;
+        
+        document.getElementById("sb-dubao-ht").innerText = formatPercent(htDuKienThang);
+        document.getElementById("sb-dubao-dt").innerText = `${formatMoney(duKienThang)} TR`;
+
+        // F. KPI CARDS
+        document.getElementById("c-dt-th").innerText = formatMoney(rt_tDT);
+        document.getElementById("c-mt-ngay-card").innerText = formatMoney(mucTieuNgayAll);
+        
+        document.getElementById("c-ht-th").innerText = formatPercent(htChung);
+        document.getElementById("c-ht-th").style.color = getColorClass(htChung);
+        
+        document.getElementById("c-tc-rt").innerText = formatPercent(tyTrongTCChung);
+        document.getElementById("c-tc-rt-sub").innerText = `DT TG: ${formatMoney(rt_tTC)} TR`;
+        
+        document.getElementById("c-nd-rt").innerText = rt_cntVD;
+        document.getElementById("c-nd-rt-sub").innerText = `/ ${totalThiDua} NGÀNH HÀNG`;
+
+        // G. TABLE 2.1
+        let htmlBI = ""; let sttBI = 1;
+        for(let item of parsedRealtimeBI) {
+          if (item.sl === 0 && item.dtqd === 0) continue; 
+          
+          let cHT = getColorClass(item.htTarget);
+          let icon = getStatusIcon(item.htTarget);
+          
+          htmlBI += `
+            <tr>
+              <td>${sttBI++}</td>
+              <td class="text-left" style="color:#1e272e; font-weight: 900;">${icon} ${item.nganhHang}</td>
+              <td>${item.sl.toLocaleString('vi-VN')}</td>
+              <td style="color:#00A1E4; font-weight: 900;">${formatMoney(item.dtqd)}</td>
+              <td style="color:#2d3436; font-weight: 900;">${formatMoney(item.targetDay)}</td>
+              
+              <td style="position:relative; color:${cHT}; font-weight:900; padding:0; vertical-align:middle;">
+                <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(item.htTarget*100, 100)}%; background:${cHT}; opacity:0.15; z-index:0;"></div>
+                <span style="position:relative; z-index:1;">${formatPercent(item.htTarget)}</span>
+              </td>
+              
+              <td style="color:#2d3436;">${formatMoney(item.dtTC)}</td>
+              <td style="color:#f39c12; font-weight:900;">${formatPercent(item.tyTrongTC)}</td>
+            </tr>
+          `;
+        }
+        
+        htmlBI += `
+          <tr class="row-total">
+            <td>⭐</td><td class="text-left">TỔNG CỘNG</td>
+            <td>${rt_tSL.toLocaleString('vi-VN')}</td>
+            <td style="color:#00A1E4;">${formatMoney(rt_tDT)}</td>
+            <td>${formatMoney(rt_tTarget)}</td>
+            <td style="color:${getColorClass(rt_tTarget>0?rt_tDT/rt_tTarget:0)};">${formatPercent(rt_tTarget>0?rt_tDT/rt_tTarget:0)}</td>
+            <td>${formatMoney(rt_tTC)}</td>
+            <td style="color:#f39c12;">${formatPercent(tyTrongTCChung)}</td>
+          </tr>
+        `;
+        document.getElementById("table-bi").innerHTML = htmlBI;
+
+        // H. TABLE 2.2 - CẬP NHẬT CỘT THỰC HIỆN LÊN TRƯỚC TARGET NGÀY
+        let htmlThiDua = ""; let sttTD = 1;
+        for(let item of parsedRTThiDua) {
+            let cHT = getColorClass(item.htTarget);
+            let icon = getStatusIcon(item.htTarget);
+            let nameStyle = item.isTrongDiem ? `color:#d63031;` : `color:#1e272e;`;
+            
+            htmlThiDua += `
+              <tr>
+                <td>${sttTD++}</td>
+                <td class="text-left" style="font-weight: 900; white-space: nowrap; ${nameStyle}">${icon} ${item.nganhHang}</td>
+                <td style="color:#00A1E4; font-weight:900;">${formatMoney(item.thucHien)}</td>
+                <td>${formatMoney(item.mtNgay)}</td>
+                
+                <td style="position:relative; color:${cHT}; font-weight:900; padding:0; vertical-align:middle;">
+                    <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(item.htTarget*100, 100)}%; background:${cHT}; opacity:0.15; z-index:0;"></div>
+                    <span style="position:relative; z-index:1;">${formatPercent(item.htTarget)}</span>
+                </td>
+              </tr>
+            `;
+        }
+        document.getElementById("table-thidua").innerHTML = htmlThiDua;
+
+        document.getElementById("td-sum-vd").innerText = rt_cntVD;
+        document.getElementById("td-sum-cb").innerText = gr4.length;
+
+        // I. RENDER BẢNG INSIGHT CÂN ĐỐI
+        let ibHTML = `
+            <div class="ib-col-wrapper">
+                ${gr1.length > 0 ? `<div class="ib-box"><div class="ib-header green">✅ ĐÃ VỀ ĐÍCH (${gr1.length})</div><div class="ib-list">${buildIbList(gr1, '#00b894')}</div></div>` : ''}
+                ${gr2.length > 0 ? `<div class="ib-box"><div class="ib-header yellow">💪 CẦN CỐ GẮNG (${gr2.length})</div><div class="ib-list">${buildIbList(gr2, '#f39c12')}</div></div>` : ''}
+            </div>
+            <div class="ib-col-wrapper">
+                ${gr3.length > 0 ? `<div class="ib-box"><div class="ib-header blue">🎯 CẦN TẬP TRUNG (${gr3.length})</div><div class="ib-list">${buildIbList(gr3, '#0984e3')}</div></div>` : ''}
+            </div>
+            <div class="ib-col-wrapper wide">
+                ${gr4.length > 0 ? `<div class="ib-box"><div class="ib-header red">🚨 BÁO ĐỘNG (${gr4.length})</div><div class="ib-list grid-2">${buildIbList(gr4, '#d63031')}</div></div>` : ''}
+            </div>
+        `;
+        document.getElementById("ib-board").innerHTML = ibHTML;
+
+        // J. TẠO CHUỖI TEXT CHO TELEGRAM
+        let duKienNgay = timeRatio > 0 ? (rt_tDT / timeRatio) : 0;
+        let htDuKienNgay = mucTieuNgayAll > 0 ? (duKienNgay / mucTieuNgayAll) : 0;
+
+        let msg = `📊 BÁO CÁO NHANH REAL-TIME - ${timeStrFull} 📊\n`;
+        msg += `-------------------\n`;
+        msg += `- 🎯 Target Ngày: ${formatMoney(mucTieuNgayAll)}\n`;
+        msg += `- 📈 Realtime: ${formatMoney(rt_tDT)} (${formatPercent(htChung)})\n`;
+        msg += `- 📉 Còn lại: ${formatMoney(Math.max(0, mucTieuNgayAll - rt_tDT))}\n`;
+        msg += `- 🚀 Dự kiến: ${formatMoney(duKienNgay)} (${formatPercent(htDuKienNgay)})\n`;
+        msg += `- 🏆 Thi đua dự kiến đạt : ${rt_cntVD}/${totalThiDua}\n`;
+        msg += `-------------------\n`;
+        msg += `- 💳 DT Trả góp: ${formatMoney(rt_tTC)} (${formatPercent(tyTrongTCChung)})\n`;
+        msg += `- 📱 Số lượng bán: ${rt_tSL.toLocaleString('vi-VN')}\n\n`;
+        msg += `-------------------\n`;
+        msg += `🏁 TÌNH HÌNH THI ĐUA (THEO ${totalThiDua} NGÀNH HÀNG) 🏁\n\n`;
+
+        const buildTextList = (arr) => arr.map(i => {
+            let thieu = Math.round(i.mtNgay - i.thucHien);
+            let text = `  - ${i.nganhHang} (${formatPercent(i.htTarget)}`;
+            if (i.htTarget < 1 && thieu > 0) {
+                text += ` - Thiếu: ${thieu})`;
+            } else {
+                text += `)`;
+            }
+            return text;
+        }).join('\n');
+
+        const buildTextListDaVeDich = (arr) => arr.map(i => `  - ${i.nganhHang} (${formatPercent(i.htTarget)})`).join('\n');
+
+        if(gr1.length > 0) msg += `✅ ĐÃ VỀ ĐÍCH (${gr1.length} nhóm):\n${buildTextListDaVeDich(gr1)}\n\n`;
+        if(gr2.length > 0) msg += `💪 CẦN CỐ GẮNG (${gr2.length} nhóm - HT >80%):\n${buildTextList(gr2)}\n\n`;
+        if(gr3.length > 0) msg += `🎯 CẦN TẬP TRUNG (${gr3.length} nhóm - HT >50%):\n${buildTextList(gr3)}\n\n`;
+        if(gr4.length > 0) msg += `🚨 BÁO ĐỘNG (${gr4.length} nhóm - HT <50%):\n${buildTextList(gr4)}`;
+
+        window.reportMessageText = msg.trim();
+
+        const btnSend = document.getElementById('btnSend');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto') === 'true') {
+            btnSend.innerText = "⏳ Đang Auto-Capture...";
+            btnSend.disabled = true; 
+            setTimeout(executeCaptureAndSend, 2500); 
+        } else {
+            btnSend.innerText = "🚀 CHỤP ẢNH REALTIME & GỬI TELEGRAM";
+            btnSend.disabled = false;
+        }
+
+      } catch (error) { console.error("Lỗi tải data:", error); }
+    }
+
+    async function executeCaptureAndSend() {
+        const sendBtn = document.getElementById('btnSend');
+        sendBtn.innerText = "⏳ Đang xuất ảnh 1/2..."; 
+        sendBtn.disabled = true;
+        
+        try {
+            let canvas1 = await html2canvas(document.getElementById('part1'), { scale: 2.5, useCORS: true });
+            sendBtn.innerText = "⏳ Đang xuất ảnh 2/2...";
+            let canvas2 = await html2canvas(document.getElementById('part2'), { scale: 2.5, useCORS: true });
+            
+            sendBtn.innerText = "⏳ Đang gửi lên Telegram...";
+
+            let blob1 = await new Promise(resolve => canvas1.toBlob(resolve, 'image/png'));
+            let blob2 = await new Promise(resolve => canvas2.toBlob(resolve, 'image/png'));
+
+            let fd1 = new FormData();
+            fd1.append("chat_id", CHAT_ID);
+            fd1.append("document", blob1, "1_DoanhThu_RT.png");
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: fd1 });
+
+            let fd2 = new FormData();
+            fd2.append("chat_id", CHAT_ID);
+            fd2.append("document", blob2, "2_ThiDua_RT.png");
+            let res2 = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: fd2 });
+            let data2 = await res2.json();
+
+            if (data2.ok) {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: window.reportMessageText })
+                });
+                alert("🎉 Đã xuất Ảnh Realtime siêu nét và gửi Nhận định AI thành công!");
+            } else {
+                alert("Lỗi Gửi Ảnh: " + data2.description);
+            }
+        } catch (e) {
+            alert("Lỗi hệ thống: " + e);
+        } finally {
+            sendBtn.innerText = "🚀 CHỤP ẢNH REALTIME & GỬI LẠI"; 
+            sendBtn.disabled = false;
+        }
+    }
+
+    document.getElementById('btnSend').addEventListener('click', executeCaptureAndSend);
+
+    window.onload = loadData;
+
+  </script>
+</body>
+</html>
