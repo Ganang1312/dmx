@@ -46,7 +46,7 @@
     tr:last-child td { border-bottom: none; }
 
     .text-left { text-align: left; padding-left: 8px; }
-    .footer { text-align: center; margin-top: 25px; font-size: 13px; color: #b2bec3; font-weight: bold; }
+    .footer { text-align: center; margin-top: 25px; font-size: 13px; color: #b2bec3; font-weight: bold; text-transform: uppercase; }
     
     .btn-send { margin-top: 20px; background: #00A1E4; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
     .btn-send:hover { background: #0082c8; }
@@ -130,8 +130,8 @@
         return "#fc5c65"; 
     }
 
-    const formatMoney = (val) => val.toLocaleString('vi-VN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-    const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 2}) + '%';
+    const formatMoney = (val) => val.toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1});
+    const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
 
     async function loadDataFromSheet() {
       const btn = document.getElementById('btnSend');
@@ -159,17 +159,20 @@
           let nganhHang = getKey(row, "nhóm ngành hàng", "ngành hàng", "salegroupmastername");
           if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
 
-          let soLuong = parseVnNumber(getKey(row, "số lượng", "quantity"));
           let dt = parseVnNumber(getKey(row, "doanh thu quy đổi")); 
-          let dtGoc = parseVnNumber(getKey(row, "doanh thu")); 
           let tg = parseVnNumber(getKey(row, "target")); 
+          
+          // Cộng dồn vào tổng trước khi lọc hiển thị
+          tongDoanhThu += dt;
+          tongTarget += tg;
+
+          let soLuong = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let dtGoc = parseVnNumber(getKey(row, "doanh thu")); 
           let htTarget = parseVnNumber(getKey(row, "rev_kft_riserate_ave3mth", "% ht target (qđ)")) / 100;
           let tangGiamCK = parseVnNumber(getKey(row, "rev_kft_riserate_lastmonth", "+/- dtck")) / 100;
           let dtTraCham = parseVnNumber(getKey(row, "revenue_installment", "doanh thu trả chậm"));
           let tyTrongTC = parseVnNumber(getKey(row, "installment_ratio", "tỷ trọng trả chậm", "tỷ trọng tc")) / 100;
 
-          tongDoanhThu += dt;
-          tongTarget += tg;
           tongDTTraCham += dtTraCham;
           tongSoLuong += soLuong;
           tongDoanhThuGoc += dtGoc;
@@ -178,16 +181,15 @@
           let dtCK = (mauSo === 0) ? 0 : (dt / mauSo);
           tongDoanhThuCK += dtCK;
 
-          dataParsed.push({ nganhHang, soLuong, dt, tg, htTarget, tangGiamCK, dtTraCham, tyTrongTC });
+          if (dt !== 0 || tg !== 0) {
+            dataParsed.push({ nganhHang, soLuong, dt, tg, htTarget, tangGiamCK, dtTraCham, tyTrongTC });
+          }
         }
 
         dataParsed.sort((a, b) => b.tg - a.tg);
 
         let htmlRows = ""; let stt = 1;
-
         for(let item of dataParsed) {
-          if (item.soLuong <= 0) continue; 
-
           let colorHT = getColorByPercent(item.htTarget);
           let colorTangTruong = item.tangGiamCK < 0 ? "#fc5c65" : "#20bf6b";
 
@@ -225,50 +227,34 @@
         `;
 
         document.getElementById("table-body").innerHTML = htmlRows;
+        document.getElementById("c-doanhthu").innerText = Math.round(tongDoanhThu).toLocaleString('vi-VN');
+        document.getElementById("c-target").innerText = Math.round(tongTarget).toLocaleString('vi-VN');
         
-        let viewDT = tongDoanhThu; 
-        let viewTarget = tongTarget; 
-        let viewDTCK = tongDoanhThuCK; 
-
-        document.getElementById("c-doanhthu").innerText = Math.round(viewDT).toLocaleString('vi-VN');
-        document.getElementById("c-target").innerText = Math.round(viewTarget).toLocaleString('vi-VN');
-        
-        let ht = viewTarget > 0 ? (viewDT / viewTarget) : 0;
+        let ht = tongTarget > 0 ? (tongDoanhThu / tongTarget) : 0;
         document.getElementById("c-ht").innerText = formatPercent(ht);
 
-        let duKienThang = (viewDT / daysPassed) * daysInMonth;
+        let duKienThang = (tongDoanhThu / daysPassed) * daysInMonth;
         document.getElementById("c-dukien-thang").innerText = Math.round(duKienThang).toLocaleString('vi-VN');
 
-        let htDk = viewTarget > 0 ? (duKienThang / viewTarget) : 0;
+        let htDk = tongTarget > 0 ? (duKienThang / tongTarget) : 0;
         document.getElementById("c-ht-dk").innerText = formatPercent(htDk);
 
-        let mucTieuNgay = 0;
-        if (isWeekend) { mucTieuNgay = (viewTarget / daysInMonth) * 2; } 
-        else {
-            mucTieuNgay = (viewTarget - viewDT) / daysRemaining;
-            if (mucTieuNgay <= 0) mucTieuNgay = viewTarget / daysInMonth;
-        }
+        let mucTieuNgay = (isWeekend) ? (tongTarget / daysInMonth) * 2 : (tongTarget - tongDoanhThu) / daysRemaining;
+        if (mucTieuNgay < 0) mucTieuNgay = 0;
         document.getElementById("c-muctieu-ngay").innerText = Math.round(mucTieuNgay).toLocaleString('vi-VN');
 
-        let tangTruongToanST = viewDTCK !== 0 ? (viewDT - viewDTCK) / viewDTCK : 0;
-        let chenhLechCK = viewDT - viewDTCK;
-        let ckColor = tangTruongToanST < 0 ? '#fc5c65' : '#20bf6b';
-        let dauCK = tangTruongToanST > 0 ? '+' : '';
-        document.getElementById("c-cungky").innerHTML = `<span style="color:${ckColor}">${dauCK}${formatPercent(tangTruongToanST)} <span style="font-size:18px;">(${Math.round(chenhLechCK)})</span></span>`;
+        let chenhLechCK = tongDoanhThu - tongDoanhThuCK;
+        let ckColor = totalTangGiamCK < 0 ? '#fc5c65' : '#20bf6b';
+        document.getElementById("c-cungky").innerHTML = `<span style="color:${ckColor}">${totalTangGiamCK > 0 ? '+' : ''}${formatPercent(totalTangGiamCK)} <span style="font-size:18px;">(${Math.round(chenhLechCK)})</span></span>`;
 
         let tyLeTraCham = tongDoanhThuGoc > 0 ? (tongDTTraCham / tongDoanhThuGoc) : 0;
         document.getElementById("c-tracham").innerText = formatPercent(tyLeTraCham);
 
         btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM";
         btn.disabled = false;
-        
-        // TỰ ĐỘNG BẤM GỬI SAU 2 GIÂY
-        setTimeout(() => {
-            btn.innerText = "⏳ Đang Auto-Capture...";
-            btn.click();
-        }, 2000);
+        setTimeout(() => btn.click(), 2000);
 
-      } catch (error) { alert("Lỗi kéo dữ liệu: " + error); }
+      } catch (error) { console.error("Lỗi:", error); }
     }
 
     window.onload = loadDataFromSheet;
@@ -283,7 +269,6 @@
           fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
           .then(res => res.json()).then(data => {
             if (data.ok) { 
-                // ĐÃ BỎ WINDOW.CLOSE() - Giữ tab và hiện lại nút bấm
                 alert("🎉 Gửi Báo Cáo Doanh Thu thành công!");
                 btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM"; 
                 btn.disabled = false;
