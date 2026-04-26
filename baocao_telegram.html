@@ -157,7 +157,7 @@
         for(let i=0; i < data.length; i++) {
           let row = data[i];
 
-          // 1. TÍNH TỔNG TẤT CẢ
+          // 1. TÍNH TỔNG TẤT CẢ (Lấy số liệu trọn vẹn cho phần tổng)
           let dt = parseVnNumber(getKey(row, "doanh thu quy đổi")); 
           let tg = parseVnNumber(getKey(row, "target")); 
           let soLuong = parseVnNumber(getKey(row, "số lượng", "quantity"));
@@ -182,8 +182,8 @@
           // Bỏ qua dòng trống, N/A
           if (!nganhHang || String(nganhHang).trim() === "" || String(nganhHang).trim().toUpperCase() === "N/A") continue;
 
-          // BỎ QUA dòng nếu cả 3 chỉ số bằng 0
-          if (soLuong === 0 && dt === 0 && tg === 0) {
+          // RULE MỚI: Ẩn dòng chỉ cần số lượng VÀ doanh thu = 0 (Không quan tâm target)
+          if (soLuong === 0 && dt === 0) {
               continue;
           }
 
