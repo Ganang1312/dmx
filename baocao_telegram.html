@@ -156,23 +156,19 @@
 
         for(let i=0; i < data.length; i++) {
           let row = data[i];
-          let nganhHang = getKey(row, "nhóm ngành hàng", "ngành hàng", "salegroupmastername");
-          if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
 
+          // 1. TÍNH TỔNG TẤT CẢ
           let dt = parseVnNumber(getKey(row, "doanh thu quy đổi")); 
           let tg = parseVnNumber(getKey(row, "target")); 
-          
-          // Cộng dồn vào tổng trước khi lọc hiển thị
-          tongDoanhThu += dt;
-          tongTarget += tg;
-
           let soLuong = parseVnNumber(getKey(row, "số lượng", "quantity"));
           let dtGoc = parseVnNumber(getKey(row, "doanh thu")); 
-          let htTarget = parseVnNumber(getKey(row, "rev_kft_riserate_ave3mth", "% ht target (qđ)")) / 100;
-          let tangGiamCK = parseVnNumber(getKey(row, "rev_kft_riserate_lastmonth", "+/- dtck")) / 100;
           let dtTraCham = parseVnNumber(getKey(row, "revenue_installment", "doanh thu trả chậm"));
+          let tangGiamCK = parseVnNumber(getKey(row, "rev_kft_riserate_lastmonth", "+/- dtck")) / 100;
+          let htTarget = parseVnNumber(getKey(row, "rev_kft_riserate_ave3mth", "% ht target (qđ)")) / 100;
           let tyTrongTC = parseVnNumber(getKey(row, "installment_ratio", "tỷ trọng trả chậm", "tỷ trọng tc")) / 100;
 
+          tongDoanhThu += dt;
+          tongTarget += tg;
           tongDTTraCham += dtTraCham;
           tongSoLuong += soLuong;
           tongDoanhThuGoc += dtGoc;
@@ -181,9 +177,17 @@
           let dtCK = (mauSo === 0) ? 0 : (dt / mauSo);
           tongDoanhThuCK += dtCK;
 
-          if (dt !== 0 || tg !== 0) {
-            dataParsed.push({ nganhHang, soLuong, dt, tg, htTarget, tangGiamCK, dtTraCham, tyTrongTC });
+          // 2. BỘ LỌC HIỂN THỊ
+          let nganhHang = getKey(row, "nhóm ngành hàng", "ngành hàng", "salegroupmastername");
+          // Bỏ qua dòng trống, N/A
+          if (!nganhHang || String(nganhHang).trim() === "" || String(nganhHang).trim().toUpperCase() === "N/A") continue;
+
+          // BỎ QUA dòng nếu cả 3 chỉ số bằng 0
+          if (soLuong === 0 && dt === 0 && tg === 0) {
+              continue;
           }
+
+          dataParsed.push({ nganhHang, soLuong, dt, tg, htTarget, tangGiamCK, dtTraCham, tyTrongTC });
         }
 
         dataParsed.sort((a, b) => b.tg - a.tg);
@@ -252,7 +256,14 @@
 
         btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM";
         btn.disabled = false;
-        setTimeout(() => btn.click(), 2000);
+        
+        // KIỂM TRA URL XEM CÓ LỆNH AUTO KHÔNG
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto') === 'true') {
+            btn.innerText = "⏳ Đang Auto-Capture...";
+            btn.disabled = true;
+            setTimeout(() => btn.click(), 2000);
+        }
 
       } catch (error) { console.error("Lỗi:", error); }
     }

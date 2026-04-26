@@ -263,11 +263,13 @@
         btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM";
         btn.disabled = false;
         
-        // TỰ ĐỘNG BẤM GỬI SAU 2 GIÂY
-        setTimeout(() => {
+        // KIỂM TRA URL XEM CÓ LỆNH AUTO KHÔNG
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto') === 'true') {
             btn.innerText = "⏳ Đang Auto-Capture...";
-            btn.click();
-        }, 2000);
+            btn.disabled = true;
+            setTimeout(() => btn.click(), 2000);
+        }
 
       } catch (error) { alert("Lỗi kéo dữ liệu: " + error); }
     }
@@ -284,7 +286,6 @@
           fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
           .then(res => res.json()).then(data => {
             if (data.ok) { 
-                // ĐÃ BỎ WINDOW.CLOSE() - Giữ tab và hiện lại nút bấm
                 alert("🎉 Gửi Báo Cáo Thi Đua thành công!"); 
                 btn.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM"; 
                 btn.disabled = false;
