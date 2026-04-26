@@ -24,7 +24,7 @@
     .header-title { text-align: center; color: var(--secondary); font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
     .date-text { text-align: center; font-weight: 800; color: var(--primary); font-size: 16px; margin-bottom: 20px; text-transform: uppercase;}
     
-    /* 1. HEALTH BAR STYLE MỚI (CĂN GIỮA) */
+    /* 1. HEALTH BAR */
     .status-bar { display: flex; align-items: stretch; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 25px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); overflow: hidden; background: white;}
     .sb-item { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px 5px; flex: 1; position: relative;}
     .sb-item:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 20%; height: 60%; width: 1px; background: #e2e8f0; }
@@ -41,7 +41,7 @@
     .sec-title span { background: var(--primary); color: white; width: 30px; height: 30px; display: inline-flex; justify-content: center; align-items: center; border-radius: 50%; margin-right: 10px; font-size: 18px; }
     .sub-sec-title { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 900; color: var(--secondary); margin: 15px 0 5px 0; text-transform: uppercase; border-left: 4px solid var(--primary); padding-left: 8px; }
 
-    /* 2. KPI TIERS (GỘP CHUNG 8 THẺ) */
+    /* 2. KPI TIERS */
     .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; row-gap: 16px; }
     
     .card { 
@@ -186,8 +186,14 @@
   <button class="btn-send" id="btnSend">🚀 CHỤP ẢNH & GỬI TELEGRAM</button>
 
   <script>
+    // ---------------------------------------------------------
+    // CÀI ĐẶT THỜI GIAN
+    // ---------------------------------------------------------
     const today = new Date();
-    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const yesterday = new Date(today); 
+    yesterday.setDate(today.getDate() - 1);
+    
+    // Giao diện ảnh: Lấy ngày hôm qua (chốt sổ liệu)
     document.getElementById('current-date').innerText = yesterday.toLocaleDateString('vi-VN');
 
     const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
@@ -447,7 +453,7 @@
         `;
         document.getElementById("table-bi").innerHTML = htmlBI;
 
-        // F. BẢNG 2.2 (THI ĐUA) - CẬP NHẬT LẠI THỨ TỰ CỘT
+        // F. BẢNG 2.2 (THI ĐUA)
         let htmlThiDua = ""; let sttTD = 1;
         for(let item of parsedThiDua) {
             let cHT = getColorClass(item.htTarget);
@@ -477,7 +483,8 @@
         document.getElementById("table-thidua").innerHTML = htmlThiDua;
 
         // G. TẠO CHUỖI TEXT CHO TELEGRAM
-        let msg = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ - ngày ${yesterday.toLocaleDateString('vi-VN')} 📊\n`;
+        // TRONG TIN NHẮN TEXT: Hiển thị ngày hôm nay (ngày gửi báo cáo)
+        let msg = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ - ngày ${today.toLocaleDateString('vi-VN')} 📊\n`;
         msg += `-------------------\n`;
         msg += `- 🎯 Target Tháng: ${formatMoney(tTG)}\n`;
         msg += `- 📈 Luỹ kế đạt: ${formatMoney(tDT)} (${formatPercent(totalHT)})\n`;
@@ -506,7 +513,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auto') === 'true') {
             btn.innerText = "⏳ Đang Auto-Capture...";
-            btn.disabled = true;
             setTimeout(() => btn.click(), 2500); 
         }
 
@@ -515,16 +521,14 @@
 
     window.onload = loadData;
 
-	document.getElementById('btnSend').addEventListener('click', () => {
+    document.getElementById('btnSend').addEventListener('click', () => {
       const btn = document.getElementById('btnSend');
-      btn.innerText = "⏳ Đang xuất ảnh Ultra HD..."; btn.disabled = true;
+      btn.innerText = "⏳ Đang xuất ảnh..."; btn.disabled = true;
       
-      // SỬA SCALE XUỐNG 2 ĐỂ KHÔNG BỊ VƯỢT QUÁ GIỚI HẠN CHIỀU DÀI CỦA TELEGRAM
       html2canvas(document.getElementById('report-container'), { scale: 2, useCORS: true }).then(canvas => {
         canvas.toBlob(blob => {
           const formData = new FormData();
-          formData.append("chat_id", CHAT_ID); 
-          formData.append("photo", blob, "executive_report.png");
+          formData.append("chat_id", CHAT_ID); formData.append("photo", blob, "executive_report.png");
           
           fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, { method: "POST", body: formData })
           .then(res => res.json()).then(data => {
@@ -538,8 +542,7 @@
                     btn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; btn.disabled = false;
                 });
             } else { 
-                alert("Lỗi Gửi Ảnh: " + data.description); 
-                btn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; btn.disabled = false;
+                alert("Lỗi Gửi Ảnh: " + data.description); btn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; btn.disabled = false;
             }
           });
         }, "image/png");
