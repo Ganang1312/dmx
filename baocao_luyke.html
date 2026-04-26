@@ -15,7 +15,6 @@
 
     body { font-family: 'Nunito', sans-serif; background: var(--bg); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
     
-    /* Thiết kế phẳng */
     .report-box { 
       background: var(--card-bg); width: 950px; padding: 30px; border-radius: 16px; 
       border: 1px solid var(--border); position: relative; overflow: hidden; margin-bottom: 20px;
@@ -94,6 +93,11 @@
     .ib-bar-bg { height: 4px; background: #f1f2f6; border-radius: 2px; width: 100%; overflow: hidden; }
     .ib-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
 
+    /* SUMMARY BAR */
+    .td-summary-bar { display: flex; justify-content: space-around; background: #ffffff; border: 2px solid var(--border); padding: 12px; border-radius: 10px; margin-bottom: 15px; }
+    .td-sum-item { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: var(--text-main); }
+    .td-sum-item b { font-size: 20px; }
+
     .footer { text-align: center; margin-top: 25px; font-size: 13px; color: var(--text-muted); font-weight: bold; text-transform: uppercase; }
     .btn-send { background: #00A1E4; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 30px;}
   </style>
@@ -122,29 +126,29 @@
         </div>
         <div class="sb-item">
             <div class="sb-label"><i style="font-size: 14px;">⏳</i> DT CÒN LẠI</div>
-            <div class="sb-val" id="sb-con-thieu" style="color: var(--text-muted);">0</div>
+            <div class="sb-val" id="sb-con-thieu" style="color: #636e72;">0</div>
         </div>
         <div class="sb-item">
             <div class="sb-label"><i style="font-size: 14px;">🎯</i> MT NGÀY KỲ VỌNG</div>
-            <div class="sb-val" id="sb-mt-ngay" style="color: var(--green);">0</div>
+            <div class="sb-val" id="sb-mt-ngay" style="color: #00b894;">0</div>
         </div>
         <div class="sb-right" id="sb-nguy-co-box">
             <div style="display:flex; align-items:center; gap:6px; font-weight: 900; font-size: 13px;"><i style="font-size: 18px;">⚠️</i> Ngành nguy cơ</div>
-            <div style="font-weight: 900; font-size: 16px; color: var(--red);" id="sb-nguy-co">0 nhóm</div>
+            <div style="font-weight: 900; font-size: 16px; color: #d63031;" id="sb-nguy-co">0 nhóm</div>
         </div>
     </div>
 
     <div class="sec-title"><span>1</span> DOANH THU & THI ĐUA</div>
     <div class="grid-4">
-      <div class="card"><div class="card-title">💰 DOANH THU LŨY KẾ</div><div class="card-val" id="c-dt" style="color: var(--red);">0</div><div class="card-sub"><span class="highlight-target" id="c-dt-sub">CÒN LẠI: 0 TR</span></div></div>
-      <div class="card"><div class="card-title">🎯 % HT TARGET</div><div class="card-val" id="c-ht" style="color: var(--green);">0%</div><div class="card-sub"><span class="highlight-target" id="c-tg-sub">TARGET: 0 TR</span></div></div>
+      <div class="card"><div class="card-title">💰 DOANH THU LŨY KẾ</div><div class="card-val" id="c-dt" style="color: #d63031;">0</div><div class="card-sub"><span class="highlight-target" id="c-dt-sub">CÒN LẠI: 0 TR</span></div></div>
+      <div class="card"><div class="card-title">🎯 % HT TARGET</div><div class="card-val" id="c-ht" style="color: #00b894;">0%</div><div class="card-sub"><span class="highlight-target" id="c-tg-sub">TARGET: 0 TR</span></div></div>
       <div class="card"><div class="card-title">📈 DỰ KIẾN THÁNG</div><div class="card-val" id="c-dk" style="color: #00A1E4;">0</div><div class="card-sub"><span class="highlight-target" id="c-dk-sub">%HT D.KIẾN: 0%</span></div></div>
-      <div class="card"><div class="card-title">💳 % TRẢ CHẬM</div><div class="card-val" id="c-tc" style="color: var(--orange);">0%</div><div class="card-sub"><span class="highlight-target" id="c-tc-sub">0 TR</span></div></div>
+      <div class="card"><div class="card-title">💳 % TRẢ CHẬM</div><div class="card-val" id="c-tc" style="color: #f39c12;">0%</div><div class="card-sub"><span class="highlight-target" id="c-tc-sub">0 TR</span></div></div>
       
       <div class="card"><div class="card-title">⏱️ MỤC TIÊU NGÀY</div><div class="card-val" id="c-mt-ngay-card" style="color: #00A1E4;">0</div><div class="card-sub">TRIỆU ĐỒNG/NGÀY</div></div>
-      <div class="card"><div class="card-title">📊 +/- CÙNG KỲ</div><div class="card-val" id="c-ck" style="color: var(--red);">0%</div><div class="card-sub" id="c-ck-sub">(0 TR)</div></div>
+      <div class="card"><div class="card-title">📊 +/- CÙNG KỲ</div><div class="card-val" id="c-ck" style="color: #d63031;">0%</div><div class="card-sub" id="c-ck-sub">(0 TR)</div></div>
       <div class="card"><div class="card-title">⭐ NH DỰ KIẾN ĐẠT</div><div class="card-val" id="c-nh-dk" style="color: #00A1E4;">0</div><div class="card-sub"></div></div>
-      <div class="card"><div class="card-title">🏆 NH ĐÃ VỀ ĐÍCH</div><div class="card-val" id="c-nh-vd" style="color: var(--orange);">0</div><div class="card-sub"></div></div>
+      <div class="card"><div class="card-title">🏆 NH ĐÃ VỀ ĐÍCH</div><div class="card-val" id="c-nh-vd" style="color: #f39c12;">0</div><div class="card-sub"></div></div>
     </div>
 
     <div class="sec-title"><span>2</span> CHI TIẾT DOANH THU & THI ĐUA</div>
@@ -170,6 +174,12 @@
   <div id="part2" class="report-box">
     <div class="sub-sec-title">2.2 THI ĐUA THEO NGÀNH HÀNG</div>
     
+    <div class="td-summary-bar">
+        <div class="td-sum-item"><span style="font-size: 18px;">🏆</span> Đã về đích: <b id="td-sum-vd" style="color: #00b894;">0</b></div>
+        <div class="td-sum-item"><span style="font-size: 18px;">🚀</span> Dự kiến đạt: <b id="td-sum-dk" style="color: #00A1E4;">0</b></div>
+        <div class="td-sum-item"><span style="font-size: 18px;">⚠️</span> Cảnh báo: <b id="td-sum-cb" style="color: #d63031;">0</b></div>
+    </div>
+
     <table>
       <thead>
         <tr>
@@ -226,11 +236,12 @@
         return "🚨"; 
     };
     
+    // Đã thay thế toàn bộ trả về var() thành Hex code tĩnh để html2canvas không bị lỗi trong suốt
     const getColorClass = (percent) => {
-        if (percent >= 1) return "var(--green)";
-        if (percent >= 0.8) return "var(--blue)";
-        if (percent >= 0.5) return "var(--orange)";
-        return "var(--red)";
+        if (percent >= 1) return "#00b894";
+        if (percent >= 0.8) return "#0984e3";
+        if (percent >= 0.5) return "#f39c12";
+        return "#d63031";
     };
 
     // Rút gọn tên ngành trên giao diện Ảnh
@@ -296,7 +307,7 @@
             <div class="ib-item">
                 <div class="ib-row">
                     <div class="ib-left">
-                        <span class="ib-icon">${icon}</span>
+                        <span class="ib-icon" style="color:${colorHex}">${icon}</span>
                         <span class="ib-name" title="${i.nganhHang}">${name}</span>
                     </div>
                     <div class="ib-right">
@@ -432,10 +443,10 @@
 
         // D. RENDER UI TỔNG QUAN
         let sbStatusText = "ỔN ĐỊNH"; let sbStatusColor = "#1d4ed8"; let sbLeftBg = "#eff6ff"; let sbIcon = "🛡️";
-        if (totalHT >= 0.95) { sbStatusText = "XUẤT SẮC"; sbStatusColor = "var(--green)"; sbLeftBg = "#f0fdf4"; sbIcon = "🌟"; }
+        if (totalHT >= 0.95) { sbStatusText = "XUẤT SẮC"; sbStatusColor = "#00b894"; sbLeftBg = "#f0fdf4"; sbIcon = "🌟"; }
         else if (totalHT >= 0.85) { sbStatusText = "ỔN ĐỊNH"; sbStatusColor = "#1d4ed8"; sbLeftBg = "#eff6ff"; sbIcon = "🛡️"; }
-        else if (totalHT >= 0.70) { sbStatusText = "CẢNH BÁO"; sbStatusColor = "var(--orange)"; sbLeftBg = "#fff7ed"; sbIcon = "⚠️"; }
-        else { sbStatusText = "NGUY HIỂM"; sbStatusColor = "var(--red)"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
+        else if (totalHT >= 0.70) { sbStatusText = "CẢNH BÁO"; sbStatusColor = "#f39c12"; sbLeftBg = "#fff7ed"; sbIcon = "⚠️"; }
+        else { sbStatusText = "NGUY HIỂM"; sbStatusColor = "#d63031"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
 
         document.getElementById("sb-bg").style.background = sbLeftBg;
         document.getElementById("sb-icon").innerText = sbIcon;
@@ -443,7 +454,7 @@
         document.getElementById("sb-status").style.color = sbStatusColor;
         
         let strTangTruong = totalCK >= 0 ? `+${Math.round(totalCK*100)}` : Math.round(totalCK*100);
-        let colorTangTruong = totalCK >= 0 ? "var(--green)" : "var(--red)";
+        let colorTangTruong = totalCK >= 0 ? "#00b894" : "#d63031";
         document.getElementById("sb-tien-do").innerHTML = `${formatPercent(totalHT)} <span style="font-size:14px; font-weight:800; color:${colorTangTruong};">(${strTangTruong}%)</span>`;
         
         document.getElementById("sb-du-kien").innerText = formatPercent(totalDKThang/tTG);
@@ -453,17 +464,17 @@
         let nguyCoCount = parsedThiDua.filter(x => x.htDuKien < 1).length;
         document.getElementById("sb-nguy-co").innerText = `${nguyCoCount} nhóm`;
 
-        // KPI CARDS
+        // KPI CARDS - Sử dụng Hex code tuyệt đối
         document.getElementById("c-dt").innerText = formatMoney(tDT);
         document.getElementById("c-ht").innerText = formatPercent(totalHT);
         document.getElementById("c-ht").style.color = getColorClass(totalHT);
         
-        let colorConLai = (tTG - tDT) > 0 ? "var(--red)" : "var(--green)";
-        let colorDKThang = (totalDKThang/tTG) >= 1 ? "var(--green)" : ((totalDKThang/tTG) >= 0.8 ? "var(--blue)" : "var(--red)");
-        let colorTyTrongTC = totalTyLeTC > 0.15 ? "var(--red)" : "var(--orange)";
+        let colorConLai = (tTG - tDT) > 0 ? "#d63031" : "#00b894";
+        let colorDKThang = (totalDKThang/tTG) >= 1 ? "#00b894" : ((totalDKThang/tTG) >= 0.8 ? "#0984e3" : "#d63031");
+        let colorTyTrongTC = totalTyLeTC > 0.15 ? "#d63031" : "#f39c12";
 
         document.getElementById("c-dt-sub").innerHTML = `CÒN LẠI: <span style="color:${colorConLai};">${formatMoney(Math.max(0, tTG - tDT))} TR</span>`;
-        document.getElementById("c-tg-sub").innerHTML = `TARGET: <span style="color:var(--primary);">${formatMoney(tTG)} TR</span>`;
+        document.getElementById("c-tg-sub").innerHTML = `TARGET: <span style="color:#00A1E4;">${formatMoney(tTG)} TR</span>`;
         document.getElementById("c-dk").innerText = formatMoney(totalDKThang);
         document.getElementById("c-dk-sub").innerHTML = `%HT D.KIẾN: <span style="color:${colorDKThang};">${formatPercent(totalDKThang/tTG)}</span>`;
         document.getElementById("c-tc").innerText = formatPercent(totalTyLeTC);
@@ -471,18 +482,18 @@
 
         document.getElementById("c-mt-ngay-card").innerText = formatMoney(mucTieuNgayAll);
         document.getElementById("c-ck").innerText = `${totalCK>0?'+':''}${Math.round(totalCK*100)}%`;
-        document.getElementById("c-ck").style.color = totalCK < 0 ? 'var(--red)' : 'var(--green)';
+        document.getElementById("c-ck").style.color = totalCK < 0 ? '#d63031' : '#00b894';
         document.getElementById("c-ck-sub").innerText = `(${formatMoney(tDT-tDTCK)} TR)`;
         
         let totalThiDua = parsedThiDua.length;
-        document.getElementById("c-nh-dk").innerHTML = `<span style="font-size: 48px;">${cntDK}</span><span style="font-size: 20px; color: var(--text-muted)"> / ${totalThiDua}</span>`;
-        document.getElementById("c-nh-vd").innerHTML = `<span style="font-size: 48px;">${cntVD}</span><span style="font-size: 20px; color: var(--text-muted)"> / ${totalThiDua}</span>`;
+        document.getElementById("c-nh-dk").innerHTML = `<span style="font-size: 48px;">${cntDK}</span><span style="font-size: 20px; color: #636e72;"> / ${totalThiDua}</span>`;
+        document.getElementById("c-nh-vd").innerHTML = `<span style="font-size: 48px;">${cntVD}</span><span style="font-size: 20px; color: #636e72;"> / ${totalThiDua}</span>`;
 
         // E. BẢNG 2.1 (DOANH THU)
         let htmlBI = ""; let sttBI = 1;
         for(let item of parsedBI) {
           let cHT = getColorClass(item.htTarget);
-          let cCK = item.tangGiamCK < 0 ? "var(--red)" : "var(--green)";
+          let cCK = item.tangGiamCK < 0 ? "#d63031" : "#00b894";
           let icon = getStatusIcon(item.htTarget);
           
           let dtCKThang = (1 + item.tangGiamCK === 0) ? 0 : (item.dt / (1 + item.tangGiamCK));
@@ -492,10 +503,10 @@
           htmlBI += `
             <tr>
               <td>${sttBI++}</td>
-              <td class="text-left" style="color:var(--secondary); font-weight: 900;">${icon} ${item.nganhHang}</td>
+              <td class="text-left" style="color:#1e272e; font-weight: 900;">${icon} ${item.nganhHang}</td>
               <td>${item.sl.toLocaleString('vi-VN')}</td>
-              <td style="color:var(--primary); font-weight: 900;">${formatMoney(item.dt)}</td>
-              <td style="color:var(--text-main); font-weight: 900;">${formatMoney(item.tg)}</td>
+              <td style="color:#00A1E4; font-weight: 900;">${formatMoney(item.dt)}</td>
+              <td style="color:#2d3436; font-weight: 900;">${formatMoney(item.tg)}</td>
               
               <td style="position:relative; color:${cHT}; font-weight:900; padding:0; vertical-align:middle;">
                 <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(item.htTarget*100, 100)}%; background:${cHT}; opacity:0.15; z-index:0;"></div>
@@ -504,10 +515,10 @@
               
               <td style="color:${cCK}; line-height: 1.2;">
                   ${formatPercent(item.tangGiamCK)}<br>
-                  <span style="font-size:11px; color:var(--text-muted); font-weight:700;">${strChenhLech}</span>
+                  <span style="font-size:11px; color:#636e72; font-weight:700;">${strChenhLech}</span>
               </td>
-              <td style="color:var(--text-main);">${formatMoney(item.dtTC)}</td>
-              <td style="color:var(--primary);">${formatPercent(item.tyTrongTC)}</td>
+              <td style="color:#2d3436;">${formatMoney(item.dtTC)}</td>
+              <td style="color:#00A1E4;">${formatPercent(item.tyTrongTC)}</td>
             </tr>
           `;
         }
@@ -518,15 +529,15 @@
           <tr class="row-total">
             <td>⭐</td><td class="text-left">TỔNG CỘNG</td>
             <td>${tSL.toLocaleString('vi-VN')}</td>
-            <td style="color:var(--red);">${formatMoney(tDT)}</td>
+            <td style="color:#d63031;">${formatMoney(tDT)}</td>
             <td>${formatMoney(tTG)}</td>
             <td style="color:${getColorClass(totalHT)};">${formatPercent(totalHT)}</td>
-            <td style="color:${totalCK < 0 ? 'var(--red)' : 'var(--green)'}; line-height: 1.2;">
+            <td style="color:${totalCK < 0 ? '#d63031' : '#00b894'}; line-height: 1.2;">
                 ${formatPercent(totalCK)}<br>
-                <span style="font-size:12px; color:var(--text-muted); font-weight:800;">${strTotalChenhLech}</span>
+                <span style="font-size:12px; color:#636e72; font-weight:800;">${strTotalChenhLech}</span>
             </td>
             <td>${formatMoney(tTC)}</td>
-            <td style="color:var(--primary);">${formatPercent(totalTyLeTC)}</td>
+            <td style="color:#00A1E4;">${formatPercent(totalTyLeTC)}</td>
           </tr>
         `;
         document.getElementById("table-bi").innerHTML = htmlBI;
@@ -535,9 +546,9 @@
         let htmlThiDua = ""; let sttTD = 1;
         for(let item of parsedThiDua) {
             let cHT = getColorClass(item.htTarget);
-            let colorHTDK = item.htDuKien >= 1 ? 'var(--green)' : 'var(--primary)';
+            let colorHTDK = item.htDuKien >= 1 ? '#00b894' : '#00A1E4';
             let icon = getStatusIcon(item.htTarget, item.htDuKien);
-            let nameStyle = item.isTrongDiem ? `color:var(--red);` : `color:var(--secondary);`;
+            let nameStyle = item.isTrongDiem ? `color:#d63031;` : `color:#1e272e;`;
             
             let mtNgayDisplay = item.htTarget >= 1 ? '<span style="font-size:18px;">🏆</span>' : formatMoney(item.mtNgay);
 
@@ -560,22 +571,27 @@
         }
         document.getElementById("table-thidua").innerHTML = htmlThiDua;
 
-        // G. RENDER BẢNG INSIGHT CÂN ĐỐI
+        // CẬP NHẬT THANH CHỈ SỐ THI ĐUA Ở BẢNG 2.2
+        document.getElementById("td-sum-vd").innerText = gr1.length;
+        document.getElementById("td-sum-dk").innerText = cntDK;
+        document.getElementById("td-sum-cb").innerText = (parsedThiDua.length - cntDK);
+
+        // G. RENDER BẢNG INSIGHT CÂN ĐỐI (Dùng Hex Codes tuyệt đối)
         let ibHTML = `
             <div class="ib-col-wrapper">
-                ${gr1.length > 0 ? `<div class="ib-box"><div class="ib-header green">✅ ĐÃ VỀ ĐÍCH (${gr1.length})</div><div class="ib-list">${buildIbList(gr1, 'var(--green)')}</div></div>` : ''}
-                ${gr2.length > 0 ? `<div class="ib-box"><div class="ib-header yellow">💪 CẦN CỐ GẮNG (${gr2.length})</div><div class="ib-list">${buildIbList(gr2, 'var(--orange)')}</div></div>` : ''}
+                ${gr1.length > 0 ? `<div class="ib-box"><div class="ib-header green">✅ ĐÃ VỀ ĐÍCH (${gr1.length})</div><div class="ib-list">${buildIbList(gr1, '#00b894')}</div></div>` : ''}
+                ${gr2.length > 0 ? `<div class="ib-box"><div class="ib-header yellow">💪 CẦN CỐ GẮNG (${gr2.length})</div><div class="ib-list">${buildIbList(gr2, '#f39c12')}</div></div>` : ''}
             </div>
             <div class="ib-col-wrapper">
-                ${gr3.length > 0 ? `<div class="ib-box"><div class="ib-header blue">🎯 CẦN TẬP TRUNG (${gr3.length})</div><div class="ib-list">${buildIbList(gr3, 'var(--blue)')}</div></div>` : ''}
+                ${gr3.length > 0 ? `<div class="ib-box"><div class="ib-header blue">🎯 CẦN TẬP TRUNG (${gr3.length})</div><div class="ib-list">${buildIbList(gr3, '#0984e3')}</div></div>` : ''}
             </div>
             <div class="ib-col-wrapper wide">
-                ${gr4.length > 0 ? `<div class="ib-box"><div class="ib-header red">🚨 BÁO ĐỘNG (${gr4.length})</div><div class="ib-list grid-2">${buildIbList(gr4, 'var(--red)')}</div></div>` : ''}
+                ${gr4.length > 0 ? `<div class="ib-box"><div class="ib-header red">🚨 BÁO ĐỘNG (${gr4.length})</div><div class="ib-list grid-2">${buildIbList(gr4, '#d63031')}</div></div>` : ''}
             </div>
         `;
         document.getElementById("ib-board").innerHTML = ibHTML;
 
-        // H. TẠO CHUỖI TEXT CHO TELEGRAM (ĐỊNH DẠNG LIST NGUYÊN BẢN)
+        // H. TẠO CHUỖI TEXT CHO TELEGRAM CHUẨN LIST FORMAT
         let msg = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ - ngày ${today.toLocaleDateString('vi-VN')} 📊\n`;
         msg += `-------------------\n`;
         msg += `- 🎯 Target Tháng: ${formatMoney(tTG)}\n`;
