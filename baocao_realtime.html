@@ -42,7 +42,45 @@
     /* SECTION TITLES */
     .sec-title { display: flex; align-items: center; font-family: 'Montserrat', sans-serif; font-size: 20px; font-weight: 900; color: #00A1E4; margin: 25px 0 15px 0; text-transform: uppercase; }
     .sec-title span { background: #00A1E4; color: white; width: 30px; height: 30px; display: inline-flex; justify-content: center; align-items: center; border-radius: 50%; margin-right: 10px; font-size: 18px; }
-    .sub-sec-title { font-family: 'Montserrat', sans-serif; font-size: 16px; font-weight: 900; color: #1e272e; margin: 15px 0 15px 0; text-transform: uppercase; border-left: 4px solid #00A1E4; padding-left: 8px; }
+    
+    /* MỚI: BẢNG DOANH THU THEO NGÀNH HÀNG NEW STYLE (Dành cho 2.1) */
+    .rev-board {
+      border: 1px solid #c8d6e5; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02); margin-top: 15px;
+    }
+    .rev-header {
+      background: #f8fafc; border-bottom: 2px solid #e2e8f0; padding: 16px 15px;
+    }
+    .rev-header .left-align, .rev-header .center-align {
+      font-size: 11px; font-weight: 900; text-transform: uppercase; color: #1e3a8a; letter-spacing: 0.5px;
+    }
+    .rev-grid {
+      display: grid;
+      /* Grid cho 7 cột tương ứng dữ liệu realtime */
+      grid-template-columns: 2.2fr 0.8fr 1.3fr 1.3fr 1.4fr 1.3fr 1fr; 
+      align-items: center; width: 100%; gap: 10px;
+    }
+    .rev-grid > div { position: relative; }
+    .rev-item .rev-grid > div:not(:last-child)::after {
+      content: ''; position: absolute; right: -5px; top: 10%; height: 80%; width: 1px; background: #e2e8f0; 
+    }
+    .rev-header .rev-grid > div:not(:last-child)::after {
+      content: ''; position: absolute; right: -5px; top: 10%; height: 80%; width: 0px; border-right: 1px dashed #cbd5e1; background: transparent;
+    }
+    
+    .rev-list { display: flex; flex-direction: column; }
+    .rev-item { display: flex; padding: 12px 15px; border-bottom: 1px solid #e2e8f0; align-items: center; }
+    .rev-item:last-child { border-bottom: none; }
+    
+    .rev-stt { width: 20px; font-weight: 900; font-size: 13px; color: #b2bec3; text-align: center; flex-shrink: 0; }
+    .rev-icon-wrapper {
+      width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 20px; flex-shrink: 0;
+    }
+    .rev-name { font-weight: 800; font-size: 13px; color: #1e272e; text-transform: uppercase; }
+    .rev-stat-col { display: flex; flex-direction: column; gap: 2px; }
+    .left-align { text-align: left; } .center-align { text-align: center; }
+    .rev-stat-val { font-size: 14px; font-weight: 900; color: #1e272e; }
+    .rev-ht-bar-bg { width: 100%; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 5px; }
+    .rev-ht-bar-fill { height: 100%; border-radius: 3px; }
 
     /* 2. KPI TIERS (5 CỘT) */
     .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; row-gap: 16px; }
@@ -57,13 +95,36 @@
         text-align: center; width: 85%; box-shadow: none; 
     }
 
-    /* TABLES */
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #00A1E4; }
-    th { background: #00A1E4; color: white; padding: 12px 4px; font-size: 12px; font-weight: 900; text-transform: uppercase; border: 1px solid #0073b1; }
-    td { padding: 10px 4px; text-align: center; font-size: 14px; font-weight: 800; color: #2d3436; border-bottom: 1px dashed #a4b0be; border-right: 1px solid #a4b0be; }
-    td:last-child { border-right: none; } tr:last-child td { border-bottom: none; }
-    .text-left { text-align: left; padding-left: 10px !important; }
-    .row-total td { background: #fff2cc; font-weight: 900 !important; font-size: 15px; border-top: 2px solid #f1c40f; }
+    /* MỚI: BẢNG THI ĐUA 2.2 NEW STYLE */
+    .td-header-row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 15px;}
+    .td-summary-wrapper { display: flex; gap: 15px; align-items: center; }
+    .td-sum-card { 
+      background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; 
+      padding: 6px 15px; display: flex; flex-direction: column; align-items: center; 
+      min-width: 100px; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .td-sum-card-title { display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 800; color: #1e272e; margin-bottom: 2px;}
+    .td-sum-card-val { font-size: 20px; font-weight: 900; }
+
+    .table-container { border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; background: #fff; margin-top: 10px;}
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th { background: #f8fafc; color: #1e3a8a; padding: 16px 8px; font-size: 12px; font-weight: 900; border: none; border-bottom: 2px solid #e2e8f0; border-right: 1px dashed #e2e8f0; text-align: center; text-transform: uppercase; }
+    th:last-child { border-right: none; }
+    th.text-left { text-align: left; padding-left: 15px;}
+    td { padding: 14px 8px; text-align: center; font-size: 14px; font-weight: 800; color: #2d3436; border-bottom: 1px dashed #cbd5e1; border-right: 1px dashed #e2e8f0; }
+    td:last-child { border-right: none; }
+    td.text-left { padding-left: 15px; }
+    tr:last-child td { border-bottom: none; }
+
+    .stt-pill { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 13px; margin: 0 auto;}
+    .stt-green { background: #dcfce7; color: #16a34a; }
+    .stt-blue { background: #dbeafe; color: #2563eb; }
+    .stt-orange { background: #ffedd5; color: #ea580c; }
+    .stt-red { background: #ffe4e6; color: #dc2626; }
+
+    .td-prog-container { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 100%; }
+    .td-prog-bar-bg { width: 70%; height: 6px; background: #f1f5f9; border-radius: 3px; overflow: hidden; }
+    .td-prog-bar-fill { height: 100%; border-radius: 3px; }
 
     /* LAYOUT BẢNG INSIGHT CÂN ĐỐI */
     .ib-board { display: flex; gap: 12px; margin-top: 20px; align-items: flex-start; }
@@ -96,12 +157,8 @@
     .ib-bar-bg { height: 4px; background: #f1f2f6; border-radius: 2px; width: 100%; overflow: hidden; }
     .ib-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
 
-    .td-summary-bar { display: flex; justify-content: space-around; background: #ffffff; border: 2px solid #ced4da; padding: 12px; border-radius: 10px; margin-bottom: 15px; }
-    .td-sum-item { display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 800; color: #2d3436; }
-    .td-sum-item b { font-size: 20px; }
-
     .footer { text-align: center; margin-top: 25px; font-size: 13px; color: #636e72; font-weight: bold; text-transform: uppercase; }
-    .btn-send { background: #f39c12; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 30px;}
+    .btn-send { background: #f39c12; color: white; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 30px; font-family: 'Montserrat', sans-serif;}
   </style>
 </head>
 <body>
@@ -172,45 +229,58 @@
       <div class="card"><div class="card-title">🏆 THI ĐUA VỀ ĐÍCH</div><div class="card-val" id="c-nd-rt" style="color: #00b894;">0</div><div class="card-sub"><div class="highlight-target" id="c-nd-rt-sub">/ 0 NGÀNH HÀNG</div></div></div>
     </div>
 
-    <div class="sec-title"><span>2</span> CHI TIẾT DOANH THU & THI ĐUA REALTIME</div>
-    <div class="sub-sec-title">2.1 DOANH THU THEO NGÀNH HÀNG</div>
-    <table>
-      <thead>
-        <tr>
-          <th width="5%">#</th>
-          <th class="text-left" width="28%">NGÀNH HÀNG</th>
-          <th width="7%">SL</th>
-          <th width="15%">DTQĐ (TR)</th>
-          <th width="12%">TARGET</th>
-          <th width="12%">% HT TARGET</th>
-          <th width="12%">DT TRẢ CHẬM</th>
-          <th width="9%">TỶ TRỌNG TC</th>
-        </tr>
-      </thead>
-      <tbody id="table-bi"></tbody>
-    </table>
+    <div class="sec-title" style="margin: 25px 0 0 0;"><span>2</span> CHI TIẾT DOANH THU</div>
+    
+    <!-- GIAO DIỆN MỚI 2.1 -->
+    <div class="rev-board">
+        <div class="rev-header">
+            <div class="rev-grid">
+                <div class="left-align" style="padding-left: 10px;">📚 NGÀNH HÀNG</div>
+                <div class="center-align">SL</div>
+                <div class="center-align">DTQĐ (TR)</div>
+                <div class="center-align">TARGET NGÀY</div>
+                <div class="center-align">📈 % HOÀN THÀNH</div>
+                <div class="center-align">DT TRẢ CHẬM</div>
+                <div class="center-align">TỶ TRỌNG TC</div>
+            </div>
+        </div>
+        <div class="rev-list" id="table-bi">
+            <!-- Data rendered by JS -->
+        </div>
+    </div>
   </div>
 
   <div id="part2" class="report-box">
-    <div class="sub-sec-title">2.2 THI ĐUA THEO NGÀNH HÀNG</div>
     
-    <div class="td-summary-bar">
-        <div class="td-sum-item"><span style="font-size: 18px;">🏆</span> Đã về đích (>=100%): <b id="td-sum-vd" style="color: #00b894;">0</b></div>
-        <div class="td-sum-item"><span style="font-size: 18px;">⚠️</span> Cảnh báo (<50%): <b id="td-sum-cb" style="color: #d63031;">0</b></div>
+    <div class="td-header-row">
+        <div class="sec-title" style="margin: 0;"><span>3</span> CHI TIẾT THI ĐUA</div>
+        <div class="td-summary-wrapper">
+            <div class="td-sum-card">
+                <div class="td-sum-card-title"><span style="font-size: 16px;">🏆</span> Đã về đích</div>
+                <div class="td-sum-card-val" id="td-sum-vd" style="color: #10b981;">0</div>
+            </div>
+            <div class="td-sum-card">
+                <div class="td-sum-card-title"><span style="font-size: 16px;">⚠️</span> Cảnh báo</div>
+                <div class="td-sum-card-val" id="td-sum-cb" style="color: #ef4444;">0</div>
+            </div>
+        </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th width="5%">#</th>
-          <th class="text-left" width="35%">NGÀNH HÀNG</th>
-          <th width="15%">THỰC HIỆN</th>
-          <th width="15%">TARGET NGÀY</th>
-          <th width="30%">% HT TARGET (TRONG NGÀY)</th>
-        </tr>
-      </thead>
-      <tbody id="table-thidua"></tbody>
-    </table>
+    <!-- GIAO DIỆN MỚI 2.2 -->
+    <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th width="6%">#</th>
+              <th class="text-left" width="34%">📚 NGÀNH HÀNG THI ĐUA</th>
+              <th width="15%">📈 THỰC HIỆN</th>
+              <th width="15%">🎯 TARGET NGÀY</th>
+              <th width="30%">% HT TARGET (TRONG NGÀY)</th>
+            </tr>
+          </thead>
+          <tbody id="table-thidua"></tbody>
+        </table>
+    </div>
 
     <div class="ib-board" id="ib-board"></div>
 
@@ -253,10 +323,10 @@
     };
     
     const getColorClass = (percent) => {
-        if (percent >= 1) return "#00b894";
-        if (percent >= 0.8) return "#0984e3";
-        if (percent >= 0.5) return "#f39c12";
-        return "#d63031";
+        if (percent >= 1) return "#10b981"; // Xanh lá
+        if (percent >= 0.8) return "#3b82f6"; // Xanh dương
+        if (percent >= 0.5) return "#f59e0b"; // Cam
+        return "#ef4444"; // Đỏ
     };
 
     function getEmoji(name) {
@@ -266,12 +336,12 @@
         if (n.includes("GIẶT") || n.includes("SẤY")) return "🧺";
         if (n.includes("PIN") || n.includes("SẠC")) return "🔋";
         if (n.includes("LAPTOP")) return "💻";
-        if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "🧊";
+        if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "❄️";
         if (n.includes("LỌC") || n.includes("NƯỚC")) return "🚰";
         if (n.includes("GIA DỤNG")) return "🍳";
         if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE")) return "📱";
         if (n.includes("CAMERA")) return "📷";
-        if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "❄️";
+        if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "🌡️";
         if (n.includes("ĐỒNG HỒ") || n.includes("THỜI TRANG")) return "⌚";
         if (n.includes("BẢO HIỂM") || n.includes("FINANCE") || n.includes("CREDIT") || n.includes("VÍ") || n.includes("CAKE") || n.includes("HC")) return "💳";
         if (n.includes("SIM")) return "📶";
@@ -490,12 +560,12 @@
         let sbStatusText = "CHƯA MỞ CỬA"; let sbStatusColor = "#636e72"; let sbLeftBg = "#f1f2f6"; let sbIcon = "🏪";
         
         if (timeRatio > 0 && timeRatio < 1) {
-            if (delta >= 0) { sbStatusText = "VƯỢT TIẾN ĐỘ"; sbStatusColor = "#00b894"; sbLeftBg = "#f0fdf4"; sbIcon = "🚀"; }
-            else if (delta >= -0.1) { sbStatusText = "BÁM SÁT MỤC TIÊU"; sbStatusColor = "#0984e3"; sbLeftBg = "#eff6ff"; sbIcon = "🎯"; }
-            else { sbStatusText = "CHẬM TIẾN ĐỘ"; sbStatusColor = "#d63031"; sbLeftBg = "#fef2f2"; sbIcon = "⚠️"; }
+            if (delta >= 0) { sbStatusText = "VƯỢT TIẾN ĐỘ"; sbStatusColor = "#10b981"; sbLeftBg = "#f0fdf4"; sbIcon = "🚀"; }
+            else if (delta >= -0.1) { sbStatusText = "BÁM SÁT MỤC TIÊU"; sbStatusColor = "#3b82f6"; sbLeftBg = "#eff6ff"; sbIcon = "🎯"; }
+            else { sbStatusText = "CHẬM TIẾN ĐỘ"; sbStatusColor = "#ef4444"; sbLeftBg = "#fef2f2"; sbIcon = "⚠️"; }
         } else if (timeRatio >= 1) {
-            if (htChung >= 1) { sbStatusText = "HOÀN THÀNH TỐT"; sbStatusColor = "#00b894"; sbLeftBg = "#f0fdf4"; sbIcon = "🌟"; }
-            else { sbStatusText = "CHƯA ĐẠT MỤC TIÊU"; sbStatusColor = "#d63031"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
+            if (htChung >= 1) { sbStatusText = "HOÀN THÀNH TỐT"; sbStatusColor = "#10b981"; sbLeftBg = "#f0fdf4"; sbIcon = "🌟"; }
+            else { sbStatusText = "CHƯA ĐẠT MỤC TIÊU"; sbStatusColor = "#ef4444"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
         }
 
         document.getElementById("sb-bg").style.background = sbLeftBg;
@@ -533,63 +603,100 @@
         document.getElementById("c-nd-rt").innerText = rt_cntVD;
         document.getElementById("c-nd-rt-sub").innerText = `/ ${totalThiDua} NGÀNH HÀNG`;
 
-        // G. TABLE 2.1
+        // G. TABLE 2.1 (NEW STYLE)
         let htmlBI = ""; let sttBI = 1;
         for(let item of parsedRealtimeBI) {
           if (item.sl === 0 && item.dtqd === 0) continue; 
           
           let cHT = getColorClass(item.htTarget);
-          let icon = getStatusIcon(item.htTarget);
+          let iconBg = "#f1f5f9"; 
+          if(item.htTarget >= 1) iconBg = "#dcfce7"; 
+          else if(item.htTarget >= 0.8) iconBg = "#dbeafe"; 
+          else if(item.htTarget >= 0.5) iconBg = "#ffedd5"; 
+          else iconBg = "#ffe4e6"; 
           
           htmlBI += `
-            <tr>
-              <td>${sttBI++}</td>
-              <td class="text-left" style="color:#1e272e; font-weight: 900;">${icon} ${item.nganhHang}</td>
-              <td>${item.sl.toLocaleString('vi-VN')}</td>
-              <td style="color:#00A1E4; font-weight: 900;">${formatMoney(item.dtqd)}</td>
-              <td style="color:#2d3436; font-weight: 900;">${formatMoney(item.targetDay)}</td>
-              
-              <td style="position:relative; color:${cHT}; font-weight:900; padding:0; vertical-align:middle;">
-                <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(item.htTarget*100, 100)}%; background:${cHT}; opacity:0.15; z-index:0;"></div>
-                <span style="position:relative; z-index:1;">${formatPercent(item.htTarget)}</span>
-              </td>
-              
-              <td style="color:#2d3436;">${formatMoney(item.dtTC)}</td>
-              <td style="color:#f39c12; font-weight:900;">${formatPercent(item.tyTrongTC)}</td>
-            </tr>
+            <div class="rev-item">
+              <div class="rev-grid">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                      <div class="rev-stt">${sttBI++}</div>
+                      <div class="rev-icon-wrapper" style="background: ${iconBg};">${getEmoji(item.nganhHang)}</div>
+                      <div class="rev-name" title="${item.nganhHang}">${shortName(item.nganhHang)}</div>
+                  </div>
+                  <div class="center-align" style="font-weight: 900; font-size: 14px;">${item.sl.toLocaleString('vi-VN')}</div>
+                  <div class="center-align" style="color:#00A1E4; font-weight: 900; font-size: 15px;">${formatMoney(item.dtqd)}</div>
+                  <div class="center-align" style="color:#64748b; font-weight: 900; font-size: 14px;">${formatMoney(item.targetDay)}</div>
+                  
+                  <div class="rev-stat-col center-align" style="padding: 0 5px;">
+                      <div class="rev-stat-val" style="color: ${cHT}; font-size: 16px;">${formatPercent(item.htTarget)}</div>
+                      <div class="rev-ht-bar-bg">
+                          <div class="rev-ht-bar-fill" style="width: ${Math.min(item.htTarget * 100, 100)}%; background: ${cHT};"></div>
+                      </div>
+                  </div>
+                  
+                  <div class="center-align" style="color:#2d3436; font-weight: 900; font-size: 14px;">${formatMoney(item.dtTC)}</div>
+                  <div class="center-align" style="color:#f59e0b; font-weight:900; font-size: 15px;">${formatPercent(item.tyTrongTC)}</div>
+              </div>
+          </div>
           `;
         }
         
+        let totalHTColor = getColorClass(rt_tTarget>0?rt_tDT/rt_tTarget:0);
         htmlBI += `
-          <tr class="row-total">
-            <td>⭐</td><td class="text-left">TỔNG CỘNG</td>
-            <td>${rt_tSL.toLocaleString('vi-VN')}</td>
-            <td style="color:#00A1E4;">${formatMoney(rt_tDT)}</td>
-            <td>${formatMoney(rt_tTarget)}</td>
-            <td style="color:${getColorClass(rt_tTarget>0?rt_tDT/rt_tTarget:0)};">${formatPercent(rt_tTarget>0?rt_tDT/rt_tTarget:0)}</td>
-            <td>${formatMoney(rt_tTC)}</td>
-            <td style="color:#f39c12;">${formatPercent(tyTrongTCChung)}</td>
-          </tr>
+          <div class="rev-item" style="background: #fffbdf; border-top: 2px solid #f1c40f;">
+              <div class="rev-grid">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                      <div class="rev-stt">⭐</div>
+                      <div class="rev-name" style="color:#ef4444;">TỔNG CỘNG</div>
+                  </div>
+                  <div class="center-align" style="font-weight: 900; font-size: 14px;">${rt_tSL.toLocaleString('vi-VN')}</div>
+                  <div class="center-align" style="color:#00A1E4; font-weight: 900; font-size: 15px;">${formatMoney(rt_tDT)}</div>
+                  <div class="center-align" style="color:#64748b; font-weight: 900; font-size: 14px;">${formatMoney(rt_tTarget)}</div>
+                  
+                  <div class="rev-stat-col center-align" style="padding: 0 5px;">
+                      <div class="rev-stat-val" style="color: ${totalHTColor}; font-size: 16px;">${formatPercent(rt_tTarget>0?rt_tDT/rt_tTarget:0)}</div>
+                  </div>
+                  
+                  <div class="center-align" style="color:#2d3436; font-weight: 900; font-size: 14px;">${formatMoney(rt_tTC)}</div>
+                  <div class="center-align" style="color:#f59e0b; font-weight:900; font-size: 15px;">${formatPercent(tyTrongTCChung)}</div>
+              </div>
+          </div>
         `;
         document.getElementById("table-bi").innerHTML = htmlBI;
 
-        // H. TABLE 2.2 - CẬP NHẬT CỘT THỰC HIỆN LÊN TRƯỚC TARGET NGÀY
+        // H. TABLE 2.2 THI ĐUA (NEW STYLE)
         let htmlThiDua = ""; let sttTD = 1;
         for(let item of parsedRTThiDua) {
             let cHT = getColorClass(item.htTarget);
-            let icon = getStatusIcon(item.htTarget);
-            let nameStyle = item.isTrongDiem ? `color:#d63031;` : `color:#1e272e;`;
+            let nameStyle = item.isTrongDiem ? `color:#ef4444;` : `color:#1e272e;`;
             
+            let sttPillClass = '';
+            if (item.htTarget >= 1) sttPillClass = 'stt-green';
+            else if (item.htTarget >= 0.8) sttPillClass = 'stt-blue';
+            else if (item.htTarget >= 0.5) sttPillClass = 'stt-orange';
+            else sttPillClass = 'stt-red';
+
             htmlThiDua += `
               <tr>
-                <td>${sttTD++}</td>
-                <td class="text-left" style="font-weight: 900; white-space: nowrap; ${nameStyle}">${icon} ${item.nganhHang}</td>
-                <td style="color:#00A1E4; font-weight:900;">${formatMoney(item.thucHien)}</td>
-                <td>${formatMoney(item.mtNgay)}</td>
+                <td><div class="stt-pill ${sttPillClass}">${sttTD++}</div></td>
                 
-                <td style="position:relative; color:${cHT}; font-weight:900; padding:0; vertical-align:middle;">
-                    <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(item.htTarget*100, 100)}%; background:${cHT}; opacity:0.15; z-index:0;"></div>
-                    <span style="position:relative; z-index:1;">${formatPercent(item.htTarget)}</span>
+                <td class="text-left" style="font-weight: 800; white-space: nowrap; ${nameStyle}">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 18px; color: #1e3a8a;">${getEmoji(item.nganhHang)}</span>
+                        <span>${shortName(item.nganhHang)}</span>
+                    </div>
+                </td>
+                
+                <td style="color: #2563eb; font-size: 16px; font-weight: 900;">${formatMoney(item.thucHien)}</td>
+                <td style="color: #64748b; font-weight: 700;">${formatMoney(item.mtNgay)}</td>
+                
+                <td>
+                    <div class="td-prog-container">
+                        <span style="color:#1e293b; font-weight:900; font-size:15px;">${formatPercent(item.htTarget)}</span>
+                        <div class="td-prog-bar-bg">
+                            <div class="td-prog-bar-fill" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div>
+                        </div>
+                    </div>
                 </td>
               </tr>
             `;
@@ -602,14 +709,14 @@
         // I. RENDER BẢNG INSIGHT CÂN ĐỐI
         let ibHTML = `
             <div class="ib-col-wrapper">
-                ${gr1.length > 0 ? `<div class="ib-box"><div class="ib-header green">✅ ĐÃ VỀ ĐÍCH (${gr1.length})</div><div class="ib-list">${buildIbList(gr1, '#00b894')}</div></div>` : ''}
-                ${gr2.length > 0 ? `<div class="ib-box"><div class="ib-header yellow">💪 CẦN CỐ GẮNG (${gr2.length})</div><div class="ib-list">${buildIbList(gr2, '#f39c12')}</div></div>` : ''}
+                ${gr1.length > 0 ? `<div class="ib-box"><div class="ib-header green">✅ ĐÃ VỀ ĐÍCH (${gr1.length})</div><div class="ib-list">${buildIbList(gr1, '#10b981')}</div></div>` : ''}
+                ${gr2.length > 0 ? `<div class="ib-box"><div class="ib-header yellow">💪 CẦN CỐ GẮNG (${gr2.length})</div><div class="ib-list">${buildIbList(gr2, '#3b82f6')}</div></div>` : ''}
             </div>
             <div class="ib-col-wrapper">
-                ${gr3.length > 0 ? `<div class="ib-box"><div class="ib-header blue">🎯 CẦN TẬP TRUNG (${gr3.length})</div><div class="ib-list">${buildIbList(gr3, '#0984e3')}</div></div>` : ''}
+                ${gr3.length > 0 ? `<div class="ib-box"><div class="ib-header blue">🎯 CẦN TẬP TRUNG (${gr3.length})</div><div class="ib-list">${buildIbList(gr3, '#f59e0b')}</div></div>` : ''}
             </div>
             <div class="ib-col-wrapper wide">
-                ${gr4.length > 0 ? `<div class="ib-box"><div class="ib-header red">🚨 BÁO ĐỘNG (${gr4.length})</div><div class="ib-list grid-2">${buildIbList(gr4, '#d63031')}</div></div>` : ''}
+                ${gr4.length > 0 ? `<div class="ib-box"><div class="ib-header red">🚨 BÁO ĐỘNG (${gr4.length})</div><div class="ib-list grid-2">${buildIbList(gr4, '#ef4444')}</div></div>` : ''}
             </div>
         `;
         document.getElementById("ib-board").innerHTML = ibHTML;

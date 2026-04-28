@@ -9,7 +9,6 @@
     
     body { font-family: 'Nunito', sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
     
-    /* Thay thế toàn bộ var() bằng mã màu cứng để chống lỗi html2canvas */
     .report-box { 
       background: #ffffff; width: 950px; padding: 30px; border-radius: 16px; 
       border: 1px solid #ced4da; position: relative; overflow: hidden; margin-bottom: 20px;
@@ -43,7 +42,6 @@
     .card-val { font-size: 32px; font-family: 'Montserrat', sans-serif; font-weight: 900; line-height: 1.1; margin: 0; }
     .card-sub { font-size: 13px; font-weight: 800; color: #636e72; margin-top: 8px; display: block; }
     
-    /* FIX LỖI HTML2CANVAS: Chuyển inline-flex thành block cứng */
     .highlight-target { 
         background-color: #ffffff; 
         color: #1e272e; 
@@ -58,15 +56,120 @@
         box-shadow: none; 
     }
 
-    /* TABLES */
+    /* BẢNG TODO (VIỆC CẦN LÀM HÔM NAY) */
+    .todo-board { border: 2px solid #ffb300; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+    .todo-header { background: #ffc107; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ffb300;}
+    .todo-header-left { font-size: 15px; font-weight: 900; color: #b71c1c; display: flex; align-items: center; gap: 6px; }
+    .todo-header-right { background: #d32f2f; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; font-weight: 900; }
+    .todo-list { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; grid-auto-flow: column; gap: 12px; padding: 15px; background: #f8fafc; }
+    .todo-item { display: flex; padding: 10px; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 8px; align-items: center; justify-content: space-between; gap: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.02);}
+    .todo-left { display: flex; align-items: center; gap: 10px; flex: 1.4; }
+    .todo-stt { color: white; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; font-weight: 900; border-radius: 6px; font-size: 13px; flex-shrink: 0;}
+    .todo-icon { font-size: 20px; flex-shrink: 0; }
+    .todo-info { display: flex; flex-direction: column; }
+    .todo-name { font-size: 12px; font-weight: 900; color: #d32f2f; text-transform: uppercase; }
+    .todo-sub { font-size: 10px; color: #475569; font-weight: 600; margin-top: 3px;}
+    .todo-middle { flex: 0.8; background: #fff1f2; border: 1px solid #ffe4e6; border-radius: 8px; padding: 6px 0; text-align: center; }
+    .todo-middle-label { font-size: 9px; color: #b71c1c; font-weight: 800; margin-bottom: 2px;}
+    .todo-middle-val { font-size: 14px; color: #e53935; font-weight: 900; }
+    .todo-right { flex: 1; text-align: center; border-left: 1px solid #e2e8f0; padding-left: 8px;}
+    .todo-right-label { font-size: 9px; color: #64748b; font-weight: 800; margin-bottom: 2px;}
+    .todo-right-val { font-size: 14px; color: #d32f2f; font-weight: 900; }
+
+    /* BẢNG DOANH THU THEO NGÀNH HÀNG NEW STYLE (Dành cho 2.1) */
+    .rev-board {
+      border: 1px solid #c8d6e5;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+    .rev-header {
+      background: #1d4ed8; /* Blue header matching image */
+      color: white;
+      padding: 14px 15px;
+    }
+    .rev-header .left-align, .rev-header .center-align {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+    .rev-grid {
+      display: grid;
+      grid-template-columns: 2.2fr 1.8fr 1.4fr 1.2fr 1.5fr 1fr;
+      align-items: center;
+      width: 100%;
+      gap: 10px;
+    }
+    
+    /* Vạch phân cách các cột trong grid */
+    .rev-grid > div {
+      position: relative;
+    }
+    .rev-item .rev-grid > div:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -5px; /* Nằm giữa khoảng gap 10px */
+      top: 10%;
+      height: 80%;
+      width: 1px;
+      background: #e2e8f0; /* Nét gạch đứng mờ */
+    }
+    .rev-header .rev-grid > div:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: -5px;
+      top: 10%;
+      height: 80%;
+      width: 1px;
+      background: rgba(255, 255, 255, 0.3); /* Nét mờ màu trắng cho header */
+    }
+    
+    .rev-list { display: flex; flex-direction: column; }
+    .rev-item {
+      display: flex;
+      padding: 12px 15px;
+      border-bottom: 1px solid #e2e8f0;
+      align-items: center;
+    }
+    .rev-item:last-child { border-bottom: none; }
+    
+    .rev-stt { width: 20px; font-weight: 900; font-size: 13px; color: #b2bec3; text-align: center; flex-shrink: 0; }
+    .rev-icon-wrapper {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; justify-content: center; align-items: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .rev-name { font-weight: 800; font-size: 13px; color: #1e272e; text-transform: uppercase; }
+    
+    .rev-stat-col { display: flex; flex-direction: column; gap: 2px; }
+    .left-align { text-align: left; }
+    .center-align { text-align: center; }
+    
+    .rev-stat-label { font-size: 9px; color: #636e72; font-weight: 800; text-transform: uppercase; }
+    .rev-stat-val { font-size: 14px; font-weight: 900; color: #1e272e; }
+
+    /* Thanh %HT progress */
+    .rev-ht-bar-bg { width: 100%; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden; margin-top: 5px; }
+    .rev-ht-bar-fill { height: 100%; border-radius: 3px; }
+
+    /* FIX LỖI HTML2CANVAS: Chuyển Donut Chart sang SVG */
+    .donut-wrapper { position: relative; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; }
+    .circular-chart { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+    .circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 4; }
+    .circle { fill: none; stroke-width: 4; stroke-linecap: round; stroke: #2563eb; }
+    .donut-inner { position: relative; z-index: 1; font-weight: 900; font-size: 11px; color: #1e272e; }
+
+    /* TABLES (Dành cho bảng thi đua 2.2) */
     table { width: 100%; border-collapse: collapse; margin-top: 10px; border: 2px solid #00A1E4; }
     th { background: #00A1E4; color: white; padding: 12px 4px; font-size: 12px; font-weight: 900; text-transform: uppercase; border: 1px solid #0073b1; }
     td { padding: 10px 4px; text-align: center; font-size: 14px; font-weight: 800; color: #2d3436; border-bottom: 1px dashed #a4b0be; border-right: 1px solid #a4b0be; }
     td:last-child { border-right: none; } tr:last-child td { border-bottom: none; }
-    .text-left { text-align: left; padding-left: 10px !important; }
-    .row-total td { background: #fff2cc; font-weight: 900 !important; font-size: 15px; border-top: 2px solid #f1c40f; }
 
-    /* LAYOUT MỚI: BẢNG INSIGHT CÂN ĐỐI (FLEXBOX + GRID) */
+    /* BẢNG INSIGHT CÂN ĐỐI (FLEXBOX + GRID) */
     .ib-board { display: flex; gap: 12px; margin-top: 20px; align-items: flex-start; }
     .ib-col-wrapper { display: flex; flex-direction: column; gap: 12px; flex: 1; }
     .ib-col-wrapper.wide { flex: 2; } 
@@ -103,107 +206,141 @@
 
     .footer { text-align: center; margin-top: 25px; font-size: 13px; color: #636e72; font-weight: bold; text-transform: uppercase; }
     .btn-send { background: #00A1E4; color: #ffffff; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-bottom: 30px;}
+    
+    /* CSS CHO THANH ACTION BAR MỚI */
+    .top-actions { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; width: 950px;}
+    .btn-action {
+      background: #ffffff; border: 2px solid #ffb300; color: #d32f2f;
+      padding: 12px 24px; font-size: 15px; border-radius: 8px; font-weight: 900;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .btn-action:hover { background: #fff8e1; transform: translateY(-2px); }
   </style>
 </head>
 <body>
 
-  <div id="part1" class="report-box">
-    <div class="header-title">BÁO CÁO LŨY KẾ CỤM SAVICO</div>
-    <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span></div>
+  <!-- THANH CÔNG CỤ TẢI ẢNH (Ignored by html2canvas) -->
+  <div class="top-actions" data-html2canvas-ignore="true">
+      <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH (LƯU MÁY)</button>
+      <button class="btn-action" id="btnDownloadFull">📸 CHỤP TOÀN TRANG</button>
+  </div>
 
-    <div class="status-bar">
-        <div class="sb-bg sb-left" id="sb-bg">
-            <div class="sb-left-icon" id="sb-icon">🛡️</div>
-            <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
-                <div class="sb-label" style="justify-content: flex-start; margin-bottom: 2px;">TÌNH TRẠNG HỆ THỐNG</div>
-                <div class="sb-val" id="sb-status" style="color: #1d4ed8;">ỔN ĐỊNH</div>
+  <!-- WRAPPER ĐỂ CHỤP TOÀN TRANG -->
+  <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
+      
+      <div id="part1" class="report-box">
+        <div class="header-title">BÁO CÁO LŨY KẾ CỤM SAVICO</div>
+        <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span></div>
+
+        <!-- HEALTH BAR KHÔI PHỤC -->
+        <div class="status-bar">
+            <div class="sb-bg sb-left" id="sb-bg">
+                <div class="sb-left-icon" id="sb-icon">🛡️</div>
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
+                    <div class="sb-label" style="justify-content: flex-start; margin-bottom: 2px;">TÌNH TRẠNG HỆ THỐNG</div>
+                    <div class="sb-val" id="sb-status" style="color: #1d4ed8;">ỔN ĐỊNH</div>
+                </div>
+            </div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">📈</i> TIẾN ĐỘ THỰC TẾ</div>
+                <div class="sb-val" id="sb-tien-do">0%</div>
+            </div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">🚀</i> DỰ KIẾN THÁNG</div>
+                <div class="sb-val" id="sb-du-kien" style="color: #00A1E4;">0%</div>
+            </div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">⏳</i> DT CÒN LẠI</div>
+                <div class="sb-val" id="sb-con-thieu" style="color: #636e72;">0</div>
+            </div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">🎯</i> MT NGÀY KỲ VỌNG</div>
+                <div class="sb-val" id="sb-mt-ngay" style="color: #00b894;">0</div>
+            </div>
+            <div class="sb-right" id="sb-nguy-co-box">
+                <div style="display:flex; align-items:center; gap:6px; font-weight: 900; font-size: 13px;"><i style="font-size: 18px;">⚠️</i> Ngành nguy cơ</div>
+                <div style="font-weight: 900; font-size: 16px; color: #d63031;" id="sb-nguy-co">0 nhóm</div>
             </div>
         </div>
-        <div class="sb-item">
-            <div class="sb-label"><i style="font-size: 14px;">📈</i> TIẾN ĐỘ THỰC TẾ</div>
-            <div class="sb-val" id="sb-tien-do">0%</div>
+
+        <div class="sec-title"><span>1</span> DOANH THU & THI ĐUA</div>
+        <div class="grid-4">
+          <div class="card"><div class="card-title">💰 DOANH THU LŨY KẾ</div><div class="card-val" id="c-dt" style="color: #d63031;">0</div><div class="card-sub"><div class="highlight-target" id="c-dt-sub">CÒN LẠI: 0 TR</div></div></div>
+          <div class="card"><div class="card-title">🎯 % HT TARGET</div><div class="card-val" id="c-ht" style="color: #00b894;">0%</div><div class="card-sub"><div class="highlight-target" id="c-tg-sub">TARGET: 0 TR</div></div></div>
+          <div class="card"><div class="card-title">📈 DỰ KIẾN THÁNG</div><div class="card-val" id="c-dk" style="color: #00A1E4;">0</div><div class="card-sub"><div class="highlight-target" id="c-dk-sub">%HT D.KIẾN: 0%</div></div></div>
+          <div class="card"><div class="card-title">💳 % TRẢ CHẬM</div><div class="card-val" id="c-tc" style="color: #f39c12;">0%</div><div class="card-sub"><div class="highlight-target" id="c-tc-sub">0 TR</div></div></div>
+          
+          <div class="card"><div class="card-title">⏱️ MỤC TIÊU NGÀY</div><div class="card-val" id="c-mt-ngay-card" style="color: #00A1E4;">0</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG/NGÀY</div></div>
+          <div class="card"><div class="card-title">📊 +/- CÙNG KỲ</div><div class="card-val" id="c-ck" style="color: #d63031;">0%</div><div class="card-sub" id="c-ck-sub" style="font-weight:900; margin-top: 13px;">(0 TR)</div></div>
+          <div class="card"><div class="card-title">⭐ NH DỰ KIẾN ĐẠT</div><div class="card-val" id="c-nh-dk" style="color: #00A1E4;">0</div><div class="card-sub"></div></div>
+          <div class="card"><div class="card-title">🏆 NH ĐÃ VỀ ĐÍCH</div><div class="card-val" id="c-nh-vd" style="color: #f39c12;">0</div><div class="card-sub"></div></div>
         </div>
-        <div class="sb-item">
-            <div class="sb-label"><i style="font-size: 14px;">🚀</i> DỰ KIẾN THÁNG</div>
-            <div class="sb-val" id="sb-du-kien" style="color: #00A1E4;">0%</div>
+
+        <div class="sec-title"><span>2</span> CHI TIẾT DOANH THU & THI ĐUA</div>
+        
+        <!-- GIAO DIỆN MỚI: BẢNG CHI TIẾT NGÀNH HÀNG -->
+        <div class="rev-board">
+            <div class="rev-header">
+                <div class="rev-grid">
+                    <div class="left-align" style="padding-left: 10px;">NGÀNH HÀNG</div>
+                    <div class="center-align">ĐÃ BÁN / TARGET</div>
+                    <div class="center-align">MỤC TIÊU NGÀY</div>
+                    <div class="center-align">% HOÀN THÀNH</div>
+                    <div class="center-align">+/- SO VỚI CK</div>
+                    <div class="center-align">TỶ TRỌNG</div>
+                </div>
+            </div>
+            <div class="rev-list" id="board-bi">
+                <!-- Data rendered by JS -->
+            </div>
         </div>
-        <div class="sb-item">
-            <div class="sb-label"><i style="font-size: 14px;">⏳</i> DT CÒN LẠI</div>
-            <div class="sb-val" id="sb-con-thieu" style="color: #636e72;">0</div>
+        
+        <!-- BẢNG VIỆC CẦN LÀM HÔM NAY (Đã chuyển xuống dưới) -->
+        <div class="todo-board">
+            <div class="todo-header">
+                <div class="todo-header-left">🎯 VIỆC CẦN LÀM HÔM NAY</div>
+                <div class="todo-header-right">ƯU TIÊN DOANH THU</div>
+            </div>
+            <div class="todo-list" id="todo-list">
+                <!-- Data rendered by JS -->
+            </div>
         </div>
-        <div class="sb-item">
-            <div class="sb-label"><i style="font-size: 14px;">🎯</i> MT NGÀY KỲ VỌNG</div>
-            <div class="sb-val" id="sb-mt-ngay" style="color: #00b894;">0</div>
+      </div>
+
+      <div id="part2" class="report-box">
+        <div class="sub-sec-title">2.2 THI ĐUA THEO NGÀNH HÀNG</div>
+        
+        <div class="td-summary-bar">
+            <div class="td-sum-item"><span style="font-size: 18px;">🏆</span> Đã về đích: <b id="td-sum-vd" style="color: #00b894;">0</b></div>
+            <div class="td-sum-item"><span style="font-size: 18px;">🚀</span> Dự kiến đạt: <b id="td-sum-dk" style="color: #00A1E4;">0</b></div>
+            <div class="td-sum-item"><span style="font-size: 18px;">⚠️</span> Cảnh báo: <b id="td-sum-cb" style="color: #d63031;">0</b></div>
         </div>
-        <div class="sb-right" id="sb-nguy-co-box">
-            <div style="display:flex; align-items:center; gap:6px; font-weight: 900; font-size: 13px;"><i style="font-size: 18px;">⚠️</i> Ngành nguy cơ</div>
-            <div style="font-weight: 900; font-size: 16px; color: #d63031;" id="sb-nguy-co">0 nhóm</div>
-        </div>
-    </div>
 
-    <div class="sec-title"><span>1</span> DOANH THU & THI ĐUA</div>
-    <div class="grid-4">
-      <div class="card"><div class="card-title">💰 DOANH THU LŨY KẾ</div><div class="card-val" id="c-dt" style="color: #d63031;">0</div><div class="card-sub"><div class="highlight-target" id="c-dt-sub">CÒN LẠI: 0 TR</div></div></div>
-      <div class="card"><div class="card-title">🎯 % HT TARGET</div><div class="card-val" id="c-ht" style="color: #00b894;">0%</div><div class="card-sub"><div class="highlight-target" id="c-tg-sub">TARGET: 0 TR</div></div></div>
-      <div class="card"><div class="card-title">📈 DỰ KIẾN THÁNG</div><div class="card-val" id="c-dk" style="color: #00A1E4;">0</div><div class="card-sub"><div class="highlight-target" id="c-dk-sub">%HT D.KIẾN: 0%</div></div></div>
-      <div class="card"><div class="card-title">💳 % TRẢ CHẬM</div><div class="card-val" id="c-tc" style="color: #f39c12;">0%</div><div class="card-sub"><div class="highlight-target" id="c-tc-sub">0 TR</div></div></div>
-      
-      <div class="card"><div class="card-title">⏱️ MỤC TIÊU NGÀY</div><div class="card-val" id="c-mt-ngay-card" style="color: #00A1E4;">0</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG/NGÀY</div></div>
-      <div class="card"><div class="card-title">📊 +/- CÙNG KỲ</div><div class="card-val" id="c-ck" style="color: #d63031;">0%</div><div class="card-sub" id="c-ck-sub" style="font-weight:900; margin-top: 13px;">(0 TR)</div></div>
-      <div class="card"><div class="card-title">⭐ NH DỰ KIẾN ĐẠT</div><div class="card-val" id="c-nh-dk" style="color: #00A1E4;">0</div><div class="card-sub"></div></div>
-      <div class="card"><div class="card-title">🏆 NH ĐÃ VỀ ĐÍCH</div><div class="card-val" id="c-nh-vd" style="color: #f39c12;">0</div><div class="card-sub"></div></div>
-    </div>
+        <table>
+          <thead>
+            <tr>
+              <th width="4%">#</th>
+              <th class="text-left" width="34%">NGÀNH HÀNG</th>
+              <th width="12%">MT/NGÀY</th>
+              <th width="12%">THỰC HIỆN</th>
+              <th width="12%">TARGET</th>
+              <th width="13%">% HT TARGET</th>
+              <th width="13%">% HT D.KIẾN</th>
+            </tr>
+          </thead>
+          <tbody id="table-thidua"></tbody>
+        </table>
 
-    <div class="sec-title"><span>2</span> CHI TIẾT DOANH THU & THI ĐUA</div>
-    <div class="sub-sec-title">2.1 DOANH THU THEO NGÀNH HÀNG</div>
-    <table>
-      <thead>
-        <tr>
-          <th width="4%">#</th>
-          <th class="text-left" width="22%">NGÀNH HÀNG</th>
-          <th width="6%">SL</th>
-          <th width="12%">DTQĐ (TR)</th>
-          <th width="12%">TARGET</th>
-          <th width="12%">% HT TARGET</th>
-          <th width="12%">+/- DTCK</th>
-          <th width="10%">DT TRẢ CHẬM</th>
-          <th width="10%">TỶ TRỌNG TC</th>
-        </tr>
-      </thead>
-      <tbody id="table-bi"></tbody>
-    </table>
-  </div>
+        <!-- BẢNG INSIGHT KHÔI PHỤC -->
+        <div class="ib-board" id="ib-board"></div>
 
-  <div id="part2" class="report-box">
-    <div class="sub-sec-title">2.2 THI ĐUA THEO NGÀNH HÀNG</div>
-    
-    <div class="td-summary-bar">
-        <div class="td-sum-item"><span style="font-size: 18px;">🏆</span> Đã về đích: <b id="td-sum-vd" style="color: #00b894;">0</b></div>
-        <div class="td-sum-item"><span style="font-size: 18px;">🚀</span> Dự kiến đạt: <b id="td-sum-dk" style="color: #00A1E4;">0</b></div>
-        <div class="td-sum-item"><span style="font-size: 18px;">⚠️</span> Cảnh báo: <b id="td-sum-cb" style="color: #d63031;">0</b></div>
-    </div>
+        <div class="footer">SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
+      </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th width="4%">#</th>
-          <th class="text-left" width="34%">NGÀNH HÀNG</th>
-          <th width="12%">MT/NGÀY</th>
-          <th width="12%">THỰC HIỆN</th>
-          <th width="12%">TARGET</th>
-          <th width="13%">% HT TARGET</th>
-          <th width="13%">% HT D.KIẾN</th>
-        </tr>
-      </thead>
-      <tbody id="table-thidua"></tbody>
-    </table>
+  </div> <!-- End of report-container -->
 
-    <div class="ib-board" id="ib-board"></div>
-
-    <div class="footer">SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
-  </div>
-
-  <button class="btn-send" id="btnSend">🚀 CHỤP ẢNH & GỬI TELEGRAM</button>
+  <button class="btn-send" id="btnSend">🚀 CHỤP TÁCH & GỬI TELEGRAM</button>
 
   <script>
     const today = new Date();
@@ -237,6 +374,13 @@
         if (max >= 0.5) return "⚠️"; 
         return "🚨"; 
     };
+
+    const getGroupIcon = (percent) => {
+        if (percent >= 1) return "✅";
+        if (percent >= 0.8) return "💪";
+        if (percent >= 0.5) return "🎯";
+        return "🚨";
+    };
     
     const getColorClass = (percent) => {
         if (percent >= 1) return "#00b894";
@@ -250,17 +394,17 @@
         if(n.includes("TỦ LẠNH")) return "Tủ lạnh";
         if(n.includes("MÁY LỌC KHÔNG KHÍ")) return "MLKK";
         if(n.includes("MÁY LỌC NƯỚC")) return "MLN";
-        if(n.includes("ĐIỆN THOẠI")) return "ĐMX Phone";
+        if(n.includes("ĐIỆN THOẠI")) return "Điện thoại";
         if(n.includes("LAPTOP")) return "Laptop";
         if(n.includes("ĐIỆN TỬ") && n.includes("SONY")) return "Sony";
-        if(n.includes("ĐIỆN TỬ")) return "Điện tử";
+        if(n.includes("ĐIỆN TỬ") || n.includes("TIVI")) return "Điện tử";
         if(n.includes("MÁY GIẶT")) return "Máy giặt";
         if(n.includes("GIA DỤNG")) return "Gia dụng";
         if(n.includes("PHỤ KIỆN")) return "Phụ kiện";
         if(n.includes("ĐỒNG HỒ")) return "Đồng hồ";
         if(n.includes("QUẠT")) return "Quạt gió";
         if(n.includes("CAMERA")) return "Camera";
-        if(n.includes("MÁY LẠNH")) return "Máy lạnh";
+        if(n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA")) return "Máy lạnh";
         if(n.includes("PIN SẠC")) return "Pin sạc";
         if(n.includes("HOMECREDIT")) return "HC";
         if(n.includes("FECREDIT") || n.includes("FINANCE")) return "Finance";
@@ -281,9 +425,10 @@
         if (n.includes("PIN") || n.includes("SẠC")) return "🔋";
         if (n.includes("LAPTOP")) return "💻";
         if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "🧊";
-        if (n.includes("LỌC") || n.includes("NƯỚC")) return "🚰";
+        if (n.includes("KHÔNG KHÍ") || n.includes("MLKK")) return "🌀";
+        if (n.includes("LỌC") || n.includes("NƯỚC") || n.includes("MLN")) return "🚰";
         if (n.includes("GIA DỤNG")) return "🍳";
-        if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE")) return "📱";
+        if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE") || n.includes("FLAGSHIP")) return "📱";
         if (n.includes("CAMERA")) return "📷";
         if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "❄️";
         if (n.includes("ĐỒNG HỒ") || n.includes("THỜI TRANG")) return "⌚";
@@ -364,14 +509,25 @@
           let htTarget = tg > 0 ? dt/tg : 0;
           parsedBI.push({ nganhHang, sl, dt, tg, htTarget, tangGiamCK, dtTC, tyTrongTC });
         }
-        parsedBI.sort((a, b) => b.tg - a.tg);
+        
+        parsedBI.sort((a, b) => b.dt - a.dt);
 
         let totalHT = tTG > 0 ? tDT/tTG : 0;
         let totalCK = tDTCK !== 0 ? (tDT - tDTCK)/tDTCK : 0;
         let totalTyLeTC = tDTGoc > 0 ? tTC/tDTGoc : 0;
         let totalDKThang = (tDT/daysPassed)*daysInMonth;
-        let mucTieuNgayAll = (isWeekend) ? (tTG / daysInMonth) * 2 : (tTG - tDT) / daysRemaining;
-        if (mucTieuNgayAll < 0) mucTieuNgayAll = 0;
+        
+        // Logic Mục Tiêu Ngày: Lấy ưu tiên target cố định nếu target thực tế nhỏ hơn
+        let mucTieuCoDinhAll = tTG / daysInMonth;
+        let mucTieuThucTeAll = (tTG - tDT) / daysRemaining;
+        if (mucTieuThucTeAll < 0) mucTieuThucTeAll = 0;
+        
+        let mucTieuNgayAll = 0;
+        if (isWeekend) {
+            mucTieuNgayAll = mucTieuCoDinhAll * 2;
+        } else {
+            mucTieuNgayAll = mucTieuThucTeAll < mucTieuCoDinhAll ? mucTieuCoDinhAll : mucTieuThucTeAll;
+        }
 
         let configMap = {};
         if (!configData.error && configData.length > 0) {
@@ -437,7 +593,6 @@
             if (item.htTarget >= 1) cntVD++;
         });
 
-        // CẬP NHẬT THANH CHỈ SỐ THI ĐUA Ở BẢNG 2.2
         document.getElementById("td-sum-vd").innerText = gr1.length;
         document.getElementById("td-sum-dk").innerText = cntDK;
         document.getElementById("td-sum-cb").innerText = (parsedThiDua.length - cntDK);
@@ -488,58 +643,189 @@
         document.getElementById("c-nh-dk").innerHTML = `<span style="font-size: 48px;">${cntDK}</span><span style="font-size: 20px; color: #636e72;"> / ${totalThiDua}</span>`;
         document.getElementById("c-nh-vd").innerHTML = `<span style="font-size: 48px;">${cntVD}</span><span style="font-size: 20px; color: #636e72;"> / ${totalThiDua}</span>`;
 
+        // RENDER BẢNG VIỆC CẦN LÀM HÔM NAY (Mới: Lấy 6 tỷ trọng cao nhất, Update Logic %HT)
+        let todoList = parsedBI.slice(0, 6); // Luôn lấy top 6 ngành tỷ trọng cao nhất
+        let htmlTodo = "";
+        let sttTodo = 1;
+        const todoPrefixes = ["ĐẨY MẠNH", "TẬP TRUNG", "BỨT PHÁ", "GIA TĂNG", "ĐẨY SỐ", "CHẠY NƯỚC RÚT"];
+        const todoColors = ['#e53935', '#f57c00', '#fbc02d', '#1e88e5', '#8e24aa', '#00897b'];
+        
+        if (todoList.length === 0) {
+            htmlTodo = `<div style="padding: 20px; text-align: center; font-weight: 900; color: #00b894; font-size: 16px; grid-column: span 2;">Chưa có dữ liệu!</div>`;
+        } else {
+            for(let item of todoList) {
+                let name = shortName(item.nganhHang);
+                let industryEmoji = getEmoji(item.nganhHang);
+                let conLai = Math.max(0, item.tg - item.dt);
+                
+                // Tính trung bình 1 SP
+                let avgPrice = (item.sl > 0 && item.dt > 0) ? (item.dt / item.sl) : 0;
+                
+                let doanhThuUocTinh = 0;
+                let subText = "";
+                
+                // Logic xử lý MT Ngày
+                if (item.htTarget >= 1) {
+                    // Đã về đích -> MT Ngày = TB số đã làm được / số ngày đã qua để duy trì phong độ
+                    doanhThuUocTinh = item.dt / daysPassed;
+                    subText = `Đã đạt <span style="color:#00b894; font-weight:800;">${formatPercent(item.htTarget)}</span> - Duy trì`;
+                } else {
+                    // Chưa về đích -> MT Ngày = Số còn thiếu / Số ngày còn lại
+                    doanhThuUocTinh = conLai / daysRemaining;
+                    subText = `Thiếu <span style="color:#d32f2f; font-weight:800;">${formatMoney(conLai)} TR</span> target`;
+                }
+                
+                // Số SP cần bán = MT Ngày / Giá trị TB 1 SP
+                let slCanBan = avgPrice > 0 ? Math.ceil(doanhThuUocTinh / avgPrice) : 0;
+                let slText = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} <span style="font-size:11px; font-weight:700;">SP</span>` : "N/A";
+                
+                let actionPrefix = todoPrefixes[(sttTodo - 1) % todoPrefixes.length];
+                let sttColor = todoColors[(sttTodo - 1) % todoColors.length];
+
+                htmlTodo += `
+                <div class="todo-item">
+                    <div class="todo-left">
+                        <div class="todo-stt" style="background: ${sttColor};">${sttTodo++}</div>
+                        <div class="todo-icon">${industryEmoji}</div>
+                        <div class="todo-info">
+                            <div class="todo-name">${actionPrefix} ${name}</div>
+                            <div class="todo-sub">${subText}</div>
+                        </div>
+                    </div>
+                    <div class="todo-middle">
+                        <div class="todo-middle-label">CẦN BÁN THÊM</div>
+                        <div class="todo-middle-val">${slText}</div>
+                    </div>
+                    <div class="todo-right">
+                        <div class="todo-right-label">MỤC TIÊU NGÀY</div>
+                        <div class="todo-right-val">~${formatMoney(doanhThuUocTinh)} TR</div>
+                    </div>
+                </div>
+                `;
+            }
+        }
+        document.getElementById("todo-list").innerHTML = htmlTodo;
+
+        // RENDER GIAO DIỆN MỚI 2.1 DOANH THU THEO NGÀNH HÀNG
         let htmlBI = ""; let sttBI = 1;
         for(let item of parsedBI) {
+          let tyTrong = tDT > 0 ? (item.dt / tDT) : 0;
           let cHT = getColorClass(item.htTarget);
-          let cCK = item.tangGiamCK < 0 ? "#d63031" : "#00b894";
-          let icon = getStatusIcon(item.htTarget);
+          let name = shortName(item.nganhHang);
+          let industryEmoji = getEmoji(item.nganhHang);
           
           let dtCKThang = (1 + item.tangGiamCK === 0) ? 0 : (item.dt / (1 + item.tangGiamCK));
           let chenhLech = item.dt - dtCKThang;
           let strChenhLech = chenhLech > 0 ? "+" + formatMoney(chenhLech) : formatMoney(chenhLech);
+          let cCK = item.tangGiamCK < 0 ? "#d63031" : "#00b894";
+          
+          let conLai = Math.max(0, item.tg - item.dt);
+          let mtNgayThucTeNganh = conLai / daysRemaining;
+          
+          // Icon Circular Background
+          let iconBg = "#f1f5f9"; 
+          if(item.htTarget >= 1) iconBg = "#e6f8f3"; 
+          else if(item.htTarget >= 0.8) iconBg = "#e0f2fe"; 
+          else if(item.htTarget >= 0.5) iconBg = "#fef3c7"; 
+          else iconBg = "#ffe4e6"; 
 
           htmlBI += `
-            <tr>
-              <td>${sttBI++}</td>
-              <td class="text-left" style="color:#1e272e; font-weight: 900;">${icon} ${item.nganhHang}</td>
-              <td>${item.sl.toLocaleString('vi-VN')}</td>
-              <td style="color:#00A1E4; font-weight: 900;">${formatMoney(item.dt)}</td>
-              <td style="color:#2d3436; font-weight: 900;">${formatMoney(item.tg)}</td>
-              
-              <td style="position:relative; color:${cHT}; font-weight:900; padding:0; vertical-align:middle;">
-                <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(item.htTarget*100, 100)}%; background:${cHT}; opacity:0.15; z-index:0;"></div>
-                <span style="position:relative; z-index:1;">${formatPercent(item.htTarget)}</span>
-              </td>
-              
-              <td style="color:${cCK}; line-height: 1.2;">
-                  ${formatPercent(item.tangGiamCK)}<br>
-                  <span style="font-size:11px; color:#636e72; font-weight:700;">${strChenhLech}</span>
-              </td>
-              <td style="color:#2d3436;">${formatMoney(item.dtTC)}</td>
-              <td style="color:#00A1E4;">${formatPercent(item.tyTrongTC)}</td>
-            </tr>
+          <div class="rev-item">
+              <div class="rev-grid">
+                  <!-- 1. STT + Icon + Tên -->
+                  <div style="display:flex; align-items:center; gap:8px;">
+                      <div class="rev-stt">${sttBI++}</div>
+                      <div class="rev-icon-wrapper" style="background: ${iconBg};">${industryEmoji}</div>
+                      <div class="rev-name" title="${item.nganhHang}">${name}</div>
+                  </div>
+                  
+                  <!-- 2. Đã bán / Target -->
+                  <div class="rev-stat-col center-align">
+                      <div class="rev-stat-label">ĐÃ BÁN / TARGET</div>
+                      <div class="rev-stat-val">${formatMoney(item.dt)} / ${formatMoney(item.tg)} TR</div>
+                  </div>
+                  
+                  <!-- 3. Mục tiêu ngày (Kết hợp Còn lại + Cần x/ngày) -->
+                  <div class="rev-stat-col center-align">
+                      ${conLai > 0 ? `<div style="font-weight: 900; font-size: 14px; color: #d63031;">Cần: ${formatMoney(mtNgayThucTeNganh)} TR/ngày</div>` : `<div style="font-weight: 900; font-size: 14px; color: #00b894;">Đã về đích 🎉</div>`}
+                      <div style="font-size: 11px; color: #64748b; font-weight: 800; margin-top: 2px;">Còn lại: ${formatMoney(conLai)} TR</div>
+                  </div>
+                  
+                  <!-- 4. % Hoàn Thành -->
+                  <div class="rev-stat-col center-align" style="padding: 0 5px;">
+                      <div class="rev-stat-val" style="color: ${cHT}; font-size: 16px;">${formatPercent(item.htTarget)}</div>
+                      <div class="rev-ht-bar-bg">
+                          <div class="rev-ht-bar-fill" style="width: ${Math.min(item.htTarget * 100, 100)}%; background: ${cHT};"></div>
+                      </div>
+                  </div>
+                  
+                  <!-- 5. +/- So với Kế hoạch -->
+                  <div class="rev-stat-col center-align">
+                      <div style="color:${cCK}; font-weight:900; font-size:15px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                          ${item.tangGiamCK >= 0 ? '↑' : '↓'} ${item.tangGiamCK > 0 ? '+' : ''}${formatPercent(item.tangGiamCK)}
+                      </div>
+                      <div style="font-size:11px; color:${cCK}; font-weight:700;">(${strChenhLech} TR)</div>
+                  </div>
+                  
+                  <!-- 6. Tỷ trọng (SVG Mini Donut fix lỗi html2canvas) -->
+                  <div style="display:flex; justify-content:center; align-items:center;">
+                      <div class="donut-wrapper">
+                          <svg viewBox="0 0 36 36" class="circular-chart" xmlns="http://www.w3.org/2000/svg">
+                              <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                              <path class="circle" stroke-dasharray="${Math.min(tyTrong * 100, 100)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                          </svg>
+                          <span class="donut-inner">${Math.round(tyTrong * 100)}%</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
           `;
         }
         
+        // Thêm dòng Tổng Cộng
         let totalChenhLech = tDT - tDTCK;
         let strTotalChenhLech = totalChenhLech > 0 ? "+" + formatMoney(totalChenhLech) : formatMoney(totalChenhLech);
+        let totalHTColor = getColorClass(totalHT);
+        let totalCKColor = totalCK < 0 ? '#d63031' : '#00b894';
+        let totalConLai = Math.max(0, tTG - tDT);
+        
         htmlBI += `
-          <tr class="row-total">
-            <td>⭐</td><td class="text-left">TỔNG CỘNG</td>
-            <td>${tSL.toLocaleString('vi-VN')}</td>
-            <td style="color:#d63031;">${formatMoney(tDT)}</td>
-            <td>${formatMoney(tTG)}</td>
-            <td style="color:${getColorClass(totalHT)};">${formatPercent(totalHT)}</td>
-            <td style="color:${totalCK < 0 ? '#d63031' : '#00b894'}; line-height: 1.2;">
-                ${formatPercent(totalCK)}<br>
-                <span style="font-size:12px; color:#636e72; font-weight:800;">${strTotalChenhLech}</span>
-            </td>
-            <td>${formatMoney(tTC)}</td>
-            <td style="color:#00A1E4;">${formatPercent(totalTyLeTC)}</td>
-          </tr>
+        <div class="rev-item" style="background: #fffbdf; border-top: 2px solid #f1c40f;">
+            <div class="rev-grid">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="rev-stt">⭐</div>
+                    <div class="rev-name" style="color:#d63031;">TỔNG CỘNG</div>
+                </div>
+                
+                <div class="rev-stat-col center-align">
+                    <div class="rev-stat-val" style="color:#d63031;">${formatMoney(tDT)} / ${formatMoney(tTG)} TR</div>
+                </div>
+                
+                <div class="rev-stat-col center-align">
+                    ${totalConLai > 0 ? `<div style="font-weight: 900; font-size: 14px; color: #d63031;">Cần: ${formatMoney(mucTieuNgayAll)} TR/ngày</div>` : `<div style="font-weight: 900; font-size: 14px; color: #00b894;">Đã về đích 🎉</div>`}
+                    <div style="font-size: 11px; color: #64748b; font-weight: 800; margin-top: 2px;">Còn lại: ${formatMoney(totalConLai)} TR</div>
+                </div>
+                
+                <div class="rev-stat-col center-align" style="padding: 0 5px;">
+                    <div class="rev-stat-val" style="color: ${totalHTColor}; font-size: 16px;">${formatPercent(totalHT)}</div>
+                </div>
+                
+                <div class="rev-stat-col center-align">
+                    <div style="color:${totalCKColor}; font-weight:900; font-size:15px; display:flex; align-items:center; justify-content:center; gap:4px;">
+                        ${totalCK >= 0 ? '↑' : '↓'} ${totalCK > 0 ? '+' : ''}${formatPercent(totalCK)}
+                    </div>
+                    <div style="font-size:11px; color:${totalCKColor}; font-weight:700;">(${strTotalChenhLech} TR)</div>
+                </div>
+                
+                <div class="center-align">
+                    <div class="rev-stat-val" style="color: #0d47a1;">100%</div>
+                </div>
+            </div>
+        </div>
         `;
-        document.getElementById("table-bi").innerHTML = htmlBI;
+        document.getElementById("board-bi").innerHTML = htmlBI;
 
+        // BẢNG THI ĐUA (PART 2) GIỮ NGUYÊN
         let htmlThiDua = ""; let sttTD = 1;
         for(let item of parsedThiDua) {
             let cHT = getColorClass(item.htTarget);
@@ -624,13 +910,66 @@
             btnSend.disabled = true; 
             setTimeout(executeCaptureAndSend, 2500); 
         } else {
-            btnSend.innerText = "🚀 CHỤP ẢNH & GỬI TELEGRAM";
+            btnSend.innerText = "🚀 CHỤP TÁCH & GỬI TELEGRAM";
             btnSend.disabled = false;
         }
 
       } catch (error) { console.error("Lỗi tải data:", error); }
     }
 
+    // --- HÀM HỖ TRỢ TẢI ẢNH VỀ MÁY ---
+    function downloadURI(uri, name) {
+        let link = document.createElement("a");
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    // --- SỰ KIỆN: CHỤP TÁCH VÀ LƯU MÁY ---
+    document.getElementById('btnDownloadSplit').addEventListener('click', async function() {
+        const btn = this;
+        let originalText = btn.innerText;
+        btn.innerText = "⏳ Đang tải ảnh...";
+        btn.disabled = true;
+        try {
+            let canvas1 = await html2canvas(document.getElementById('part1'), { scale: 2.5, useCORS: true });
+            downloadURI(canvas1.toDataURL("image/png"), "1_DoanhThu.png");
+
+            let canvas2 = await html2canvas(document.getElementById('part2'), { scale: 2.5, useCORS: true });
+            downloadURI(canvas2.toDataURL("image/png"), "2_ThiDua.png");
+        } catch(e) { 
+            alert("Lỗi chụp ảnh: " + e); 
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // --- SỰ KIỆN: CHỤP TOÀN TRANG VÀ LƯU MÁY ---
+    document.getElementById('btnDownloadFull').addEventListener('click', async function() {
+        const btn = this;
+        let originalText = btn.innerText;
+        btn.innerText = "⏳ Đang tải toàn trang...";
+        btn.disabled = true;
+        try {
+            // Chụp toàn bộ cụm chứa part1 và part2
+            let canvas = await html2canvas(document.getElementById('report-container'), { 
+                scale: 2.5, 
+                useCORS: true,
+                backgroundColor: "#e9ecef" 
+            });
+            downloadURI(canvas.toDataURL("image/png"), "BaoCao_ToanTrang.png");
+        } catch(e) { 
+            alert("Lỗi chụp toàn trang: " + e); 
+        } finally {
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // --- SỰ KIỆN: CHỤP TÁCH VÀ GỬI TELEGRAM ---
     async function executeCaptureAndSend() {
         const sendBtn = document.getElementById('btnSend');
         sendBtn.innerText = "⏳ Đang xuất ảnh 1/2..."; 
