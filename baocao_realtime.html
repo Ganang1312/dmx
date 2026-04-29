@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Realtime Dashboard - Cụm Savico</title>
+  <title>Executive Dashboard - Cụm Savico</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
@@ -16,112 +16,125 @@
 
     /* HEADER */
     .header-title { text-align: center; color: #1e272e; font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
-    .date-text { text-align: center; font-weight: 800; color: #f39c12; font-size: 18px; margin-bottom: 20px; text-transform: uppercase;}
+    .date-text { text-align: center; font-weight: 800; color: #00A1E4; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;}
     
-    .compare-bar-wrap { width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; background: #ffffff; padding: 15px 20px; border-radius: 12px; border: 2px solid #ced4da; box-sizing: border-box; }
-    .cb-row { display: flex; align-items: center; gap: 15px; font-size: 16px; font-weight: 900; color: #2d3436; }
-    .cb-label { width: 220px; display:flex; justify-content: space-between; align-items: center; }
-    .cb-track { flex: 1; height: 20px; background: #f1f2f6; border-radius: 10px; overflow: hidden; position: relative; }
-    .cb-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
-
-    /* 1. HEALTH BAR */
-    .status-bar { display: flex; align-items: stretch; border: 2px solid #7f8c8d; border-radius: 10px; margin-bottom: 25px; overflow: hidden; background: white;}
+    /* 1. HEALTH BAR - Đã chuyển viền sang đen đậm */
+    .status-bar { display: flex; align-items: stretch; border: 2px solid #1e272e; border-radius: 10px; margin-bottom: 25px; overflow: hidden; background: white;}
     .sb-item { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px 5px; flex: 1; position: relative;}
-    .sb-item:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 2px; background: #7f8c8d; }
+    .sb-item:not(:nth-last-child(2))::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 2px; background: #1e272e; }
     
-    .sb-left { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 12px; flex: 1.3; padding: 10px 15px; }
-    .sb-left-icon { font-size: 32px; background: white; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 12px; border: 1.5px solid #7f8c8d; }
+    .sb-left { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 12px; flex: 1.2; padding: 10px 15px; }
+    .sb-left-icon { font-size: 32px; background: white; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 12px; border: 2px solid #1e272e; }
+    .sb-right { background: #fff0f2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #d63031; flex: 0.9; padding: 10px;}
     
-    .sb-label { font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;}
+    .sb-label { font-size: 11px; font-weight: 900; color: #475569; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;}
     .sb-val { font-size: 24px; font-weight: 900; color: #1e272e; line-height: 1; text-align: center; }
 
     /* SECTION TITLES */
     .sec-title { display: flex; align-items: center; font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #00A1E4; margin: 25px 0 10px 0; text-transform: uppercase; }
     .sec-title span { background: #00A1E4; color: white; width: 34px; height: 34px; display: inline-flex; justify-content: center; align-items: center; border-radius: 50%; margin-right: 12px; font-size: 20px; }
-    
-    /* KPI CARDS */
-    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-    .card { background: #ffffff; padding: 12px 6px; text-align: center; border: 2px solid #7f8c8d; border-radius: 12px; }
-    .card-title { font-size: 13px; font-weight: 900; color: #475569; margin-bottom: 5px; text-transform: uppercase; }
+
+    /* 2. KPI TIERS - Đã chuyển viền sang đen đậm */
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; row-gap: 16px; }
+    .card { background: #ffffff; padding: 12px 6px; text-align: center; border: 2px solid #1e272e; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;}
+    .card-title { font-size: 13px; font-weight: 900; color: #475569; margin-bottom: 6px; text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 6px; }
     .card-val { font-size: 34px; font-family: 'Montserrat', sans-serif; font-weight: 900; line-height: 1.1; margin: 0; }
-    .card-sub { font-size: 11px; font-weight: 800; color: #636e72; margin-top: 6px; display: block; }
+    .card-sub { font-size: 13px; font-weight: 800; color: #636e72; margin-top: 8px; display: block; }
     
     .highlight-target { 
-        background-color: #ffffff; color: #1e272e; padding: 3px 0px; border-radius: 6px; 
-        border: 1.5px solid #cbd5e1; font-weight: 800; display: block; margin: 0 auto;
-        text-align: center; width: 90%; box-shadow: none; 
+        background-color: #ffffff; color: #1e272e; padding: 4px 0px; border-radius: 8px; 
+        border: 2px solid #cbd5e1; font-weight: 800; display: flex; justify-content: center; align-items: center; margin: 0 auto;
+        text-align: center; width: 85%; box-shadow: none; min-height: 24px;
     }
 
-    /* BẢNG DOANH THU 2.1 - FIX LỖI MẤT KẺ DỌC & ĐỒNG BỘ NÉT LIỀN */
-    .rev-board { border: 2px solid #2d3436; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #fff; margin-top: 10px; }
-    .rev-header { background: #f1f5f9; border-bottom: 2px solid #2d3436; }
-    
-    /* Thiết lập grid cho bảng */
-    .rev-grid { display: grid; grid-template-columns: 2.2fr 0.6fr 1.2fr 1.2fr 1.3fr 1.1fr 1fr; align-items: stretch; width: 100%; gap: 0; }
-    
-    /* Định dạng chung cho mọi ô (cell) - Nét dọc liền */
-    .rev-grid > div { 
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        border-right: 2px solid #7f8c8d; box-sizing: border-box;
-    }
-    .rev-grid > div:last-child { border-right: none; }
-    
-    /* Định dạng riêng cho header */
-    .rev-header .rev-grid > div { font-size: 14px; font-weight: 900; text-transform: uppercase; color: #1e3a8a; padding: 14px 5px; text-align: center; }
-    
-    /* Định dạng từng hàng nội dung */
-    .rev-item { display: block; border-bottom: 2px solid #7f8c8d; }
-    .rev-item:last-child { border-bottom: none; }
-    
-    /* Căn lề trái & định dạng chữ */
-    .rev-name { font-weight: 800; font-size: 18px; color: #1e272e; text-transform: uppercase; padding: 10px 15px; width: 100%; flex-direction: row !important; justify-content: flex-start !important; align-items: center !important;}
-    .rev-stat-val { font-size: 22px; font-weight: 900; color: #1e272e; padding: 8px 5px; width: 100%; height: 100%; }
-
-    /* BẢNG THI ĐUA 3.0 */
-    .td-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .table-container { border: 2px solid #2d3436; border-radius: 8px; overflow: hidden; background: #fff; margin-top: 10px;}
+    /* BẢNG CHUNG (Áp dụng cho cả Doanh Thu và Thi Đua) - Nét dọc ngang đen đậm */
+    .table-container { border: 2px solid #1e272e; border-radius: 8px; overflow: hidden; background: #fff; margin-top: 10px;}
     table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed;}
     
-    /* Phóng to tiêu đề và làm nét dọc solid đồng nhất */
-    th { background: #f1f5f9; color: #1e3a8a; padding: 14px 4px; font-size: 15px; font-weight: 900; border-bottom: 2px solid #2d3436; border-right: 2px solid #7f8c8d; text-align: center; text-transform: uppercase; }
+    th { background: #f1f5f9; color: #1e3a8a; padding: 12px 2px; font-size: 14px; font-weight: 900; border-bottom: 2px solid #1e272e; border-right: 2px solid #1e272e; text-align: center; text-transform: uppercase; }
     th:last-child { border-right: none; }
-    td { padding: 4px 8px; text-align: center; font-size: 24px; font-weight: 900; color: #2d3436; border-bottom: 2px solid #7f8c8d; border-right: 2px solid #7f8c8d; vertical-align: middle; }
+    
+    td { position: relative; padding: 6px 2px; text-align: center; font-size: 24px; font-weight: 900; color: #2d3436; border-bottom: 2px solid #1e272e; border-right: 2px solid #1e272e; vertical-align: middle; }
     td:last-child { border-right: none; }
     tr:last-child td { border-bottom: none; }
-    .text-left { text-align: left; padding-left: 15px !important; font-size: 18px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    
+    .text-left { text-align: left; padding-left: 8px !important; font-size: 19px !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* Progress UI */
     .td-prog-container { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 0 5px; box-sizing: border-box;}
     .td-prog-bar-bg { width: 90%; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; border: 1px solid #cbd5e1; }
     .td-prog-bar-fill { height: 100%; border-radius: 4px; }
     
-    /* FIX Background Tint không đè nét kẻ */
-    .cell-prog-wrap { position: relative; width: 100%; height: 100%; min-height: 42px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 4px;}
+    /* Cell Progress Background (Đổ dải màu vào ô) */
+    .cell-prog-wrap { position: relative; width: 100%; height: 100%; min-height: 55px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 4px;}
     .cell-prog-bg { position: absolute; left: 0; top: 0; bottom: 0; z-index: 0; opacity: 0.15; }
     .cell-val { position: relative; z-index: 1; }
 
     /* Donut SVG style */
-    .donut-wrapper { position: relative; width: 44px; height: 44px; display: inline-flex; justify-content: center; align-items: center; }
+    .donut-wrapper { position: relative; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center; }
     .circular-chart { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
     .circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 4; }
     .circle { fill: none; stroke-width: 4; stroke-linecap: round; stroke: #2563eb; }
     .donut-inner { position: relative; z-index: 1; font-weight: 900; font-size: 11px; color: #1e272e; }
 
-    .stt-pill { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 18px; border: 1px solid rgba(0,0,0,0.1); }
+    /* Pill Trạng thái Cột STT */
+    .stt-pill { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 18px; margin: 0 auto; border: 1px solid rgba(0,0,0,0.1);}
     .stt-green { background: #dcfce7; color: #16a34a; }
     .stt-blue { background: #dbeafe; color: #2563eb; }
     .stt-orange { background: #ffedd5; color: #ea580c; }
     .stt-red { background: #ffe4e6; color: #dc2626; }
 
-    .footer { text-align: center; margin-top: 30px; font-size: 14px; color: #475569; font-weight: 900; text-transform: uppercase; }
-    .btn-send { background: #f39c12; color: white; border: none; padding: 18px 40px; font-size: 20px; border-radius: 12px; cursor: pointer; font-weight: 900; margin-bottom: 40px; font-family: 'Montserrat', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+    /* BẢNG TODO (VIỆC CẦN LÀM HÔM NAY) - NÉT CHIA VÀ KHUNG ĐỀU MÀU ĐEN ĐẬM */
+    .todo-board { border: 3px solid #1e272e; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .todo-header { background: #ffc107; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e272e;}
+    .todo-header-left { font-size: 18px; font-weight: 900; color: #b71c1c; display: flex; align-items: center; gap: 8px; }
+    .todo-header-right { background: #d32f2f; color: white; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 900; }
+    
+    .todo-list { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; grid-auto-flow: column; gap: 14px; padding: 14px; background: #f8fafc; }
+    .todo-item { display: flex; flex-direction: column; padding: 12px; border: 2px solid #1e272e; background: #ffffff; border-radius: 10px; gap: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.06);}
+    .todo-top { display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed #1e272e; padding-bottom: 8px;}
+    .todo-title-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .todo-stt { color: white; width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; font-weight: 900; border-radius: 8px; font-size: 16px; flex-shrink: 0;}
+    .todo-icon { font-size: 24px; flex-shrink: 0; }
+    /* CHO PHÉP XUỐNG DÒNG */
+    .todo-name { font-size: 16px; font-weight: 900; color: #d32f2f; text-transform: uppercase; line-height: 1.3;}
+    
+    .todo-bottom { display: flex; gap: 6px; justify-content: space-between; }
+    .todo-stat-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 2px; background: #f8fafc; border-radius: 8px; border: 2px solid #1e272e;}
+    .todo-stat-box.highlight { background: #fff1f2; border-color: #d32f2f; }
+    
+    .todo-stat-lbl { font-size: 11px; color: #64748b; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; text-align: center; letter-spacing: -0.3px;}
+    .todo-stat-box.highlight .todo-stat-lbl { color: #b71c1c; }
+    
+    .todo-stat-val { font-size: 24px; font-weight: 900; color: #1e272e; display: flex; align-items: baseline; gap: 2px; letter-spacing: -0.5px;}
+    .todo-stat-box.highlight .todo-stat-val { color: #e53935; font-size: 26px;}
+    .todo-stat-val span { font-size: 13px; font-weight: 800; }
+
+    /* SUMMARY CARDS MỤC 3 */
+    .td-header-row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 15px;}
+    .td-summary-wrapper { display: flex; gap: 15px; align-items: center; }
+    .td-sum-card { 
+      background: #ffffff; border: 2px solid #1e272e; border-radius: 8px; 
+      padding: 6px 15px; display: flex; flex-direction: column; align-items: center; 
+      min-width: 100px;
+    }
+    .td-sum-card-title { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; color: #1e272e; margin-bottom: 2px; text-transform: uppercase;}
+    .td-sum-card-val { font-size: 24px; font-weight: 900; }
+
+    .footer { text-align: center; margin-top: 25px; font-size: 14px; color: #636e72; font-weight: bold; text-transform: uppercase; }
+    
+    /* FIX FONT NÚT BẤM (CHUYỂN SANG NUNITO TRÁNH LỖI DẤU NẶNG) */
+    .btn-send { background: #00A1E4; color: #ffffff; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: 900; margin-bottom: 30px; font-family: 'Nunito', sans-serif;}
     
     .top-actions { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; width: 950px;}
     .btn-action {
       background: #ffffff; border: 2px solid #ffb300; color: #d32f2f;
-      padding: 14px 28px; font-size: 16px; border-radius: 8px; font-weight: 900;
-      cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Montserrat', sans-serif;
+      padding: 12px 24px; font-size: 15px; border-radius: 8px; font-weight: 900;
+      cursor: pointer; display: flex; align-items: center; gap: 8px;
+      transition: all 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      font-family: 'Nunito', sans-serif;
     }
+    .btn-action:hover { background: #fff8e1; transform: translateY(-2px); }
   </style>
 </head>
 <body>
@@ -132,68 +145,63 @@
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
-
+      
       <div id="part1" class="report-box">
-        <div class="header-title">BÁO CÁO REALTIME CỤM SAVICO</div>
-        <div class="date-text">⚡ CẬP NHẬT LÚC: <span id="current-date"></span></div>
+        <div class="header-title">BÁO CÁO LŨY KẾ CỤM SAVICO</div>
+        <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span></div>
 
-        <div class="compare-bar-wrap">
-            <div class="cb-row">
-                <div class="cb-label"><span>⏱️ QUỸ THỜI GIAN</span> <span id="val-time-ratio">0%</span></div>
-                <div class="cb-track"><div class="cb-fill" id="fill-time-ratio" style="width: 0%; background: #94a3b8;"></div></div>
-            </div>
-            <div class="cb-row">
-                <div class="cb-label"><span style="color:#00A1E4;">🎯 TIẾN ĐỘ DOANH THU</span> <span id="val-target-ratio">0%</span></div>
-                <div class="cb-track"><div class="cb-fill" id="fill-target-ratio" style="width: 0%;"></div></div>
-            </div>
-        </div>
-
+        <!-- HEALTH BAR -->
         <div class="status-bar">
             <div class="sb-bg sb-left" id="sb-bg">
                 <div class="sb-left-icon" id="sb-icon">🛡️</div>
-                <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
-                    <div class="sb-label" style="justify-content: flex-start;">TÌNH TRẠNG SIÊU THỊ</div>
-                    <div class="sb-val" id="sb-status" style="color: #1d4ed8; font-size: 18px;">ỔN ĐỊNH</div>
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
+                    <div class="sb-label" style="justify-content: flex-start; margin-bottom: 2px; white-space: nowrap;">TÌNH TRẠNG SIÊU THỊ</div>
+                    <div class="sb-val" id="sb-status" style="color: #1d4ed8;">ỔN ĐỊNH</div>
                 </div>
             </div>
-            <div class="sb-item"><div class="sb-label">💰 DT THỰC HIỆN</div><div class="sb-val" id="sb-dt" style="color: #00A1E4;">0</div><div style="font-size: 11px; color: #d63031; font-weight: 900; margin-top: 4px;" id="sb-con-thieu-sub">CÒN LẠI: 0</div></div>
-            <div class="sb-item"><div class="sb-label">⚡ % THỰC HIỆN</div><div class="sb-val" id="sb-ht">0%</div></div>
-            <div class="sb-item"><div class="sb-label">🎯 MT NGÀY</div><div class="sb-val" id="sb-mt-ngay" style="color: #10b981;">0</div></div>
-            <div class="sb-item" style="background: #f0fdf4;"><div class="sb-label" style="color: #10b981;">🚀 DỰ BÁO L.KẾ</div><div class="sb-val" id="sb-dubao-ht" style="color: #10b981;">0%</div><div style="font-size: 11px; color: #10b981; font-weight: 900;" id="sb-dubao-dt">0 TR</div></div>
-        </div>
-
-        <div class="sec-title"><span>1</span> DOANH THU TRONG NGÀY</div>
-        <div class="grid-5">
-          <div class="card"><div class="card-title">💰 THỰC HIỆN</div><div class="card-val" id="c-dt-th" style="color: #0984e3;">0</div><div class="card-sub">TRIỆU ĐỒNG</div></div>
-          <div class="card"><div class="card-title">🎯 MỤC TIÊU</div><div class="card-val" id="c-mt-ngay-card" style="color: #10b981;">0</div><div class="card-sub">TRIỆU ĐỒNG</div></div>
-          <div class="card"><div class="card-title">⚡ % ĐẠT</div><div class="card-val" id="c-ht-th" style="color: #f39c12;">0%</div><div class="card-sub">TRONG NGÀY</div></div>
-          <div class="card"><div class="card-title">💳 TRẢ GÓP</div><div class="card-val" id="c-tc-rt" style="color: #d63031;">0%</div><div class="card-sub" id="c-tc-rt-sub"><div class="highlight-target">DT: 0 TR</div></div></div>
-          <div class="card"><div class="card-title">🏆 THI ĐUA ĐẠT</div><div class="card-val" id="c-nd-rt" style="color: #10b981;">0</div><div class="card-sub" id="c-nd-rt-sub"><div class="highlight-target">/ 0 NHÓM</div></div></div>
-        </div>
-
-        <div class="sec-title" style="margin: 20px 0 0 0;"><span>2</span> CHI TIẾT DOANH THU</div>
-        <div class="rev-board">
-            <div class="rev-header">
-                <div class="rev-grid">
-                    <div class="rev-name" style="color: #1e3a8a; border-right: 2px solid #2d3436;">📚 NGÀNH HÀNG</div>
-                    <div style="border-right: 2px solid #2d3436;">SL</div>
-                    <div style="border-right: 2px solid #2d3436;">DTQĐ (TR)</div>
-                    <div style="border-right: 2px solid #2d3436;">TARGET</div>
-                    <div style="border-right: 2px solid #2d3436;">📈 % HT</div>
-                    <div style="border-right: 2px solid #2d3436;">TRẢ CHẬM</div>
-                    <div>TỶ TRỌNG TC</div>
-                </div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">📈</i> TIẾN ĐỘ THỰC TẾ</div>
+                <div class="sb-val" id="sb-tien-do">0%</div>
             </div>
-            <div class="rev-list" id="table-bi"></div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">🚀</i> DỰ KIẾN THÁNG</div>
+                <div class="sb-val" id="sb-du-kien" style="color: #00A1E4;">0%</div>
+            </div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">⏳</i> DT CÒN LẠI</div>
+                <div class="sb-val" id="sb-con-thieu" style="color: #636e72;">0</div>
+            </div>
+            <div class="sb-item">
+                <div class="sb-label"><i style="font-size: 14px;">🎯</i> MT NGÀY KỲ VỌNG</div>
+                <div class="sb-val" id="sb-mt-ngay" style="color: #00b894;">0</div>
+            </div>
+            <div class="sb-right" id="sb-nguy-co-box">
+                <div style="display:flex; align-items:center; gap:6px; font-weight: 900; font-size: 13px;"><i style="font-size: 18px;">⚠️</i> Ngành nguy cơ</div>
+                <div style="font-weight: 900; font-size: 18px; color: #d63031;" id="sb-nguy-co">0 nhóm</div>
+            </div>
         </div>
-      </div>
 
-      <div id="part2" class="report-box">
-        <div class="td-header-row">
-            <div class="sec-title" style="margin: 0;"><span>3</span> CHI TIẾT THI ĐUA</div>
-            <div style="display:flex; gap: 20px; align-items: center;">
-                <div class="sb-label" style="margin:0;">🏆 ĐÃ VỀ ĐÍCH: <b id="td-sum-vd" style="color: #10b981; font-size: 24px; margin-left: 5px;">0</b></div>
-                <div class="sb-label" style="margin:0;">🚨 CẢNH BÁO: <b id="td-sum-cb" style="color: #d63031; font-size: 24px; margin-left: 5px;">0</b></div>
+        <div class="sec-title"><span>1</span> DOANH THU & THI ĐUA</div>
+        <div class="grid-4">
+          <div class="card"><div class="card-title">💰 DOANH THU LŨY KẾ</div><div class="card-val" id="c-dt" style="color: #d63031;">0</div><div class="card-sub"><div class="highlight-target" id="c-dt-sub">CÒN LẠI: 0 TR</div></div></div>
+          <div class="card"><div class="card-title">🎯 TARGET THÁNG</div><div class="card-val" id="c-tg" style="color: #0984e3;">0</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG</div></div>
+          <div class="card"><div class="card-title">⚡ % HT TARGET</div><div class="card-val" id="c-ht" style="color: #10b981;">0%</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TIẾN ĐỘ THÁNG</div></div>
+          <div class="card"><div class="card-title">📈 DỰ KIẾN THÁNG</div><div class="card-val" id="c-dk" style="color: #00A1E4;">0</div><div class="card-sub"><div class="highlight-target" id="c-dk-sub">%HT D.KIẾN: 0%</div></div></div>
+          
+          <div class="card"><div class="card-title">⏱️ MỤC TIÊU NGÀY</div><div class="card-val" id="c-mt-ngay-card" style="color: #00A1E4;">0</div><div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG/NGÀY</div></div>
+          <div class="card"><div class="card-title">📊 +/- CÙNG KỲ</div><div class="card-val" id="c-ck" style="color: #d63031;">0%</div><div class="card-sub"><div class="highlight-target" id="c-ck-sub">(0 TR)</div></div></div>
+          <div class="card"><div class="card-title">💳 % TRẢ CHẬM</div><div class="card-val" id="c-tc" style="color: #f59e0b;">0%</div><div class="card-sub"><div class="highlight-target" id="c-tc-sub">0 TR</div></div></div>
+          <div class="card"><div class="card-title">⭐ NH DỰ KIẾN ĐẠT</div><div class="card-val" id="c-nh-dk" style="color: #00A1E4;">0</div><div class="card-sub"><div class="highlight-target" id="c-nh-vd-sub">ĐÃ VỀ ĐÍCH: 0</div></div></div>
+        </div>
+
+        <div class="sec-title" style="margin-top: 25px;"><span>2</span> CHI TIẾT DOANH THU</div>
+        
+        <div class="todo-board" style="margin-bottom: 20px;">
+            <div class="todo-header">
+                <div class="todo-header-left">🎯 VIỆC CẦN LÀM HÔM NAY</div>
+                <div class="todo-header-right">ƯU TIÊN DOANH THU</div>
+            </div>
+            <div class="todo-list" id="todo-list">
             </div>
         </div>
 
@@ -201,39 +209,96 @@
             <table>
               <thead>
                 <tr>
-                  <th width="6%">#</th>
-                  <th class="text-left" width="40%">📚 NGÀNH HÀNG THI ĐUA</th>
-                  <th width="14%">📈 THỰC HIỆN</th>
-                  <th width="15%">🎯 TARGET NGÀY</th>
-                  <th width="25%">% HT TARGET</th>
+                  <th width="5%">#</th>
+                  <th class="text-left" width="24%">📚 NGÀNH HÀNG</th>
+                  <th width="15%">🎯 ĐÃ BÁN / TARGET</th>
+                  <th width="14%">📅 MT NGÀY</th>
+                  <th width="15%">📈 % HOÀN THÀNH</th>
+                  <th width="16%">⚖️ +/- SO VỚI CK</th>
+                  <th width="11%">📊 TỶ TRỌNG</th>
+                </tr>
+              </thead>
+              <tbody id="board-bi">
+              </tbody>
+            </table>
+        </div>
+      </div>
+
+      <div id="part2" class="report-box">
+        
+        <div class="td-header-row">
+            <div class="sec-title" style="margin: 0;"><span>3</span> CHI TIẾT THI ĐUA</div>
+            <div class="td-summary-wrapper">
+                <div class="td-sum-card">
+                    <div class="td-sum-card-title"><span style="font-size: 16px;">🏆</span> Đã về đích</div>
+                    <div class="td-sum-card-val" id="td-sum-vd" style="color: #10b981;">0</div>
+                </div>
+                <div class="td-sum-card">
+                    <div class="td-sum-card-title"><span style="font-size: 16px;">🚀</span> Dự kiến đạt</div>
+                    <div class="td-sum-card-val" id="td-sum-dk" style="color: #3b82f6;">0</div>
+                </div>
+                <div class="td-sum-card">
+                    <div class="td-sum-card-title"><span style="font-size: 16px;">⚠️</span> Cảnh báo</div>
+                    <div class="td-sum-card-val" id="td-sum-cb" style="color: #ef4444;">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="todo-board" style="margin-bottom: 20px;">
+            <div class="todo-header" style="background: #3b82f6; border-bottom: 3px solid #1e272e;">
+                <div class="todo-header-left" style="color: #ffffff;">🎯 VIỆC CẦN LÀM: BỨT PHÁ THI ĐUA</div>
+                <div class="todo-header-right" style="background: #1d4ed8; color: white;">ƯU TIÊN GẦN ĐẠT NHẤT</div>
+            </div>
+            <div class="todo-list" id="todo-list-thidua"></div>
+        </div>
+
+        <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <!-- ĐÃ ĐIỀU CHỈNH LẠI CỘT CHO NGÀNH HÀNG HIỂN THỊ ĐỦ 1 DÒNG -->
+                  <th width="5%">#</th>
+                  <th class="text-left" width="38%">📚 NGÀNH HÀNG THI ĐUA</th>
+                  <th width="9%">📅 MT NGÀY</th>
+                  <th width="9%">🎯 TARGET</th>
+                  <th width="11%">📈 THỰC HIỆN</th>
+                  <th width="10%">% HT</th>
+                  <th width="8%">⏳ CÒN LẠI</th>
+                  <th width="10%">🚀 % DỰ KIẾN</th>
                 </tr>
               </thead>
               <tbody id="table-thidua"></tbody>
             </table>
         </div>
 
-        <div class="footer">REALTIME SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
+        <div class="footer">SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
       </div>
 
-  </div>
+  </div> <!-- End of report-container -->
 
-  <button class="btn-send" id="btnSend">🚀 CHỤP ẢNH REALTIME & GỬI TELEGRAM</button>
+  <button class="btn-send" id="btnSend">🚀 CHỤP TÁCH & GỬI TELEGRAM</button>
 
   <script>
-    const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
-    const setHTML = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
-    const setColor = (id, val) => { const el = document.getElementById(id); if(el) el.style.color = val; };
-    const setBg = (id, val) => { const el = document.getElementById(id); if(el) el.style.background = val; };
-    const setWidth = (id, val) => { const el = document.getElementById(id); if(el) el.style.width = val; };
-
     const today = new Date();
-    const timeStrFull = today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setText('current-date', today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + today.toLocaleDateString('vi-VN'));
+    const yesterday = new Date(today); 
+    yesterday.setDate(today.getDate() - 1);
+    
+    // Check if element exists before setting text
+    const dateElement = document.getElementById('current-date');
+    if (dateElement) {
+        dateElement.innerText = yesterday.toLocaleDateString('vi-VN');
+    }
 
     const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
     const CHAT_ID = "-5072214230"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
     
+    // Constant Variables for Tasks
+    const todoPrefixes = ["ĐẨY MẠNH", "TẬP TRUNG", "BỨT PHÁ", "GIA TĂNG", "ĐẨY SỐ", "CHẠY NƯỚC RÚT"];
+    const todoColors = ['#e53935', '#f57c00', '#fbc02d', '#1e88e5', '#8e24aa', '#00897b'];
+
+    window.reportMessageText = "";
+
     const parseVnNumber = (val) => {
       if (val == null || val === '') return 0;
       if (typeof val === 'number') return val; 
@@ -246,13 +311,42 @@
     const formatMoney = (val) => Math.round(val).toLocaleString('vi-VN'); 
     const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
     const getKey = (obj, ...names) => { let keys = Object.keys(obj); for(let n of names){ let m = keys.find(k=>k.trim().toLowerCase()===n.toLowerCase()); if(m) return obj[m]; } return undefined; };
-    
+
     const getColorClass = (percent) => {
-        if (percent >= 1) return "#10b981";
-        if (percent >= 0.8) return "#3b82f6";
-        if (percent >= 0.5) return "#f39c12";
-        return "#ef4444";
+        if (percent >= 1) return "#10b981"; 
+        if (percent >= 0.75) return "#3b82f6"; 
+        if (percent >= 0.4) return "#f59e0b"; 
+        return "#ef4444"; 
     };
+
+    function shortName(name) {
+        let n = String(name).toUpperCase();
+        if(n.includes("TỦ LẠNH")) return "TỦ LẠNH, TỦ ĐÔNG, TỦ MÁT";
+        if(n.includes("MÁY LỌC KHÔNG KHÍ")) return "MÁY LỌC KHÔNG KHÍ";
+        if(n.includes("MÁY LỌC NƯỚC")) return "MÁY LỌC NƯỚC";
+        if(n.includes("ĐIỆN THOẠI")) return "ĐIỆN THOẠI, TABLET KÊNH ĐMX";
+        if(n.includes("LAPTOP")) return "Laptop";
+        if(n.includes("ĐIỆN TỬ") && n.includes("SONY")) return "Điện tử SONY";
+        if(n.includes("ĐIỆN TỬ") || n.includes("TIVI")) return "Điện tử";
+        if(n.includes("MÁY GIẶT")) return "Máy giặt & sấy";
+        if(n.includes("GIA DỤNG")) return "Gia dụng";
+        if(n.includes("PHỤ KIỆN") && n.includes("ĐỒNG HỒ")) return "Phụ kiện - Đồng hồ";
+        if(n.includes("PHỤ KIỆN")) return "Phụ kiện";
+        if(n.includes("ĐỒNG HỒ")) return "Đồng hồ";
+        if(n.includes("QUẠT")) return "Quạt gió";
+        if(n.includes("CAMERA")) return "Camera";
+        if(n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA")) return "Máy lạnh";
+        if(n.includes("PIN SẠC")) return "Pin sạc dự phòng";
+        if(n.includes("HOMECREDIT")) return "Homecredit";
+        if(n.includes("FECREDIT") || n.includes("FINANCE")) return "Tài chính (Fe, Shinhan...)";
+        if(n.includes("FLAGSHIP")) return "Smartphone Flagship";
+        if(n.includes("BẢO HIỂM")) return "Bảo hiểm";
+        if(n.includes("SIM")) return "Sim Số";
+        if(n.includes("VÍ")) return "Ví trả sau";
+        if(n.includes("CAKE")) return "Cake";
+        let res = name.replace("NNH ", "");
+        return res;
+    }
 
     function getEmoji(name) {
         let n = String(name).toUpperCase();
@@ -261,12 +355,13 @@
         if (n.includes("GIẶT") || n.includes("SẤY")) return "🧺";
         if (n.includes("PIN") || n.includes("SẠC")) return "🔋";
         if (n.includes("LAPTOP")) return "💻";
-        if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "🧊";
+        if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "❄️";
+        if (n.includes("KHÔNG KHÍ") || n.includes("MLKK")) return "🌀";
         if (n.includes("LỌC") || n.includes("NƯỚC") || n.includes("MLN")) return "🚰";
         if (n.includes("GIA DỤNG")) return "🍳";
         if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE") || n.includes("FLAGSHIP")) return "📱";
         if (n.includes("CAMERA")) return "📷";
-        if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "❄️";
+        if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "🌡️";
         if (n.includes("ĐỒNG HỒ") || n.includes("THỜI TRANG")) return "⌚";
         if (n.includes("BẢO HIỂM") || n.includes("FINANCE") || n.includes("CREDIT") || n.includes("VÍ") || n.includes("CAKE") || n.includes("HC")) return "💳";
         if (n.includes("SIM")) return "📶";
@@ -275,232 +370,629 @@
     }
 
     async function loadData() {
-      setText('btnSend', "⏳ Đang kết nối Big Data...");
+      const btn = document.getElementById('btnSend');
+      if (btn) btn.innerText = "⏳ Đang tổng hợp Big Data từ 3 luồng...";
+
       try {
-        const [resBI, resThiDua, resConfig, resRTBI, resRTThiDua] = await Promise.all([
-            fetch(GAS_URL + "?sheet=Data_BI"), fetch(GAS_URL + "?sheet=Data_ThiDua"),
-            fetch(GAS_URL + "?sheet=Config_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_BI"),
-            fetch(GAS_URL + "?sheet=Data_Realtime_ThiDua")
+        const [resBI, resThiDua, resConfig] = await Promise.all([
+            fetch(GAS_URL + "?sheet=Data_BI"), 
+            fetch(GAS_URL + "?sheet=Data_ThiDua"),
+            fetch(GAS_URL + "?sheet=Config_ThiDua") 
         ]);
 
-        const dataBI = await resBI.json(); const dataThiDua = await resThiDua.json();
-        const configData = await resConfig.json(); const dataRTBI = await resRTBI.json();
-        const dataRTThiDua = await resRTThiDua.json();
+        const dataBI = await resBI.json();
+        const dataThiDua = await resThiDua.json();
+        const configData = await resConfig.json();
 
         const currentDay = today.getDate();
-        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        let reportMonth = today.getMonth(); let reportYear = today.getFullYear();
+        if (currentDay === 1) { reportMonth -= 1; if (reportMonth < 0) { reportMonth = 11; reportYear--; } }
+        const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
         const daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
         let daysRemaining = daysInMonth - daysPassed; if (daysRemaining <= 0) daysRemaining = 1;
         const isWeekend = today.getDay() === 0 || today.getDay() === 6;
 
-        let elapsedHours = (today.getHours() + today.getMinutes() / 60) - 9;
-        if (elapsedHours < 0) elapsedHours = 0; if (elapsedHours > 13) elapsedHours = 13;
-        let timeRatio = elapsedHours / 13;
+        let parsedBI = [];
+        let tDT = 0, tTG = 0, tDTCK = 0, tTC = 0, tSL = 0, tDTGoc = 0;
 
-        let lk_tDT = 0, lk_tTG = 0;
         for(let row of dataBI) {
-          lk_tDT += parseVnNumber(getKey(row, "doanh thu quy đổi")); 
-          lk_tTG += parseVnNumber(getKey(row, "target")); 
+          let dt = parseVnNumber(getKey(row, "doanh thu quy đổi")); 
+          let tg = parseVnNumber(getKey(row, "target")); 
+          let sl = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let dtGoc = parseVnNumber(getKey(row, "doanh thu")); 
+          let dtTC = parseVnNumber(getKey(row, "revenue_installment", "doanh thu trả chậm"));
+          let tangGiamCK = parseVnNumber(getKey(row, "rev_kft_riserate_lastmonth", "+/- dtck")) / 100;
+          let tyTrongTC = parseVnNumber(getKey(row, "installment_ratio", "tỷ trọng trả chậm", "tỷ trọng tc")) / 100;
+
+          tDT += dt; tTG += tg; tTC += dtTC; tSL += sl; tDTGoc += dtGoc;
+          let dtCK = (1 + tangGiamCK === 0) ? 0 : (dt / (1 + tangGiamCK));
+          tDTCK += dtCK;
+
+          let nganhHang = getKey(row, "nhóm ngành hàng", "ngành hàng", "salegroupmastername");
+          if (!nganhHang || String(nganhHang).trim() === "" || String(nganhHang).trim().toUpperCase() === "N/A") continue;
+          if (sl === 0 && dt === 0) continue; 
+
+          let htTarget = tg > 0 ? dt/tg : 0;
+          parsedBI.push({ nganhHang, sl, dt, tg, htTarget, tangGiamCK, dtTC, tyTrongTC });
         }
         
-        let targetCoDinh = lk_tTG / daysInMonth;
-        let targetBùTrừ = (lk_tTG - lk_tDT) / daysRemaining;
-        let mucTieuNgayAll = isWeekend ? targetCoDinh * 2 : Math.max(targetCoDinh, targetBùTrừ);
+        parsedBI.sort((a, b) => b.dt - a.dt);
+
+        let totalHT = tTG > 0 ? tDT/tTG : 0;
+        let totalCK = tDTCK !== 0 ? (tDT - tDTCK)/tDTCK : 0;
+        let totalTyLeTC = tDTGoc > 0 ? tTC/tDTGoc : 0;
+        let totalDKThang = (tDT/daysPassed)*daysInMonth;
+        
+        let mucTieuCoDinhAll = tTG / daysInMonth;
+        let mucTieuThucTeAll = (tTG - tDT) / daysRemaining;
+        if (mucTieuThucTeAll < 0) mucTieuThucTeAll = 0;
+        
+        let mucTieuNgayAll = 0;
+        if (isWeekend) {
+            mucTieuNgayAll = mucTieuCoDinhAll * 2;
+        } else {
+            mucTieuNgayAll = mucTieuThucTeAll < mucTieuCoDinhAll ? mucTieuCoDinhAll : mucTieuThucTeAll;
+        }
 
         let configMap = {};
         if (!configData.error && configData.length > 0) {
             for(let c of configData) {
                 let ten = getKey(c, "ngành hàng", "nhóm ngành hàng");
                 let phanLoai = parseVnNumber(getKey(c, "phân loại", "loại", "mức độ"));
-                if (ten) configMap[String(ten).toLowerCase().trim()] = { phanLoai };
+                let thuTu = parseVnNumber(getKey(c, "thứ tự", "thu tu"));
+                if (ten) configMap[String(ten).toLowerCase().trim()] = { phanLoai, thuTu: thuTu > 0 ? thuTu : 999 };
             }
         }
 
-        let thiDuaLuyKeMap = {};
+        let parsedThiDua = [];
+        let cntDK = 0, cntVD = 0;
+        let gr1 = [], gr2 = [], gr3 = [], gr4 = []; 
+
         for(let row of dataThiDua) {
-          let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng");
-          if (!nganhHang || nganhHang === "N/A") continue;
+          let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính");
+          if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
+
           let target = parseVnNumber(getKey(row, "target", "mục tiêu"));
-          let sl = parseVnNumber(getKey(row, "số lượng")); let dt = parseVnNumber(getKey(row, "doanh thu"));
-          let thucHien = sl; let isDT = false;
-          if (dt > 0 && (sl === 0 || Math.abs((dt/target)-1) < Math.abs((sl/target)-1))) { thucHien = dt; isDT = true; }
-          let mtN = Math.max(0, (target - thucHien) / daysRemaining);
-          thiDuaLuyKeMap[String(nganhHang).toLowerCase().trim()] = { mtNgay: mtN, isDT: isDT };
-        }
+          if (target <= 0) continue; 
 
-        let parsedRTBI = []; let rt_tDT = 0, rt_tTC = 0, rt_tSL = 0, rt_tTarget = 0;
-        for(let row of dataRTBI) {
-          let nganhHang = getKey(row, "nhóm ngành hàng", "salegroupmastername");
-          if (!nganhHang || nganhHang === "N/A") continue;
-          let dtqd = parseVnNumber(getKey(row, "revenue_KFactor_RT"));
-          let sl = parseVnNumber(getKey(row, "quantity_RT"));
-          let targetDay = parseVnNumber(getKey(row, "revenue_KFactor_AVEDay"));
-          let dtTC = parseVnNumber(getKey(row, "revenue_Installment"));
-          
-          // Lọc không lấy các dòng rỗng (cả SL và DT đều 0)
-          if (sl === 0 && dtqd === 0) continue;
-
-          rt_tDT += dtqd; rt_tTC += dtTC; rt_tSL += sl; rt_tTarget += targetDay;
-          
-          let htTarget = targetDay > 0 ? (dtqd / targetDay) : 0;
-          let tyTrongTC = dtqd > 0 ? (dtTC / dtqd) : 0; 
-
-          parsedRTBI.push({ nganhHang, sl, dtqd, targetDay, htTarget, dtTC, tyTrongTC });
-        }
-        parsedRTBI.sort((a, b) => b.dtqd - a.dtqd);
-
-        let parsedRTThiDua = []; let rt_cntVD = 0, rt_cntCB = 0;
-        for(let row of dataRTThiDua) {
-          let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng");
-          if (!nganhHang || nganhHang === "N/A") continue;
-          
           let nganhClean = String(nganhHang).toLowerCase().trim();
           let cObj = configMap[nganhClean] || {};
           if (Object.keys(configMap).length > 0 && (!cObj.phanLoai || cObj.phanLoai === 0)) continue;
 
-          let lkInfo = thiDuaLuyKeMap[nganhClean] || { mtNgay: 0, isDT: false };
-          let thucHien = lkInfo.isDT ? parseVnNumber(getKey(row, "revenue_RT")) : parseVnNumber(getKey(row, "quantity_RT"));
-          let ht = lkInfo.mtNgay > 0 ? thucHien / lkInfo.mtNgay : (thucHien > 0 ? 1 : 0);
-          if(ht >= 1) rt_cntVD++; else if(ht < 0.5) rt_cntCB++;
-          parsedRTThiDua.push({ nganhHang, thucHien, mtNgay: lkInfo.mtNgay, htTarget: ht, isSL: !lkInfo.isDT, isTrongDiem: cObj.phanLoai === 2 });
+          let sl = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let dt = parseVnNumber(getKey(row, "doanh thu")); 
+          
+          let thucHien = sl; 
+          let isSL = true;
+          if (dt > 0) {
+              if (sl === 0) {
+                  thucHien = dt;
+                  isSL = false;
+              } else {
+                  let tyLeDT = Math.abs((dt / target) - 1);
+                  let tyLeSL = Math.abs((sl / target) - 1);
+                  if (tyLeDT < tyLeSL) {
+                      thucHien = dt;
+                      isSL = false;
+                  }
+              }
+          }
+
+          let htTarget = thucHien / target;
+          let htDuKien = ((thucHien / daysPassed) * daysInMonth) / target;
+          let mtNgay = (target - thucHien) / daysRemaining;
+          if (mtNgay < 0) mtNgay = 0; 
+
+          let item = { nganhHang, thucHien, target, htTarget, htDuKien, mtNgay, thuTu: cObj.thuTu || 999, isTrongDiem: cObj.phanLoai === 2, isSL, dt: dt, sl: sl };
+          parsedThiDua.push(item);
+
+          if (item.htTarget >= 1) gr1.push(item);
+          else if (item.htTarget >= 0.75) gr2.push(item);
+          else if (item.htTarget >= 0.4) gr3.push(item);
+          else gr4.push(item);
         }
-        parsedRTThiDua.sort((a,b) => b.htTarget - a.htTarget);
 
-        let htChung = mucTieuNgayAll > 0 ? (rt_tDT / mucTieuNgayAll) : 0;
-        setText("val-time-ratio", formatPercent(timeRatio)); setWidth("fill-time-ratio", `${Math.min(timeRatio * 100, 100)}%`);
-        setText("val-target-ratio", formatPercent(htChung)); setWidth("fill-target-ratio", `${Math.min(htChung * 100, 100)}%`);
-        setBg("fill-target-ratio", getColorClass(htChung)); setColor("val-target-ratio", getColorClass(htChung));
+        parsedThiDua.sort((a, b) => b.htTarget - a.htTarget);
 
-        setText("sb-dt", formatMoney(rt_tDT)); setText("sb-con-thieu-sub", `CÒN LẠI: ${formatMoney(Math.max(0, mucTieuNgayAll - rt_tDT))}`);
-        setText("sb-ht", formatPercent(htChung)); setColor("sb-ht", getColorClass(htChung));
+        parsedThiDua.forEach(item => {
+            if (item.htDuKien >= 1) cntDK++;
+            if (item.htTarget >= 1) cntVD++;
+        });
+
+        const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+        const setHTML = (id, val) => { const el = document.getElementById(id); if(el) el.innerHTML = val; };
+        const setColor = (id, val) => { const el = document.getElementById(id); if(el) el.style.color = val; };
+        const setBg = (id, val) => { const el = document.getElementById(id); if(el) el.style.background = val; };
+
+        setText("td-sum-vd", cntVD);
+        setText("td-sum-dk", cntDK);
+        setText("td-sum-cb", (parsedThiDua.length - cntDK));
+
+        let sbStatusText = "ỔN ĐỊNH"; let sbStatusColor = "#1d4ed8"; let sbLeftBg = "#eff6ff"; let sbIcon = "🛡️";
+        if (totalHT >= 0.95) { sbStatusText = "XUẤT SẮC"; sbStatusColor = "#10b981"; sbLeftBg = "#f0fdf4"; sbIcon = "🌟"; }
+        else if (totalHT >= 0.85) { sbStatusText = "ỔN ĐỊNH"; sbStatusColor = "#1d4ed8"; sbLeftBg = "#eff6ff"; sbIcon = "🛡️"; }
+        else if (totalHT >= 0.70) { sbStatusText = "CẢNH BÁO"; sbStatusColor = "#f59e0b"; sbLeftBg = "#fff7ed"; sbIcon = "⚠️"; }
+        else { sbStatusText = "NGUY HIỂM"; sbStatusColor = "#ef4444"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
+
+        setBg("sb-bg", sbLeftBg);
+        setText("sb-icon", sbIcon);
+        setText("sb-status", sbStatusText);
+        setColor("sb-status", sbStatusColor);
+        
+        let strTangTruong = totalCK >= 0 ? `+${Math.round(totalCK*100)}` : Math.round(totalCK*100);
+        let colorTangTruong = totalCK >= 0 ? "#10b981" : "#ef4444";
+        setHTML("sb-tien-do", `${formatPercent(totalHT)} <span style="font-size:14px; font-weight:800; color:${colorTangTruong};">(${strTangTruong}%)</span>`);
+        
+        setText("sb-du-kien", formatPercent(totalDKThang/tTG));
+        setText("sb-con-thieu", formatMoney(Math.max(0, tTG - tDT)));
         setText("sb-mt-ngay", formatMoney(mucTieuNgayAll));
-        setText("sb-dubao-ht", formatPercent((lk_tDT+rt_tDT)/lk_tTG)); setText("sb-dubao-dt", `${formatMoney((lk_tDT+rt_tDT)/currentDay*daysInMonth)} TR`);
+        
+        let nguyCoCount = parsedThiDua.filter(x => x.htDuKien < 1).length;
+        setText("sb-nguy-co", `${nguyCoCount} nhóm`);
 
-        setText("c-dt-th", formatMoney(rt_tDT)); setText("c-mt-ngay-card", formatMoney(mucTieuNgayAll));
-        setText("c-ht-th", formatPercent(htChung)); setColor("c-ht-th", getColorClass(htChung));
-        setText("c-tc-rt", formatPercent(rt_tDT > 0 ? rt_tTC/rt_tDT : 0)); setHTML("c-tc-rt-sub", `<div class="highlight-target">DT: ${formatMoney(rt_tTC)} TR</div>`);
-        setText("c-nd-rt", rt_cntVD); setHTML("c-nd-rt-sub", `<div class="highlight-target">/ ${parsedRTThiDua.length} NHÓM</div>`);
+        setText("c-dt", formatMoney(tDT));
+        setText("c-tg", formatMoney(tTG));
+        setText("c-ht", formatPercent(totalHT));
+        setColor("c-ht", getColorClass(totalHT));
+        
+        let colorConLai = (tTG - tDT) > 0 ? "#ef4444" : "#10b981";
+        let colorDKThang = getColorClass(totalDKThang/tTG);
+        let colorTyTrongTC = totalTyLeTC > 0.15 ? "#ef4444" : "#f59e0b";
 
-        // BẢNG 2.1 - CHI TIẾT DOANH THU
+        setHTML("c-dt-sub", `CÒN LẠI: <span style="color:${colorConLai}; font-weight:900;">${formatMoney(Math.max(0, tTG - tDT))} TR</span>`);
+        setText("c-dk", formatMoney(totalDKThang));
+        setHTML("c-dk-sub", `%HT D.KIẾN: <span style="color:${colorDKThang}; font-weight:900;">${formatPercent(totalDKThang/tTG)}</span>`);
+        setText("c-tc", formatPercent(totalTyLeTC));
+        setHTML("c-tc-sub", `<span style="color:${colorTyTrongTC}; font-weight:900;">${formatMoney(tTC)} TR</span>`);
+
+        setText("c-mt-ngay-card", formatMoney(mucTieuNgayAll));
+        setText("c-ck", `${totalCK>0?'+':''}${Math.round(totalCK*100)}%`);
+        setColor("c-ck", totalCK < 0 ? '#ef4444' : '#10b981');
+        
+        let diffCK = tDT - tDTCK;
+        let strDiffCK = diffCK >= 0 ? `↑ +${formatMoney(diffCK)} TR` : `↓ ${formatMoney(diffCK)} TR`;
+        let colorDiffCK = diffCK >= 0 ? '#10b981' : '#ef4444';
+        setHTML("c-ck-sub", `<span style="color:${colorDiffCK}; font-weight:900; font-size:14px;">${strDiffCK}</span>`);
+        
+        let totalThiDua = parsedThiDua.length;
+        setHTML("c-nh-dk", `${cntDK} <span style="font-size: 20px; color: #64748b; font-weight: 800;">/ ${totalThiDua}</span>`);
+        setHTML("c-nh-vd-sub", `🏆 ĐÃ VỀ ĐÍCH: <span style="color:#10b981; font-weight:900; font-size:14px;">${cntVD}</span>`);
+
+        // RENDER 2.1 DOANH THU THEO NGÀNH HÀNG (DẠNG TABLE CHUẨN CÓ THÊM STT, CHÈN CUP Ở CỘT MT NGÀY)
         let htmlBI = "";
-        for(let i of parsedRTBI) {
-            let c = getColorClass(i.htTarget);
-            let pTyTrong = Math.round(i.tyTrongTC * 100);
-            htmlBI += `<div class="rev-item"><div class="rev-grid">
-                <div class="rev-name"><span style="margin-right:8px;">${getEmoji(i.nganhHang)}</span>${i.nganhHang.replace("NNH ","")}</div>
-                <div class="rev-stat-val">${i.sl.toLocaleString('vi-VN')}</div>
-                <div class="rev-stat-val" style="padding: 4px;">
-                    <div class="cell-prog-wrap">
-                        <div class="cell-prog-bg" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c};"></div>
-                        <span class="cell-val" style="color:#00A1E4; font-weight:900;">${formatMoney(i.dtqd)}</span>
-                    </div>
-                </div>
-                <div class="rev-stat-val" style="color:#475569;">${formatMoney(i.targetDay)}</div>
-                <div class="rev-stat-val" style="padding: 6px 4px;">
-                    <div class="td-prog-container">
-                        <span style="color:${c}; font-weight:900;">${formatPercent(i.htTarget)}</span>
-                        <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c};"></div></div>
-                    </div>
-                </div>
-                <div class="rev-stat-val">${formatMoney(i.dtTC)}</div>
-                <div class="rev-stat-val" style="padding: 4px 0;">
-                    <div class="donut-wrapper">
-                        <svg viewBox="0 0 36 36" class="circular-chart"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="circle" stroke-dasharray="${pTyTrong}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
-                        <span class="donut-inner">${pTyTrong}%</span>
-                    </div>
-                </div>
-            </div></div>`;
+        let sttBI = 1;
+        for(let item of parsedBI) {
+          let tyTrong = tDT > 0 ? (item.dt / tDT) : 0;
+          let cHT = getColorClass(item.htTarget);
+          let name = shortName(item.nganhHang);
+          if(name.length > 15) name = name.substring(0, 15);
+          let industryEmoji = getEmoji(item.nganhHang);
+          
+          let dtCKThang = (1 + item.tangGiamCK === 0) ? 0 : (item.dt / (1 + item.tangGiamCK));
+          let chenhLech = item.dt - dtCKThang;
+          let strChenhLech = chenhLech > 0 ? "+" + formatMoney(chenhLech) : formatMoney(chenhLech);
+          let cCK = item.tangGiamCK < 0 ? "#ef4444" : "#10b981";
+          
+          let conLai = Math.max(0, item.tg - item.dt);
+          let mtNgayThucTeNganh = conLai / daysRemaining;
+
+          let sttPillClassBI = '';
+          if (item.htTarget >= 1) sttPillClassBI = 'stt-green';
+          else if (item.htTarget >= 0.75) sttPillClassBI = 'stt-blue';
+          else if (item.htTarget >= 0.4) sttPillClassBI = 'stt-orange';
+          else sttPillClassBI = 'stt-red';
+          
+          htmlBI += `
+          <tr>
+              <td><div class="stt-pill ${sttPillClassBI}">${sttBI++}</div></td>
+              <td class="text-left"><span style="margin-right:8px;">${industryEmoji}</span> ${name}</td>
+              <td style="padding: 0;">
+                  <div class="cell-prog-wrap">
+                      <div class="cell-prog-bg" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div>
+                      <div class="cell-val" style="display:flex; flex-direction:column; padding: 4px 0;">
+                          <span style="color:#00A1E4; font-size: 26px; font-weight: 900;">${formatMoney(item.dt)}</span>
+                          <span style="color:#636e72; font-size: 16px; font-weight: 800;">/ ${formatMoney(item.tg)}</span>
+                      </div>
+                  </div>
+              </td>
+              <td>
+                  ${conLai > 0 ? `<div style="color: #ef4444; font-size: 22px;">${formatMoney(mtNgayThucTeNganh)}</div><div style="font-size: 13px; color: #64748b; font-weight: 800;">Còn: ${formatMoney(conLai)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
+              </td>
+              <td style="padding: 0 4px;">
+                  <div class="td-prog-container">
+                      <span style="color:${cHT}; font-size: 24px;">${formatPercent(item.htTarget)}</span>
+                      <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div></div>
+                  </div>
+              </td>
+              <td>
+                  <div style="color:${cCK}; display:flex; align-items:center; justify-content:center; gap:4px; font-size:22px;">
+                      ${item.tangGiamCK >= 0 ? '↑' : '↓'} ${item.tangGiamCK > 0 ? '+' : ''}${formatPercent(item.tangGiamCK)}
+                  </div>
+                  <div style="font-size:13px; color:${cCK}; font-weight:700;">(${strChenhLech} TR)</div>
+              </td>
+              <td>
+                  <div class="donut-wrapper" style="margin: 0 auto;">
+                      <svg viewBox="0 0 36 36" class="circular-chart" xmlns="http://www.w3.org/2000/svg">
+                          <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                          <path class="circle" stroke-dasharray="${Math.min(tyTrong * 100, 100)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      </svg>
+                      <span class="donut-inner">${Math.round(tyTrong * 100)}%</span>
+                  </div>
+              </td>
+          </tr>`;
         }
         
-        let totalHTCol2 = rt_tTarget > 0 ? rt_tDT / rt_tTarget : 0;
-        let totalTCCol2 = rt_tDT > 0 ? rt_tTC / rt_tDT : 0;
-        htmlBI += `<div class="rev-item" style="background: #fffbdf; border-top: 2px solid #f1c40f;">
-            <div class="rev-grid">
-                <div class="rev-name" style="color:#d63031; font-weight:900;">⭐ TỔNG CỘNG</div>
-                <div class="rev-stat-val" style="color:#d63031;">${rt_tSL.toLocaleString('vi-VN')}</div>
-                <div class="rev-stat-val" style="color:#d63031;">${formatMoney(rt_tDT)}</div>
-                <div class="rev-stat-val" style="color:#d63031;">${formatMoney(rt_tTarget)}</div>
-                <div class="rev-stat-val" style="color:${getColorClass(totalHTCol2)};">${formatPercent(totalHTCol2)}</div>
-                <div class="rev-stat-val" style="color:#d63031;">${formatMoney(rt_tTC)}</div>
-                <div class="rev-stat-val" style="color:#d63031;">${formatPercent(totalTCCol2)}</div>
-            </div>
-        </div>`;
+        let totalChenhLech = tDT - tDTCK;
+        let strTotalChenhLech = totalChenhLech > 0 ? "+" + formatMoney(totalChenhLech) : formatMoney(totalChenhLech);
+        let totalHTColor = getColorClass(totalHT);
+        let totalCKColor = totalCK < 0 ? '#ef4444' : '#10b981';
+        let totalConLai = Math.max(0, tTG - tDT);
         
-        setHTML("table-bi", htmlBI);
+        htmlBI += `
+        <tr style="background: #fffbdf; border-top: 3px solid #1e272e;">
+            <td style="font-size: 20px;">⭐</td>
+            <td class="text-left" style="color:#d63031;">TỔNG CỘNG</td>
+            <td style="font-size:24px; color:#d63031;">${formatMoney(tDT)} <span style="font-size:18px;">/ ${formatMoney(tTG)}</span></td>
+            <td>
+                ${totalConLai > 0 ? `<div style="color:#ef4444; font-size:22px;">${formatMoney(mucTieuNgayAll)}</div><div style="font-size: 13px; color: #64748b; font-weight: 800;">Còn: ${formatMoney(totalConLai)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
+            </td>
+            <td style="color:${totalHTColor};">${formatPercent(totalHT)}</td>
+            <td>
+                <div style="color:${totalCKColor}; display:flex; align-items:center; justify-content:center; gap:4px; font-size:22px;">
+                    ${totalCK >= 0 ? '↑' : '↓'} ${totalCK > 0 ? '+' : ''}${formatPercent(totalCK)}
+                </div>
+                <div style="font-size:13px; color:${totalCKColor}; font-weight:700;">(${strTotalChenhLech} TR)</div>
+            </td>
+            <td style="color:#0d47a1;">100%</td>
+        </tr>`;
+        setHTML("board-bi", htmlBI);
 
-        // BẢNG 3.0 - CHI TIẾT THI ĐUA
-        let htmlTD = ""; let stt = 1;
-        for(let i of parsedRTThiDua) {
-            let c = getColorClass(i.htTarget);
-            let pill = i.htTarget >= 1 ? 'stt-green' : (i.htTarget >= 0.8 ? 'stt-blue' : (i.htTarget >= 0.5 ? 'stt-orange' : 'stt-red'));
-            let nameStyle = i.isTrongDiem ? `color:#d63031; font-weight: 900;` : `color:#1e272e; font-weight: 800;`;
-            
-            htmlTD += `<tr>
-                <td><div class="stt-pill ${pill}">${stt++}</div></td>
-                <td class="text-left" style="${nameStyle}"><span style="margin-right:8px;">${getEmoji(i.nganhHang)}</span> ${i.nganhHang} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${i.isSL ? 'SL' : 'DT'})</span></td>
-                <td style="padding: 4px;">
-                    <div class="cell-prog-wrap">
-                        <div class="cell-prog-bg" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c};"></div>
-                        <span class="cell-val" style="color:#2563eb;">${formatMoney(i.thucHien)}</span>
-                    </div>
-                </td>
-                <td style="color:#475569;">${formatMoney(i.mtNgay)}</td>
-                <td>
-                    <div class="td-prog-container">
-                        <span style="color:${c};">${formatPercent(i.htTarget)}</span>
-                        <div class="td-prog-bar-bg">
-                            <div class="td-prog-bar-fill" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c};"></div>
+        // RENDER BẢNG VIỆC CẦN LÀM HÔM NAY (MỤC 2)
+        let todoList = parsedBI.slice(0, 6); 
+        let htmlTodo = "";
+        let sttTodo = 1;
+        
+        if (todoList.length === 0) {
+            htmlTodo = `<div style="padding: 20px; text-align: center; font-weight: 900; color: #10b981; font-size: 16px; grid-column: span 2;">Chưa có dữ liệu!</div>`;
+        } else {
+            for(let item of todoList) {
+                let name = shortName(item.nganhHang);
+                let industryEmoji = getEmoji(item.nganhHang);
+                let conLai = Math.max(0, item.tg - item.dt);
+                
+                let avgPrice = (item.sl > 0 && item.dt > 0) ? (item.dt / item.sl) : 0;
+                let doanhThuUocTinh = 0;
+                
+                if (item.htTarget >= 1) {
+                    doanhThuUocTinh = item.dt / daysPassed;
+                } else {
+                    doanhThuUocTinh = conLai / daysRemaining;
+                }
+                
+                let slCanBan = avgPrice > 0 ? Math.ceil(doanhThuUocTinh / avgPrice) : 0;
+                let slText = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} <span>SP</span>` : "0 <span>SP</span>";
+                let mtText = `~${formatMoney(doanhThuUocTinh)} <span>TR</span>`;
+                let daDatColor = item.htTarget >= 1 ? "#10b981" : "#0984e3";
+                
+                let actionPrefix = todoPrefixes[(sttTodo - 1) % todoPrefixes.length];
+                let sttColor = todoColors[(sttTodo - 1) % todoColors.length];
+                
+                let titleText = `${actionPrefix} ${name}`;
+
+                htmlTodo += `
+                <div class="todo-item">
+                    <div class="todo-top">
+                        <div class="todo-stt" style="background: ${sttColor};">${sttTodo++}</div>
+                        <div class="todo-title-wrap">
+                            <span class="todo-icon">${industryEmoji}</span>
+                            <span class="todo-name" title="${item.nganhHang}">${titleText}</span>
                         </div>
                     </div>
-                </td>
-            </tr>`;
+                    <div class="todo-bottom">
+                        <div class="todo-stat-box">
+                            <div class="todo-stat-lbl">ĐÃ ĐẠT</div>
+                            <div class="todo-stat-val" style="color: ${daDatColor};">${formatPercent(item.htTarget)}</div>
+                        </div>
+                        <div class="todo-stat-box highlight">
+                            <div class="todo-stat-lbl">CẦN BÁN THÊM</div>
+                            <div class="todo-stat-val">${slText}</div>
+                        </div>
+                        <div class="todo-stat-box">
+                            <div class="todo-stat-lbl">MỤC TIÊU NGÀY</div>
+                            <div class="todo-stat-val">${mtText}</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
         }
-        setHTML("table-thidua", htmlTD);
-        setText("td-sum-vd", rt_cntVD); setText("td-sum-cb", rt_cntCB);
-        setText('btnSend', "🚀 CHỤP ẢNH REALTIME & GỬI TELEGRAM");
-      } catch (e) { console.error(e); setText('btnSend', "❌ LỖI TẢI DỮ LIỆU"); }
+        setHTML("todo-list", htmlTodo);
+
+        // BẢNG THI ĐUA (PART 2)
+        let htmlThiDua = ""; let sttTD = 1;
+        for(let item of parsedThiDua) {
+            let cHT = getColorClass(item.htTarget);
+            let cHTDK = getColorClass(item.htDuKien);
+            let iconEmoji = getEmoji(item.nganhHang);
+            let nameStyle = item.isTrongDiem ? `color:#d63031; font-weight: 900;` : `color:#1e272e; font-weight: 800;`;
+            let mtNgayDisplay = item.htTarget >= 1 ? '<span style="font-size:24px;">🏆</span>' : formatMoney(item.mtNgay);
+            let conLai = Math.max(0, item.target - item.thucHien);
+            
+            let sttPillClass = '';
+            if (item.htTarget >= 1) sttPillClass = 'stt-green';
+            else if (item.htTarget >= 0.75) sttPillClass = 'stt-blue';
+            else if (item.htTarget >= 0.4) sttPillClass = 'stt-orange';
+            else sttPillClass = 'stt-red';
+
+            htmlThiDua += `
+              <tr>
+                <td><div class="stt-pill ${sttPillClass}">${sttTD++}</div></td>
+                
+                <td class="text-left" style="${nameStyle}">
+                    <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span>
+                </td>
+                
+                <td style="color: #475569; font-size: 21px;">${mtNgayDisplay}</td>
+                <td style="color: #475569; font-size: 21px;">${formatMoney(item.target)}</td>
+                
+                <td style="padding:0;">
+                    <div class="cell-prog-wrap">
+                        <div class="cell-prog-bg" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div>
+                        <span class="cell-val" style="color:#2563eb; font-size: 22px;">${formatMoney(item.thucHien)}</span>
+                    </div>
+                </td>
+                
+                <td style="padding: 0 4px;">
+                    <div class="td-prog-container">
+                        <span style="color:${cHT}; font-size: 22px; font-weight: 900;">${formatPercent(item.htTarget)}</span>
+                        <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div></div>
+                    </div>
+                </td>
+                
+                <td style="color: #ef4444; font-size: 21px;">${formatMoney(conLai)}</td>
+                <td style="color: ${cHTDK}; font-size: 21px;">${formatPercent(item.htDuKien)}</td>
+              </tr>
+            `;
+        }
+        setHTML("table-thidua", htmlThiDua);
+
+        // RENDER BẢNG VIỆC CẦN LÀM CHO THI ĐUA (MỤC 3)
+        let todoThiDuaList = parsedThiDua.filter(x => x.htTarget < 1).sort((a, b) => b.htTarget - a.htTarget).slice(0, 6);
+        let htmlTodoTD = "";
+        let sttTD2 = 1;
+        
+        if (todoThiDuaList.length === 0) {
+            htmlTodoTD = `<div style="padding: 20px; text-align: center; font-weight: 900; color: #10b981; font-size: 16px; grid-column: span 2;">Tuyệt vời, tất cả ngành hàng thi đua đã về đích!</div>`;
+        } else {
+            for(let item of todoThiDuaList) {
+                let name = shortName(item.nganhHang);
+                name += item.isSL ? " (SL)" : " (DT)";
+                let emoji = getEmoji(item.nganhHang);
+                let conLai = Math.max(0, item.target - item.thucHien);
+                let unit = item.isSL ? "SP" : "TR";
+                
+                let mtNgayThucTe = item.mtNgay;
+                
+                let slText = "N/A";
+                let mtText = "N/A";
+
+                if (item.isSL) {
+                    let valToSell = Math.ceil(mtNgayThucTe);
+                    slText = valToSell > 0 ? `${valToSell.toLocaleString('vi-VN')} <span>SP</span>` : "0 <span>SP</span>";
+                    mtText = valToSell > 0 ? `${valToSell.toLocaleString('vi-VN')} <span>SP</span>` : "0 <span>SP</span>";
+                } else {
+                    let giaTriTB = item.thucHien / daysPassed;
+                    let slCanBan = giaTriTB > 0 ? Math.ceil(mtNgayThucTe / giaTriTB) : 0;
+                    
+                    slText = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} <span>SP</span>` : "N/A";
+                    mtText = `~${formatMoney(mtNgayThucTe)} <span>TR</span>`;
+                }
+                
+                let actionPrefix = todoPrefixes[(sttTD2 - 1) % todoPrefixes.length];
+                let sttColor = todoColors[(sttTD2 - 1) % todoColors.length];
+                let cHTColor = getColorClass(item.htTarget);
+                
+                let titleText = `${actionPrefix} ${name} - <span style="color:${cHTColor};">${formatPercent(item.htTarget)}</span>`;
+
+                htmlTodoTD += `
+                <div class="todo-item">
+                    <div class="todo-top">
+                        <div class="todo-stt" style="background: ${sttColor};">${sttTD2++}</div>
+                        <div class="todo-title-wrap">
+                            <span class="todo-icon">${emoji}</span>
+                            <span class="todo-name" title="${item.nganhHang}">${titleText}</span>
+                        </div>
+                    </div>
+                    <div class="todo-bottom">
+                        <div class="todo-stat-box">
+                            <div class="todo-stat-lbl">THIẾU</div>
+                            <div class="todo-stat-val" style="color: #d32f2f;">${formatMoney(conLai)} <span>${unit}</span></div>
+                        </div>
+                        <div class="todo-stat-box highlight">
+                            <div class="todo-stat-lbl">CẦN BÁN THÊM</div>
+                            <div class="todo-stat-val">${slText}</div>
+                        </div>
+                        <div class="todo-stat-box">
+                            <div class="todo-stat-lbl">MỤC TIÊU NGÀY</div>
+                            <div class="todo-stat-val">${mtText}</div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+        }
+        setHTML("todo-list-thidua", htmlTodoTD);
+
+        // TẠO CHUỖI TEXT CHO TELEGRAM CHUẨN LIST FORMAT
+        let msg = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ - ngày ${today.toLocaleDateString('vi-VN')} 📊\n`;
+        msg += `-------------------\n`;
+        msg += `- 🎯 Target Tháng: ${formatMoney(tTG)}\n`;
+        msg += `- 📈 Luỹ kế đạt: ${formatMoney(tDT)} (${formatPercent(totalHT)})\n`;
+        msg += `- 📉 DT còn lại: ${formatMoney(Math.max(0, tTG - tDT))}\n`;
+        msg += `- 🚀 Dự kiến đạt: ${formatMoney(totalDKThang)} (${formatPercent(totalDKThang/tTG)})\n`;
+        
+        let soCKText = totalCK === 0 ? "Tăng 0 (0%)" : (totalCK > 0 ? `Tăng ${formatMoney(Math.abs(tDT - tDTCK))} (${Math.round(totalCK*100)}%)` : `Giảm ${formatMoney(Math.abs(tDT - tDTCK))} (${Math.round(totalCK*100)}%)`);
+        msg += `- 💹 So với cùng kỳ: ${soCKText}\n`;
+        msg += `- 💳 Tỷ trọng trả góp: ${formatPercent(totalTyLeTC)}\n`;
+        msg += `- 💵 Doanh thu trả góp: ${formatMoney(tTC)}\n`;
+        msg += `- 💰 Mục tiêu ngày kỳ vọng: ${formatMoney(mucTieuNgayAll)}\n`;
+        msg += `- 🏆 Số ngành hàng thi đua dự kiến đạt: ${cntDK}/${totalThiDua}\n`;
+        msg += `-------------------\n`;
+
+        const buildTextList = (arr) => arr.map(i => {
+            let text = `  - ${i.nganhHang} (${formatPercent(i.htTarget)})`;
+            if (i.htTarget < 1 && i.mtNgay > 0) {
+                text += `: cần ${Math.round(i.mtNgay)}/ngày`;
+            } else if (i.htTarget < 1 && i.mtNgay === 0) {
+                text += `: cần 0/ngày`;
+            }
+            return text;
+        }).join('\n');
+
+        const buildTextListDaVeDich = (arr) => arr.map(i => `  - ${i.nganhHang} (${formatPercent(i.htTarget)})`).join('\n');
+
+        if(gr1.length > 0) msg += `✅ ĐÃ VỀ ĐÍCH (${gr1.length} nhóm):\n${buildTextListDaVeDich(gr1)}\n\n`;
+        if(gr2.length > 0) msg += `💪 CẦN CỐ GẮNG (HT >75%) (${gr2.length} nhóm):\n${buildTextList(gr2)}\n\n`;
+        if(gr3.length > 0) msg += `🎯 CẦN TẬP TRUNG (HT >40%) (${gr3.length} nhóm):\n${buildTextList(gr3)}\n\n`;
+        if(gr4.length > 0) msg += `🚨 BÁO ĐỘNG (HT <40%) (${gr4.length} nhóm):\n${buildTextList(gr4)}`;
+
+        window.reportMessageText = msg.trim();
+
+        const btnSend = document.getElementById('btnSend');
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto') === 'true') {
+            if (btnSend) {
+                btnSend.innerText = "⏳ Đang Auto-Capture...";
+                btnSend.disabled = true; 
+            }
+            setTimeout(executeCaptureAndSend, 2500); 
+        } else {
+            if (btnSend) {
+                btnSend.innerText = "🚀 CHỤP TÁCH & GỬI TELEGRAM";
+                btnSend.disabled = false;
+            }
+        }
+
+      } catch (error) { 
+          console.error("Lỗi tải data:", error); 
+          const btn = document.getElementById('btnSend');
+          if(btn) btn.innerText = "❌ LỖI KẾT NỐI DATA";
+      }
     }
 
-    document.getElementById('btnDownloadSplit').addEventListener('click', async function() {
-        this.disabled = true;
-        let c1 = await html2canvas(document.getElementById('part1'), { scale: 2.5 });
-        downloadURI(c1.toDataURL("image/png"), "1_DoanhThu_RT.png");
-        let c2 = await html2canvas(document.getElementById('part2'), { scale: 2.5 });
-        downloadURI(c2.toDataURL("image/png"), "2_ThiDua_RT.png");
-        this.disabled = false;
-    });
-
-    document.getElementById('btnDownloadFull').addEventListener('click', async function() {
-        this.disabled = true;
-        let c = await html2canvas(document.getElementById('report-container'), { scale: 2.5, backgroundColor: "#e9ecef" });
-        downloadURI(c.toDataURL("image/png"), "BaoCao_Realtime_ToanTrang.png");
-        this.disabled = false;
-    });
-
+    // --- HÀM HỖ TRỢ TẢI ẢNH VỀ MÁY ---
     function downloadURI(uri, name) {
-        let link = document.createElement("a"); link.download = name; link.href = uri;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        let link = document.createElement("a");
+        link.download = name;
+        link.href = uri;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
+    // --- SỰ KIỆN: CHỤP TÁCH VÀ LƯU MÁY ---
+    const btnDownloadSplit = document.getElementById('btnDownloadSplit');
+    if (btnDownloadSplit) {
+        btnDownloadSplit.addEventListener('click', async function() {
+            const btn = this;
+            let originalText = btn.innerText;
+            btn.innerText = "⏳ Đang tải ảnh...";
+            btn.disabled = true;
+            try {
+                let canvas1 = await html2canvas(document.getElementById('part1'), { scale: 2.5, useCORS: true });
+                downloadURI(canvas1.toDataURL("image/png"), "1_DoanhThu_LK.png");
+
+                let canvas2 = await html2canvas(document.getElementById('part2'), { scale: 2.5, useCORS: true });
+                downloadURI(canvas2.toDataURL("image/png"), "2_ThiDua_LK.png");
+            } catch(e) { 
+                alert("Lỗi chụp ảnh: " + e); 
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- SỰ KIỆN: CHỤP TOÀN TRANG VÀ LƯU MÁY ---
+    const btnDownloadFull = document.getElementById('btnDownloadFull');
+    if (btnDownloadFull) {
+        btnDownloadFull.addEventListener('click', async function() {
+            const btn = this;
+            let originalText = btn.innerText;
+            btn.innerText = "⏳ Đang tải toàn trang...";
+            btn.disabled = true;
+            try {
+                let canvas = await html2canvas(document.getElementById('report-container'), { 
+                    scale: 2.5, 
+                    useCORS: true,
+                    backgroundColor: "#e9ecef" 
+                });
+                downloadURI(canvas.toDataURL("image/png"), "BaoCao_LuyKe_ToanTrang.png");
+            } catch(e) { 
+                alert("Lỗi chụp toàn trang: " + e); 
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    // --- SỰ KIỆN: CHỤP TÁCH VÀ GỬI TELEGRAM ---
     async function executeCaptureAndSend() {
-        const btn = document.getElementById('btnSend');
-        btn.disabled = true; btn.innerText = "⏳ Đang xuất ảnh...";
+        const sendBtn = document.getElementById('btnSend');
+        if(sendBtn) {
+            sendBtn.innerText = "⏳ Đang xuất ảnh 1/2..."; 
+            sendBtn.disabled = true;
+        }
+        
         try {
-            let c1 = await html2canvas(document.getElementById('part1'), { scale: 2.5 });
-            let c2 = await html2canvas(document.getElementById('part2'), { scale: 2.5 });
-            let b1 = await new Promise(r => c1.toBlob(r, 'image/png'));
-            let b2 = await new Promise(r => c2.toBlob(r, 'image/png'));
-            let f1 = new FormData(); f1.append("chat_id", CHAT_ID); f1.append("document", b1, "1_DoanhThu_RT.png");
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: f1 });
-            let f2 = new FormData(); f2.append("chat_id", CHAT_ID); f2.append("document", b2, "2_ThiDua_RT.png");
-            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: f2 });
-            alert("🎉 Đã gửi báo cáo Realtime lên Telegram!");
-        } catch (e) { alert("Lỗi: " + e); }
-        finally { btn.disabled = false; btn.innerText = "🚀 CHỤP ẢNH REALTIME & GỬI LẠI"; }
+            let canvas1 = await html2canvas(document.getElementById('part1'), { scale: 2.5, useCORS: true });
+            if(sendBtn) sendBtn.innerText = "⏳ Đang xuất ảnh 2/2...";
+            let canvas2 = await html2canvas(document.getElementById('part2'), { scale: 2.5, useCORS: true });
+            
+            if(sendBtn) sendBtn.innerText = "⏳ Đang gửi lên Telegram...";
+
+            let blob1 = await new Promise(resolve => canvas1.toBlob(resolve, 'image/png'));
+            let blob2 = await new Promise(resolve => canvas2.toBlob(resolve, 'image/png'));
+
+            let fd1 = new FormData();
+            fd1.append("chat_id", CHAT_ID);
+            fd1.append("document", blob1, "1_DoanhThu_LK.png");
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: fd1 });
+
+            let fd2 = new FormData();
+            fd2.append("chat_id", CHAT_ID);
+            fd2.append("document", blob2, "2_ThiDua_LK.png");
+            let res2 = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: fd2 });
+            let data2 = await res2.json();
+
+            if (data2.ok) {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: window.reportMessageText })
+                });
+                alert("🎉 Đã tách 2 ảnh siêu nét và gửi Nhận định AI thành công!");
+            } else {
+                alert("Lỗi Gửi Ảnh: " + data2.description);
+            }
+        } catch (e) {
+            alert("Lỗi hệ thống: " + e);
+        } finally {
+            if (sendBtn) {
+                sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI"; 
+                sendBtn.disabled = false;
+            }
+        }
     }
 
-    document.getElementById('btnSend').addEventListener('click', executeCaptureAndSend);
+    const btnSend = document.getElementById('btnSend');
+    if (btnSend) {
+        btnSend.addEventListener('click', executeCaptureAndSend);
+    }
+
     window.onload = loadData;
+
   </script>
 </body>
 </html>

@@ -18,15 +18,13 @@
     .header-title { text-align: center; color: #1e272e; font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
     .date-text { text-align: center; font-weight: 800; color: #00A1E4; font-size: 16px; margin-bottom: 20px; text-transform: uppercase;}
     
-    /* 1. HEALTH BAR */
-    .status-bar { display: flex; align-items: stretch; border: 2px solid #94a3b8; border-radius: 10px; margin-bottom: 25px; overflow: hidden; background: white;}
+    /* 1. HEALTH BAR - Đã chuyển viền sang đen đậm */
+    .status-bar { display: flex; align-items: stretch; border: 2px solid #1e272e; border-radius: 10px; margin-bottom: 25px; overflow: hidden; background: white;}
     .sb-item { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px 5px; flex: 1; position: relative;}
-    /* Loại bỏ nét dọc ở thẻ sb-item liền trước sb-right */
-    .sb-item:not(:nth-last-child(2))::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 2px; background: #94a3b8; }
+    .sb-item:not(:nth-last-child(2))::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 2px; background: #1e272e; }
     
     .sb-left { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 12px; flex: 1.2; padding: 10px 15px; }
-    .sb-left-icon { font-size: 32px; background: white; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 12px; border: 1.5px solid #94a3b8; }
-    /* Loại bỏ border-left của khối ngành nguy cơ */
+    .sb-left-icon { font-size: 32px; background: white; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 12px; border: 2px solid #1e272e; }
     .sb-right { background: #fff0f2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #d63031; flex: 0.9; padding: 10px;}
     
     .sb-label { font-size: 11px; font-weight: 900; color: #475569; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px;}
@@ -36,9 +34,9 @@
     .sec-title { display: flex; align-items: center; font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #00A1E4; margin: 25px 0 10px 0; text-transform: uppercase; }
     .sec-title span { background: #00A1E4; color: white; width: 34px; height: 34px; display: inline-flex; justify-content: center; align-items: center; border-radius: 50%; margin-right: 12px; font-size: 20px; }
 
-    /* 2. KPI TIERS */
+    /* 2. KPI TIERS - Đã chuyển viền sang đen đậm */
     .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; row-gap: 16px; }
-    .card { background: #ffffff; padding: 12px 6px; text-align: center; border: 2px solid #94a3b8; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;}
+    .card { background: #ffffff; padding: 12px 6px; text-align: center; border: 2px solid #1e272e; border-radius: 12px; display: flex; flex-direction: column; justify-content: space-between;}
     .card-title { font-size: 13px; font-weight: 900; color: #475569; margin-bottom: 6px; text-transform: uppercase; display: flex; justify-content: center; align-items: center; gap: 6px; }
     .card-val { font-size: 34px; font-family: 'Montserrat', sans-serif; font-weight: 900; line-height: 1.1; margin: 0; }
     .card-sub { font-size: 13px; font-weight: 800; color: #636e72; margin-top: 8px; display: block; }
@@ -49,14 +47,14 @@
         text-align: center; width: 85%; box-shadow: none; min-height: 24px;
     }
 
-    /* BẢNG CHUNG (Áp dụng cho cả Doanh Thu và Thi Đua) */
-    .table-container { border: 2px solid #2d3436; border-radius: 8px; overflow: hidden; background: #fff; margin-top: 10px;}
+    /* BẢNG CHUNG (Áp dụng cho cả Doanh Thu và Thi Đua) - Nét dọc ngang đen đậm */
+    .table-container { border: 2px solid #1e272e; border-radius: 8px; overflow: hidden; background: #fff; margin-top: 10px;}
     table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed;}
     
-    th { background: #f1f5f9; color: #1e3a8a; padding: 12px 2px; font-size: 14px; font-weight: 900; border-bottom: 2px solid #2d3436; border-right: 2px solid #94a3b8; text-align: center; text-transform: uppercase; }
+    th { background: #f1f5f9; color: #1e3a8a; padding: 12px 2px; font-size: 14px; font-weight: 900; border-bottom: 2px solid #1e272e; border-right: 2px solid #1e272e; text-align: center; text-transform: uppercase; }
     th:last-child { border-right: none; }
     
-    td { position: relative; padding: 6px 2px; text-align: center; font-size: 24px; font-weight: 900; color: #2d3436; border-bottom: 2px solid #94a3b8; border-right: 2px solid #94a3b8; vertical-align: middle; }
+    td { position: relative; padding: 6px 2px; text-align: center; font-size: 24px; font-weight: 900; color: #2d3436; border-bottom: 2px solid #1e272e; border-right: 2px solid #1e272e; vertical-align: middle; }
     td:last-child { border-right: none; }
     tr:last-child td { border-bottom: none; }
     
@@ -86,15 +84,15 @@
     .stt-orange { background: #ffedd5; color: #ea580c; }
     .stt-red { background: #ffe4e6; color: #dc2626; }
 
-    /* BẢNG TODO (VIỆC CẦN LÀM HÔM NAY) - TỐI ƯU CỠ CHỮ & KHOẢNG TRẮNG */
-    .todo-board { border: 2px solid #ffb300; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-    .todo-header { background: #ffc107; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ffb300;}
+    /* BẢNG TODO (VIỆC CẦN LÀM HÔM NAY) - NÉT CHIA VÀ KHUNG ĐỀU MÀU ĐEN ĐẬM */
+    .todo-board { border: 3px solid #1e272e; border-radius: 8px; overflow: hidden; margin-bottom: 20px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .todo-header { background: #ffc107; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #1e272e;}
     .todo-header-left { font-size: 18px; font-weight: 900; color: #b71c1c; display: flex; align-items: center; gap: 8px; }
     .todo-header-right { background: #d32f2f; color: white; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 900; }
     
     .todo-list { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; grid-auto-flow: column; gap: 14px; padding: 14px; background: #f8fafc; }
-    .todo-item { display: flex; flex-direction: column; padding: 12px; border: 1px solid #e2e8f0; background: #ffffff; border-radius: 10px; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.04);}
-    .todo-top { display: flex; align-items: center; gap: 8px; border-bottom: 1px dashed #cbd5e1; padding-bottom: 8px;}
+    .todo-item { display: flex; flex-direction: column; padding: 12px; border: 2px solid #1e272e; background: #ffffff; border-radius: 10px; gap: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.06);}
+    .todo-top { display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed #1e272e; padding-bottom: 8px;}
     .todo-title-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
     .todo-stt { color: white; width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; font-weight: 900; border-radius: 8px; font-size: 16px; flex-shrink: 0;}
     .todo-icon { font-size: 24px; flex-shrink: 0; }
@@ -102,8 +100,8 @@
     .todo-name { font-size: 16px; font-weight: 900; color: #d32f2f; text-transform: uppercase; line-height: 1.3;}
     
     .todo-bottom { display: flex; gap: 6px; justify-content: space-between; }
-    .todo-stat-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 2px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;}
-    .todo-stat-box.highlight { background: #fff1f2; border-color: #ffe4e6; }
+    .todo-stat-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 2px; background: #f8fafc; border-radius: 8px; border: 2px solid #1e272e;}
+    .todo-stat-box.highlight { background: #fff1f2; border-color: #d32f2f; }
     
     .todo-stat-lbl { font-size: 11px; color: #64748b; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; text-align: center; letter-spacing: -0.3px;}
     .todo-stat-box.highlight .todo-stat-lbl { color: #b71c1c; }
@@ -116,7 +114,7 @@
     .td-header-row { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 15px;}
     .td-summary-wrapper { display: flex; gap: 15px; align-items: center; }
     .td-sum-card { 
-      background: #ffffff; border: 2px solid #94a3b8; border-radius: 8px; 
+      background: #ffffff; border: 2px solid #1e272e; border-radius: 8px; 
       padding: 6px 15px; display: flex; flex-direction: column; align-items: center; 
       min-width: 100px;
     }
@@ -246,8 +244,8 @@
             </div>
         </div>
 
-        <div class="todo-board" style="margin-bottom: 20px; border-color: #3b82f6;">
-            <div class="todo-header" style="background: #3b82f6; border-bottom: 1px solid #2563eb;">
+        <div class="todo-board" style="margin-bottom: 20px;">
+            <div class="todo-header" style="background: #3b82f6; border-bottom: 3px solid #1e272e;">
                 <div class="todo-header-left" style="color: #ffffff;">🎯 VIỆC CẦN LÀM: BỨT PHÁ THI ĐUA</div>
                 <div class="todo-header-right" style="background: #1d4ed8; color: white;">ƯU TIÊN GẦN ĐẠT NHẤT</div>
             </div>
@@ -258,6 +256,7 @@
             <table>
               <thead>
                 <tr>
+                  <!-- ĐÃ ĐIỀU CHỈNH LẠI CỘT CHO NGÀNH HÀNG HIỂN THỊ ĐỦ 1 DÒNG -->
                   <th width="5%">#</th>
                   <th class="text-left" width="38%">📚 NGÀNH HÀNG THI ĐUA</th>
                   <th width="9%">📅 MT NGÀY</th>
@@ -597,7 +596,7 @@
                   </div>
               </td>
               <td>
-                  ${conLai > 0 ? `<div style="color: #ef4444; font-size: 22px;">${formatMoney(mtNgayThucTeNganh)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
+                  ${conLai > 0 ? `<div style="color: #ef4444; font-size: 22px;">${formatMoney(mtNgayThucTeNganh)}</div><div style="font-size: 13px; color: #64748b; font-weight: 800;">Còn: ${formatMoney(conLai)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
               </td>
               <td style="padding: 0 4px;">
                   <div class="td-prog-container">
@@ -630,12 +629,12 @@
         let totalConLai = Math.max(0, tTG - tDT);
         
         htmlBI += `
-        <tr style="background: #fffbdf; border-top: 3px solid #f1c40f;">
+        <tr style="background: #fffbdf; border-top: 3px solid #1e272e;">
             <td style="font-size: 20px;">⭐</td>
             <td class="text-left" style="color:#d63031;">TỔNG CỘNG</td>
             <td style="font-size:24px; color:#d63031;">${formatMoney(tDT)} <span style="font-size:18px;">/ ${formatMoney(tTG)}</span></td>
             <td>
-                ${totalConLai > 0 ? `<div style="color:#ef4444; font-size:22px;">${formatMoney(mucTieuNgayAll)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
+                ${totalConLai > 0 ? `<div style="color:#ef4444; font-size:22px;">${formatMoney(mucTieuNgayAll)}</div><div style="font-size: 13px; color: #64748b; font-weight: 800;">Còn: ${formatMoney(totalConLai)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
             </td>
             <td style="color:${totalHTColor};">${formatPercent(totalHT)}</td>
             <td>
