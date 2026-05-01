@@ -146,10 +146,12 @@
 <body>
 
   <div class="top-actions" data-html2canvas-ignore="true">
-      <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH (LƯU MÁY)</button>
-      <button class="btn-action" id="btnDownloadFull">📸 CHỤP TOÀN TRANG</button>
-      <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 ĐỔ SỐ LŨY KẾ</button>
-      <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')">📈 ĐỔ SỐ REALTIME</button>
+      <button class="btn-action" id="btnDownloadSplit">📸 TẢI ẢNH TÁCH (LƯU MÁY)</button>
+      <button class="btn-action" id="btnDownloadFull">📸 TẢI ẢNH TOÀN TRANG</button>
+      <span style="margin: 0 15px; color: #cbd5e1;">|</span>
+      <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 ĐỔ SỐ LŨY KẾ</button>
+      <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')" style="border-color:#f39c12; color:#f39c12;">📈 ĐỔ SỐ REALTIME</button>
+      <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -460,7 +462,7 @@
         let mucTieuThucTeAll = (tTG - tDT) / daysRemaining;
         if (mucTieuThucTeAll < 0) mucTieuThucTeAll = 0;
         
-        // KIỂM TRA MỤC TIÊU RIÊNG CHO NGÀY LỄ (Ô M2, N2 thêm		TRONG CONFIG_THIDUA)
+        // KIỂM TRA MỤC TIÊU RIÊNG CHO NGÀY LỄ (Ô M2, N2 TRONG CONFIG_THIDUA)
         let holidayTarget = 0;
         if (configData && configData.length > 0) {
             let firstRow = configData[0];
@@ -1047,12 +1049,18 @@
         }
     }
 
-    const btnSend = document.getElementById('btnSend');
-    if (btnSend) {
-        btnSend.addEventListener('click', executeCaptureAndSend);
-    }
-
-    window.onload = loadData;
+    window.onload = async () => {
+        await loadData();
+        
+        // AUTO DOWNLOAD NẾU CÓ THAM SỐ ?auto=true
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('auto') === 'true') {
+            console.log("🚀 Chế độ AUTO: Đang tự động tải ảnh...");
+            setTimeout(() => {
+                document.getElementById('btnDownloadSplit').click();
+            }, 2000);
+        }
+    };
 
   </script>
 </body>
