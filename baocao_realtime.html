@@ -104,8 +104,8 @@
   <div class="top-actions" data-html2canvas-ignore="true">
       <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH (LƯU MÁY)</button>
       <button class="btn-action" id="btnDownloadFull">📸 CHỤP TOÀN TRANG</button>
-      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=72762&tab=bcdtnh&rt=2&dm=1&autoRun=luyke_manual', '_blank')">📊 ĐỔ SỐ LŨY KẾ</button>
-      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=72762&tab=bcdtnh&rt=1&dm=1&autoRun=realtime_manual', '_blank')">📈 ĐỔ SỐ REALTIME</button>
+      <button class="btn-action" id="btnDynamicLuyKe">📊 ĐỔ SỐ LŨY KẾ</button>
+      <button class="btn-action" id="btnDynamicRealtime">📈 ĐỔ SỐ REALTIME</button>
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -209,13 +209,68 @@
     const setWidth = (id, val) => { const el = document.getElementById(id); if(el) el.style.width = val; };
 
     const today = new Date();
-    const timeStrFull = today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setText('current-date', today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + today.toLocaleDateString('vi-VN'));
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      setText('current-date', today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + today.toLocaleDateString('vi-VN'));
+    });
 
     const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
     const CHAT_ID = "-5072214230"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
     
+    let SYSTEM_CONFIG = null;
+    async function loadConfig() {
+      try {
+        console.log("Đang tải cấu hình System...");
+        const res = await fetch(GAS_URL + "?sheet=Config_System");
+        const rawData = await res.json();
+        const data = Array.isArray(rawData) ? rawData : (rawData.data || []);
+        const config = {};
+        data.forEach(row => {
+          let k = null, v = null;
+          const rowKeys = Object.keys(row);
+          const keyField = rowKeys.find(rk => rk.toLowerCase() === 'key');
+          const valField = rowKeys.find(rk => rk.toLowerCase() === 'value');
+          if (keyField !== undefined) k = row[keyField];
+          else k = Object.values(row)[0];
+          if (valField !== undefined) v = row[valField];
+          else v = Object.values(row)[1];
+          if (k && v !== undefined) {
+            const normalizedKey = String(k).trim().toLowerCase().replace(/_/g, '');
+            config[normalizedKey] = String(v).trim();
+          }
+        });
+        SYSTEM_CONFIG = config;
+        console.log("Cấu hình chuẩn hóa RT/NV:", SYSTEM_CONFIG);
+      } catch (e) { 
+        console.error("Lỗi tải config:", e); 
+        SYSTEM_CONFIG = {};
+      }
+    }
+
+    async function openDynamicLink(type, mode) {
+      if (!SYSTEM_CONFIG || Object.keys(SYSTEM_CONFIG).length === 0) await loadConfig();
+      const getConf = (key) => {
+        const normalized = key.toLowerCase().replace(/_/g, '');
+        return SYSTEM_CONFIG[normalized];
+      };
+      const base = getConf('base_url') || "https://bi.thegioididong.com";
+      let pms = "72762";
+      if (type === 'luyke') {
+        pms = getConf('pms_id_luyke') || getConf('pms_id') || "72762";
+      } else {
+        pms = getConf('pms_id') || "72762";
+      }
+      const tab = (type === 'nhanvien' ? 'bcdtnv' : 'bcdtnh');
+      const rt = (type === 'realtime' ? 1 : 2);
+      const url = `${base}/sieu-thi-con?id=${pms}&tab=${tab}&rt=${rt}&dm=1&autoRun=${type}_${mode}`;
+      console.log(`Đang mở link (${type}):`, url);
+      window.open(url, '_blank');
+    }
+
+    document.getElementById('btnDynamicLuyKe').onclick = () => openDynamicLink('luyke', 'manual');
+    document.getElementById('btnDynamicRealtime').onclick = () => openDynamicLink('realtime', 'manual');
+
     const parseVnNumber = (val) => {
       if (val == null || val === '') return 0;
       if (typeof val === 'number') return val; 
@@ -494,7 +549,18 @@
     }
 
     document.getElementById('btnSend').addEventListener('click', executeCaptureAndSend);
-    window.onload = loadData;
+    
+    // Khởi tạo hệ thống
+    (async () => {
+      await loadConfig();
+      await loadData();
+      
+      // Gán sự kiện cho các nút mở link BI
+      const btnLuyKe = document.getElementById('btnDynamicLuyKe');
+      const btnRealtime = document.getElementById('btnDynamicRealtime');
+      if (btnLuyKe) btnLuyKe.onclick = () => openDynamicLink('luyke', 'manual');
+      if (btnRealtime) btnRealtime.onclick = () => openDynamicLink('realtime', 'manual');
+    })();
   </script>
 </body>
 </html>

@@ -147,8 +147,8 @@
   <div class="top-actions" data-html2canvas-ignore="true">
       <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH (LƯU MÁY)</button>
       <button class="btn-action" id="btnDownloadFull">📸 CHỤP TOÀN TRANG</button>
-      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=72762&tab=bcdtnh&rt=2&dm=1&autoRun=luyke_manual', '_blank')">📊 ĐỔ SỐ LŨY KẾ</button>
-      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=72762&tab=bcdtnh&rt=1&dm=1&autoRun=realtime_manual', '_blank')">📈 ĐỔ SỐ REALTIME</button>
+      <button class="btn-action" id="btnDynamicLuyKe">📊 ĐỔ SỐ LŨY KẾ</button>
+      <button class="btn-action" id="btnDynamicRealtime">📈 ĐỔ SỐ REALTIME</button>
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -288,7 +288,6 @@
             <table>
               <thead>
                 <tr>
-                  <!-- ĐÃ ĐIỀU CHỈNH LẠI CỘT CHO NGÀNH HÀNG HIỂN THỊ ĐỦ 1 DÒNG -->
                   <th width="5%">#</th>
                   <th class="text-left" width="38%">📚 NGÀNH HÀNG THI ĐUA</th>
                   <th width="9%">📅 MT NGÀY</th>
@@ -306,7 +305,7 @@
         <div class="footer">SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
       </div>
 
-  </div> <!-- End of report-container -->
+  </div> 
 
   <button class="btn-send" id="btnSend">🚀 CHỤP TÁCH & GỬI TELEGRAM</button>
 
@@ -315,16 +314,87 @@
     const yesterday = new Date(today); 
     yesterday.setDate(today.getDate() - 1);
     
-    // Check if element exists before setting text
-    const dateElement = document.getElementById('current-date');
-    if (dateElement) {
-        dateElement.innerText = yesterday.toLocaleDateString('vi-VN');
-    }
+    document.addEventListener('DOMContentLoaded', () => {
+      const dateElement = document.getElementById('current-date');
+      if (dateElement) {
+          dateElement.innerText = yesterday.toLocaleDateString('vi-VN');
+      }
+    });
 
     const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
     const CHAT_ID = "-5072214230"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
     
+    let SYSTEM_CONFIG = null;
+    async function loadConfig() {
+      try {
+        console.log("Đang tải cấu hình từ GAS...");
+        const res = await fetch(GAS_URL + "?sheet=Config_System");
+        const rawData = await res.json();
+        
+        // Chấp nhận cả định dạng { data: [...] } hoặc trực tiếp [...]
+        const data = Array.isArray(rawData) ? rawData : (rawData.data || []);
+        
+        const config = {};
+        data.forEach(row => {
+          let k = null, v = null;
+          
+          // Ưu tiên tìm các cột có tên giống Key/Value (không phân biệt hoa thường)
+          const rowKeys = Object.keys(row);
+          const keyField = rowKeys.find(rk => rk.toLowerCase() === 'key');
+          const valField = rowKeys.find(rk => rk.toLowerCase() === 'value');
+          
+          if (keyField !== undefined) k = row[keyField];
+          else k = Object.values(row)[0];
+          
+          if (valField !== undefined) v = row[valField];
+          else v = Object.values(row)[1];
+          
+          if (k && v !== undefined) {
+            // Lưu key ở dạng chuẩn: viết thường, không dấu cách, không gạch dưới
+            const normalizedKey = String(k).trim().toLowerCase().replace(/_/g, '');
+            config[normalizedKey] = String(v).trim();
+          }
+        });
+        
+        SYSTEM_CONFIG = config;
+        console.log("Cấu hình chuẩn hóa:", SYSTEM_CONFIG);
+      } catch (e) { 
+        console.error("Lỗi tải config:", e); 
+        SYSTEM_CONFIG = {}; // Tránh lặp lại lỗi fetch liên tục
+      }
+    }
+
+    async function openDynamicLink(type, mode) {
+      if (!SYSTEM_CONFIG || Object.keys(SYSTEM_CONFIG).length === 0) await loadConfig();
+      
+      // Hàm lấy giá trị từ config với nhiều biến thể key
+      const getConf = (key) => {
+        const normalized = key.toLowerCase().replace(/_/g, '');
+        return SYSTEM_CONFIG[normalized];
+      };
+
+      const base = getConf('base_url') || "https://bi.thegioididong.com";
+      
+      // Lấy PMS ID (thử pms_id_luyke trước nếu là luyke, sau đó thử pms_id)
+      let pms = "72762";
+      if (type === 'luyke') {
+        pms = getConf('pms_id_luyke') || getConf('pms_id') || "72762";
+      } else {
+        pms = getConf('pms_id') || "72762";
+      }
+      
+      const tab = (type === 'nhanvien' ? 'bcdtnv' : 'bcdtnh');
+      const rt = (type === 'realtime' ? 1 : 2);
+      const url = `${base}/sieu-thi-con?id=${pms}&tab=${tab}&rt=${rt}&dm=1&autoRun=${type}_${mode}`;
+      
+      console.log(`Đang mở link (${type}):`, url);
+      window.open(url, '_blank');
+    }
+
+    document.getElementById('btnDynamicLuyKe').onclick = () => openDynamicLink('luyke', 'manual');
+    document.getElementById('btnDynamicRealtime').onclick = () => openDynamicLink('realtime', 'manual');
+
     // Constant Variables for Tasks
     const todoPrefixes = ["ĐẨY MẠNH", "TẬP TRUNG", "BỨT PHÁ", "GIA TĂNG", "ĐẨY SỐ", "CHẠY NƯỚC RÚT"];
     const todoColors = ['#e53935', '#f57c00', '#fbc02d', '#1e88e5', '#8e24aa', '#00897b'];
@@ -479,7 +549,7 @@
         let parsedThiDua = [];
         let cntDK = 0, cntVD = 0;
         let cntDK_TD = 0, cntVD_TD = 0, totalTD = 0;
-        let gr1 = [], gr2 = [], gr3 = [], gr4 = []; // <--- Khôi phục mảng cho text Telegram
+        let gr1 = [], gr2 = [], gr3 = [], gr4 = []; 
 
         for(let row of dataThiDua) {
           let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính");
@@ -522,14 +592,12 @@
           if (item.htDuKien >= 1) cntDK++;
           if (item.htTarget >= 1) cntVD++;
 
-          // Đếm riêng cho nhóm ưu tiên 2 (Trọng điểm)
           if (item.isTrongDiem) {
               totalTD++;
               if (item.htDuKien >= 1) cntDK_TD++;
               if (item.htTarget >= 1) cntVD_TD++;
           }
 
-          // Push items vao array cho Telegram text
           if (item.htTarget >= 1) gr1.push(item);
           else if (item.htTarget >= 0.75) gr2.push(item);
           else if (item.htTarget >= 0.4) gr3.push(item);
@@ -543,14 +611,11 @@
         const setColor = (id, val) => { const el = document.getElementById(id); if(el) el.style.color = val; };
         const setBg = (id, val) => { const el = document.getElementById(id); if(el) el.style.background = val; };
 
-        // Cập nhật số liệu Box 1: TỔNG THI ĐUA
-        let totalThiDua = parsedThiDua.length;
-        setText("td-title-tong", `🏆 THI ĐUA TỔNG (${totalThiDua} NHÓM)`);
+        setText("td-title-tong", `🏆 THI ĐUA TỔNG (${parsedThiDua.length} NHÓM)`);
         setText("td-sum-vd", cntVD);
         setText("td-sum-dk", cntDK);
-        setText("td-sum-cb", (totalThiDua - cntDK));
+        setText("td-sum-cb", (parsedThiDua.length - cntDK));
 
-        // Cập nhật số liệu Box 2: THI ĐUA CẦN TẬP TRUNG
         setText("td-title-trongdiem", `🎯 THI ĐUA CẦN TẬP TRUNG (${totalTD} NHÓM)`);
         setText("td-sum-vd-td", cntVD_TD);
         setText("td-sum-dk-td", cntDK_TD);
@@ -602,10 +667,9 @@
         let colorDiffCK = diffCK >= 0 ? '#10b981' : '#ef4444';
         setHTML("c-ck-sub", `<span style="color:${colorDiffCK}; font-weight:900; font-size:14px;">${strDiffCK}</span>`);
         
-        setHTML("c-nh-dk", `${cntDK} <span style="font-size: 20px; color: #64748b; font-weight: 800;">/ ${totalThiDua}</span>`);
+        setHTML("c-nh-dk", `${cntDK} <span style="font-size: 20px; color: #64748b; font-weight: 800;">/ ${parsedThiDua.length}</span>`);
         setHTML("c-nh-vd-sub", `🏆 ĐÃ VỀ ĐÍCH: <span style="color:#10b981; font-weight:900; font-size:14px;">${cntVD}</span>`);
 
-        // RENDER 2.1 DOANH THU THEO NGÀNH HÀNG (DẠNG TABLE CHUẨN CÓ THÊM STT, CHÈN CUP Ở CỘT MT NGÀY)
         let htmlBI = "";
         let sttBI = 1;
         for(let item of parsedBI) {
@@ -614,15 +678,12 @@
           let name = shortName(item.nganhHang);
           if(name.length > 15) name = name.substring(0, 15);
           let industryEmoji = getEmoji(item.nganhHang);
-          
           let dtCKThang = (1 + item.tangGiamCK === 0) ? 0 : (item.dt / (1 + item.tangGiamCK));
           let chenhLech = item.dt - dtCKThang;
           let strChenhLech = chenhLech > 0 ? "+" + formatMoney(chenhLech) : formatMoney(chenhLech);
           let cCK = item.tangGiamCK < 0 ? "#ef4444" : "#10b981";
-          
           let conLai = Math.max(0, item.tg - item.dt);
           let mtNgayThucTeNganh = conLai / daysRemaining;
-
           let sttPillClassBI = '';
           if (item.htTarget >= 1) sttPillClassBI = 'stt-green';
           else if (item.htTarget >= 0.75) sttPillClassBI = 'stt-blue';
@@ -674,7 +735,6 @@
         let totalHTColor = getColorClass(totalHT);
         let totalCKColor = totalCK < 0 ? '#ef4444' : '#10b981';
         let totalConLai = Math.max(0, tTG - tDT);
-        
         htmlBI += `
         <tr style="background: #fffbdf; border-top: 3px solid #1e272e;">
             <td style="font-size: 20px;">⭐</td>
@@ -694,39 +754,23 @@
         </tr>`;
         setHTML("board-bi", htmlBI);
 
-        // RENDER BẢNG VIỆC CẦN LÀM HÔM NAY (MỤC 2)
         let todoList = parsedBI.slice(0, 6); 
         let htmlTodo = "";
         let sttTodo = 1;
-        
-        if (todoList.length === 0) {
-            htmlTodo = `<div style="padding: 20px; text-align: center; font-weight: 900; color: #10b981; font-size: 16px; grid-column: span 2;">Chưa có dữ liệu!</div>`;
-        } else {
-            for(let item of todoList) {
-                let name = shortName(item.nganhHang);
-                let industryEmoji = getEmoji(item.nganhHang);
-                let conLai = Math.max(0, item.tg - item.dt);
-                
-                let avgPrice = (item.sl > 0 && item.dt > 0) ? (item.dt / item.sl) : 0;
-                let doanhThuUocTinh = 0;
-                
-                if (item.htTarget >= 1) {
-                    doanhThuUocTinh = item.dt / daysPassed;
-                } else {
-                    doanhThuUocTinh = conLai / daysRemaining;
-                }
-                
-                let slCanBan = avgPrice > 0 ? Math.ceil(doanhThuUocTinh / avgPrice) : 0;
-                let slText = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} <span>SP</span>` : "0 <span>SP</span>";
-                let mtText = `~${formatMoney(doanhThuUocTinh)} <span>TR</span>`;
-                let daDatColor = item.htTarget >= 1 ? "#10b981" : "#0984e3";
-                
-                let actionPrefix = todoPrefixes[(sttTodo - 1) % todoPrefixes.length];
-                let sttColor = todoColors[(sttTodo - 1) % todoColors.length];
-                
-                let titleText = `${actionPrefix} ${name}`;
-
-                htmlTodo += `
+        for(let item of todoList) {
+            let name = shortName(item.nganhHang);
+            let industryEmoji = getEmoji(item.nganhHang);
+            let conLai = Math.max(0, item.tg - item.dt);
+            let avgPrice = (item.sl > 0 && item.dt > 0) ? (item.dt / item.sl) : 0;
+            let doanhThuUocTinh = (item.htTarget >= 1) ? (item.dt / daysPassed) : (conLai / daysRemaining);
+            let slCanBan = avgPrice > 0 ? Math.ceil(doanhThuUocTinh / avgPrice) : 0;
+            let slText = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} <span>SP</span>` : "0 <span>SP</span>";
+            let mtText = `~${formatMoney(doanhThuUocTinh)} <span>TR</span>`;
+            let daDatColor = item.htTarget >= 1 ? "#10b981" : "#0984e3";
+            let actionPrefix = todoPrefixes[(sttTodo - 1) % todoPrefixes.length];
+            let sttColor = todoColors[(sttTodo - 1) % todoColors.length];
+            let titleText = `${actionPrefix} ${name}`;
+            htmlTodo += `
                 <div class="todo-item">
                     <div class="todo-top">
                         <div class="todo-stt" style="background: ${sttColor};">${sttTodo++}</div>
@@ -749,13 +793,10 @@
                             <div class="todo-stat-val">${mtText}</div>
                         </div>
                     </div>
-                </div>
-                `;
-            }
+                </div>`;
         }
         setHTML("todo-list", htmlTodo);
 
-        // BẢNG THI ĐUA (PART 2)
         let htmlThiDua = ""; let sttTD = 1;
         for(let item of parsedThiDua) {
             let cHT = getColorClass(item.htTarget);
@@ -764,96 +805,63 @@
             let nameStyle = item.isTrongDiem ? `color:#d63031; font-weight: 900;` : `color:#1e272e; font-weight: 800;`;
             let mtNgayDisplay = item.htTarget >= 1 ? '<span style="font-size:24px;">🏆</span>' : formatMoney(item.mtNgay);
             let conLai = Math.max(0, item.target - item.thucHien);
-            
             let sttPillClass = '';
             if (item.htTarget >= 1) sttPillClass = 'stt-green';
             else if (item.htTarget >= 0.75) sttPillClass = 'stt-blue';
             else if (item.htTarget >= 0.4) sttPillClass = 'stt-orange';
             else sttPillClass = 'stt-red';
-
             htmlThiDua += `
               <tr>
                 <td><div class="stt-pill ${sttPillClass}">${sttTD++}</div></td>
-                
-                <td class="text-left" style="${nameStyle}">
-                    <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span>
-                </td>
-                
+                <td class="text-left" style="${nameStyle}"><span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span></td>
                 <td style="color: #475569; font-size: 21px;">${mtNgayDisplay}</td>
                 <td style="color: #475569; font-size: 21px;">${formatMoney(item.target)}</td>
-                
                 <td style="padding:0;">
-                    <div class="cell-prog-wrap">
-                        <div class="cell-prog-bg" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div>
-                        <span class="cell-val" style="color:#2563eb; font-size: 22px;">${formatMoney(item.thucHien)}</span>
-                    </div>
+                    <div class="cell-prog-wrap"><div class="cell-prog-bg" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div><span class="cell-val" style="color:#2563eb; font-size: 22px;">${formatMoney(item.thucHien)}</span></div>
                 </td>
-                
                 <td style="padding: 0 4px;">
-                    <div class="td-prog-container">
-                        <span style="color:${cHT}; font-size: 22px; font-weight: 900;">${formatPercent(item.htTarget)}</span>
-                        <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div></div>
-                    </div>
+                    <div class="td-prog-container"><span style="color:${cHT}; font-size: 22px; font-weight: 900;">${formatPercent(item.htTarget)}</span><div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(item.htTarget*100, 100)}%; background:${cHT};"></div></div></div>
                 </td>
-                
                 <td style="color: #ef4444; font-size: 21px;">${formatMoney(conLai)}</td>
                 <td style="color: ${cHTDK}; font-size: 21px;">${formatPercent(item.htDuKien)}</td>
-              </tr>
-            `;
+              </tr>`;
         }
         setHTML("table-thidua", htmlThiDua);
 
-        // RENDER BẢNG VIỆC CẦN LÀM CHO THI ĐUA (MỤC 3)
-        let todoThiDuaList = parsedThiDua.filter(x => x.htTarget < 1).sort((a, b) => b.htTarget - a.htTarget).slice(0, 6);
-        let htmlTodoTD = "";
-        let sttTD2 = 1;
+        let htmlTodoThiDua = "";
+        let todoThiDuaList = parsedThiDua.filter(x => x.htTarget < 1).sort((a,b) => b.htDuKien - a.htDuKien).slice(0, 4);
+        let sttTodoTD = 1;
         
         if (todoThiDuaList.length === 0) {
-            htmlTodoTD = `<div style="padding: 20px; text-align: center; font-weight: 900; color: #10b981; font-size: 16px; grid-column: span 2;">Tuyệt vời, tất cả ngành hàng thi đua đã về đích!</div>`;
+            htmlTodoThiDua = `<div style="padding: 20px; text-align: center; font-weight: 900; color: #10b981; font-size: 16px; grid-column: span 2;">Mọi chỉ tiêu thi đua đã về đích! 🏆</div>`;
         } else {
             for(let item of todoThiDuaList) {
                 let name = shortName(item.nganhHang);
-                name += item.isSL ? " (SL)" : " (DT)";
-                let emoji = getEmoji(item.nganhHang);
+                let industryEmoji = getEmoji(item.nganhHang);
                 let conLai = Math.max(0, item.target - item.thucHien);
-                let unit = item.isSL ? "SP" : "TR";
+                let avgPrice = (item.dt > 0 && item.sl > 0) ? (item.dt / item.sl) : 0;
+                let dailyTarget = item.mtNgay;
+                let slCanBan = (item.isSL || avgPrice === 0) ? Math.ceil(dailyTarget) : Math.ceil(dailyTarget / avgPrice);
                 
-                let mtNgayThucTe = item.mtNgay;
+                let slText = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} <span>${item.isSL ? 'SP' : 'TR'}</span>` : `0 <span>${item.isSL ? 'SP' : 'TR'}</span>`;
+                let mtText = `~${formatMoney(dailyTarget)} <span>${item.isSL ? 'SP' : 'TR'}</span>`;
                 
-                let slText = "N/A";
-                let mtText = "N/A";
+                let sttColor = todoColors[(sttTodoTD + 2) % todoColors.length];
+                let actionPrefix = todoPrefixes[(sttTodoTD + 2) % todoPrefixes.length];
 
-                if (item.isSL) {
-                    let valToSell = Math.ceil(mtNgayThucTe);
-                    slText = valToSell > 0 ? `${valToSell.toLocaleString('vi-VN')} <span>SP</span>` : "0 <span>SP</span>";
-                    mtText = valToSell > 0 ? `${valToSell.toLocaleString('vi-VN')} <span>SP</span>` : "0 <span>SP</span>";
-                } else {
-                    let giaTriTB = item.thucHien / daysPassed;
-                    let slCanBan = giaTriTB > 0 ? Math.ceil(mtNgayThucTe / giaTriTB) : 0;
-                    
-                    slText = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} <span>SP</span>` : "N/A";
-                    mtText = `~${formatMoney(mtNgayThucTe)} <span>TR</span>`;
-                }
-                
-                let actionPrefix = todoPrefixes[(sttTD2 - 1) % todoPrefixes.length];
-                let sttColor = todoColors[(sttTD2 - 1) % todoColors.length];
-                let cHTColor = getColorClass(item.htTarget);
-                
-                let titleText = `${actionPrefix} ${name} - <span style="color:${cHTColor};">${formatPercent(item.htTarget)}</span>`;
-
-                htmlTodoTD += `
+                htmlTodoThiDua += `
                 <div class="todo-item">
                     <div class="todo-top">
-                        <div class="todo-stt" style="background: ${sttColor};">${sttTD2++}</div>
+                        <div class="todo-stt" style="background: ${sttColor};">${sttTodoTD++}</div>
                         <div class="todo-title-wrap">
-                            <span class="todo-icon">${emoji}</span>
-                            <span class="todo-name" title="${item.nganhHang}">${titleText}</span>
+                            <span class="todo-icon">${industryEmoji}</span>
+                            <span class="todo-name">${actionPrefix} ${name}</span>
                         </div>
                     </div>
                     <div class="todo-bottom">
                         <div class="todo-stat-box">
-                            <div class="todo-stat-lbl">THIẾU</div>
-                            <div class="todo-stat-val" style="color: #d32f2f;">${formatMoney(conLai)} <span>${unit}</span></div>
+                            <div class="todo-stat-lbl">ĐÃ ĐẠT</div>
+                            <div class="todo-stat-val" style="color: ${getColorClass(item.htTarget)};">${formatPercent(item.htTarget)}</div>
                         </div>
                         <div class="todo-stat-box highlight">
                             <div class="todo-stat-lbl">CẦN BÁN THÊM</div>
@@ -864,11 +872,10 @@
                             <div class="todo-stat-val">${mtText}</div>
                         </div>
                     </div>
-                </div>
-                `;
+                </div>`;
             }
         }
-        setHTML("todo-list-thidua", htmlTodoTD);
+        setHTML("todo-list-thidua", htmlTodoThiDua);
 
         // TẠO CHUỖI TEXT CHO TELEGRAM CHUẨN LIST FORMAT
         let msg = `📊 BÁO CÁO SỨC KHOẺ SIÊU THỊ - ngày ${today.toLocaleDateString('vi-VN')} 📊\n`;
@@ -1038,7 +1045,17 @@
         btnSend.addEventListener('click', executeCaptureAndSend);
     }
 
-    window.onload = loadData;
+    // Khởi tạo hệ thống
+    (async () => {
+      await loadConfig();
+      await loadData();
+      
+      // Gán sự kiện cho các nút mở link BI
+      const btnLuyKe = document.getElementById('btnDynamicLuyKe');
+      const btnRealtime = document.getElementById('btnDynamicRealtime');
+      if (btnLuyKe) btnLuyKe.onclick = () => openDynamicLink('luyke', 'manual');
+      if (btnRealtime) btnRealtime.onclick = () => openDynamicLink('realtime', 'manual');
+    })();
 
   </script>
 </body>
