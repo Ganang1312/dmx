@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Báo Cáo Nhân Viên - Cụm Savico</title>
+  <script src="shared_config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
@@ -171,7 +172,7 @@
   <div class="top-actions" data-html2canvas-ignore="true">
       <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH (LƯU MÁY)</button>
       <button class="btn-action" id="btnDownloadFull">📸 CHỤP TOÀN TRANG</button>
-      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=78109&tab=bcdtnv&rt=2&dm=1&autoRun=nhanvien_manual', '_blank')" style="border-color:#16a085; color:#16a085;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
+      <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#16a085; color:#16a085;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">

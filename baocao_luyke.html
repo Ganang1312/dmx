@@ -2,7 +2,8 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Executive Dashboard - Cụm Savico</title>
+  <title>Lũy Kế Dashboard - Cụm Savico</title>
+  <script src="shared_config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
@@ -147,8 +148,8 @@
   <div class="top-actions" data-html2canvas-ignore="true">
       <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH (LƯU MÁY)</button>
       <button class="btn-action" id="btnDownloadFull">📸 CHỤP TOÀN TRANG</button>
-      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=78109&tab=bcdtnh&rt=2&dm=1&autoRun=luyke_manual', '_blank')">📊 ĐỔ SỐ LŨY KẾ</button>
-      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=78109&tab=bcdtnh&rt=1&dm=1&autoRun=realtime_manual', '_blank')">📈 ĐỔ SỐ REALTIME</button>
+      <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 ĐỔ SỐ LŨY KẾ</button>
+      <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')">📈 ĐỔ SỐ REALTIME</button>
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -459,8 +460,21 @@
         let mucTieuThucTeAll = (tTG - tDT) / daysRemaining;
         if (mucTieuThucTeAll < 0) mucTieuThucTeAll = 0;
         
+        // KIỂM TRA MỤC TIÊU RIÊNG CHO NGÀY LỄ (Ô M2, N2 thêm		TRONG CONFIG_THIDUA)
+        let holidayTarget = 0;
+        if (configData && configData.length > 0) {
+            let firstRow = configData[0];
+            let configDay = parseVnNumber(getKey(firstRow, "ngày"));
+            let configTarget = parseVnNumber(getKey(firstRow, "mục tiêu"));
+            if (configDay === today.getDate() && configTarget > 0) {
+                holidayTarget = configTarget;
+            }
+        }
+
         let mucTieuNgayAll = 0;
-        if (isWeekend) {
+        if (holidayTarget > 0) {
+            mucTieuNgayAll = holidayTarget;
+        } else if (isWeekend) {
             mucTieuNgayAll = mucTieuCoDinhAll * 2;
         } else {
             mucTieuNgayAll = mucTieuThucTeAll < mucTieuCoDinhAll ? mucTieuCoDinhAll : mucTieuThucTeAll;
