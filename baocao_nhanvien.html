@@ -171,7 +171,7 @@
   <div class="top-actions" data-html2canvas-ignore="true">
       <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH (LƯU MÁY)</button>
       <button class="btn-action" id="btnDownloadFull">📸 CHỤP TOÀN TRANG</button>
-      <button class="btn-action" id="btnDynamicNhanVien" style="border-color:#16a085; color:#16a085;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
+      <button class="btn-action" onclick="window.open('https://bi.thegioididong.com/sieu-thi-con?id=78109&tab=bcdtnv&rt=2&dm=1&autoRun=nhanvien_manual', '_blank')" style="border-color:#16a085; color:#16a085;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -227,52 +227,15 @@
 
   <script>
     const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
     
-    document.addEventListener('DOMContentLoaded', () => {
-      const dateElement = document.getElementById('current-date');
-      if (dateElement) dateElement.innerText = today.toLocaleDateString('vi-VN');
-    });
+    const dateElement = document.getElementById('current-date');
+    if (dateElement) dateElement.innerText = yesterday.toLocaleDateString('vi-VN');
 
     const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
     const CHAT_ID = "-5072214230"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
-
-    let SYSTEM_CONFIG = null;
-    async function loadConfig() {
-      try {
-        const res = await fetch(GAS_URL + "?sheet=Config_System");
-        const data = await res.json();
-        const config = {};
-        data.forEach(row => {
-          let k = null, v = null;
-          if (row.Key !== undefined) k = row.Key;
-          else if (row.key !== undefined) k = row.key;
-          else k = Object.values(row)[0];
-
-          if (row.Value !== undefined) v = row.Value;
-          else if (row.value !== undefined) v = row.value;
-          else v = Object.values(row)[1];
-
-          if (k && v !== undefined) {
-            config[String(k).trim().toLowerCase()] = String(v).trim();
-          }
-        });
-        SYSTEM_CONFIG = config;
-        console.log("Cấu hình Nhân Viên:", SYSTEM_CONFIG);
-      } catch (e) { console.error("Lỗi tải config:", e); }
-    }
-
-    async function openDynamicLink(type, mode) {
-      if (!SYSTEM_CONFIG) await loadConfig();
-      const base = (SYSTEM_CONFIG && SYSTEM_CONFIG.base_url) || "https://bi.thegioididong.com";
-      const pms = (SYSTEM_CONFIG && (type === 'luyke' ? (SYSTEM_CONFIG.pms_id_luyke || SYSTEM_CONFIG.pms_id) : SYSTEM_CONFIG.pms_id)) || "72762";
-      const tab = (type === 'nhanvien' ? 'bcdtnv' : 'bcdtnh');
-      const rt = (type === 'realtime' ? 1 : 2);
-      const url = `${base}/sieu-thi-con?id=${pms}&tab=${tab}&rt=${rt}&dm=1&autoRun=${type}_${mode}`;
-      window.open(url, '_blank');
-    }
-
-    document.getElementById('btnDynamicNhanVien').onclick = () => openDynamicLink('nhanvien', 'manual');
 
     const parseVnNumber = (val) => {
       if (val == null || val === '') return 0;
@@ -360,7 +323,7 @@
             let actual = u.td[nganhClean] || 0;
             let htDuKien = targetUser > 0 ? ((actual / window.g_daysPassed) * window.g_daysInMonth) / targetUser : 0;
             let htHienTai = targetUser > 0 ? actual / targetUser : 0;
-            return { name: emp.name, actual, targetUser, htDuKien, htHienTai };
+            return { name: emp.i.name, actual, targetUser, htDuKien, htHienTai };
         }).sort((a,b) => b.htDuKien - a.htDuKien);
 
         let stt = 1;
@@ -407,7 +370,7 @@
         let rankIcon = "🥈";
         let statusMsg = "Phong độ ổn định, giữ vững nhé!";
         
-        let rank = p.rank; 
+        let rank = empIndex + 1; 
         let totalEmployees = window.g_tdEmployees.length;
         let isBottom30 = rank > totalEmployees * 0.7;
 
@@ -458,7 +421,7 @@
                 <div class="perf-header" style="background: ${headerBg}; border-radius: 10px 10px 0 0;">
                     <div class="perf-avatar" style="color: ${headerBg === "#f1f5f9" ? "#64748b" : headerBg}">${rank}</div>
                     <div class="perf-header-info">
-                        <h2 class="perf-name">${p.name}</h2>
+                        <h2 class="perf-name">${p.i.name}</h2>
                         <div class="perf-status-msg">${statusMsg}</div>
                     </div>
                     <div class="perf-rank-box">
@@ -611,6 +574,18 @@
         else if (totalHT >= 0.5) { sbStatusText = "CẢNH BÁO"; sbStatusColor = "#f59e0b"; sbLeftBg = "#fff7ed"; sbIcon = "⚠️"; }
         else { sbStatusText = "NGUY HIỂM"; sbStatusColor = "#ef4444"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
 
+        setBg("sb-bg", sbLeftBg); setText("sb-icon", sbIcon);
+        setText("sb-status", sbStatusText); setColor("sb-status", sbStatusColor);
+        setText("sb-top1-name", top1Name.substring(0, 15) + (top1Name.length > 15 ? '...' : ''));
+        setText("sb-dat-chuan", `${cntDatChuan} NV`);
+        setText("sb-nguy-co", `${cntNguyCo} NV`);
+
+        setText("c-dt", formatMoney(tDT));
+        setText("c-tg", formatMoney(tTG));
+        setText("c-ht", formatPercent(totalHT)); setColor("c-ht", getColorClass(totalHT));
+        setText("c-top1-dt", formatMoney(top1DT));
+        setText("c-cham", parsedDT.filter(x => x.htTarget < 0.8).length);
+
         // XỬ LÝ THI ĐUA TRƯỚC ĐỂ TÍNH ĐIỂM XẾP HẠNG
         let configMap = {};
         if (!dataConfig.error && dataConfig.length > 0) {
@@ -704,13 +679,6 @@
         // LƯU TRỮ TOÀN BỘ DỮ LIỆU NHÂN VIÊN ĐỂ POPUP DÙNG CHUNG
         window.g_allEmployees = {};
         fullPerfList.forEach(p => { window.g_allEmployees[p.userId] = p; });
-        window.g_tdEmployees = fullPerfList;
-        window.g_activeCategories = activeCategories;
-        window.g_daysPassed = daysPassed;
-        window.g_daysInMonth = daysInMonth;
-        window.g_formatVal = formatValLocal;
-        window.g_formatPercent = formatPercent;
-        window.g_getColorClass = getColorClass;
 
         // Render Bảng Xếp Hạng Nhân Viên (Bảng 1)
         let htmlDT = ""; let sttDT = 1;
@@ -765,6 +733,8 @@
 
         setHTML("board-dt-nv", htmlDT);
 
+
+
         let htmlTDTable = `
         <div style="width:100%; overflow-x:auto; margin-bottom: 20px; border: 3px solid #1e272e; border-radius: 8px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding-bottom: 5px;">
             <table style="width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; background: #fff;">
@@ -792,6 +762,11 @@
         }
         htmlTDTable += `</tr></thead><tbody>`;
         
+        let tdEmployees = parsedDT.map(i => {
+            let u = userMap[i.userId];
+            let countNHDuKien = 0;
+            for (let cat of activeCategories) {
+                let nganhClean = String(cat.nganhHang).toLowerCase().trim();
                 let targetUser = cat.storeTarget * u.targetRatio; 
                 let actual = u.td[nganhClean] || 0;
                 let htDuKien = targetUser > 0 ? ((actual / daysPassed) * daysInMonth) / targetUser : 0;
@@ -1100,21 +1075,7 @@
     }
 
     document.getElementById('btnSend').addEventListener('click', executeCaptureAndSend);
-    
-    // Khởi tạo hệ thống
-    (async () => {
-      await loadConfig();
-      await loadData();
-      
-      // Gán sự kiện cho các nút mở link BI
-      const btnLuyKe = document.getElementById('btnDynamicLuyKe');
-      const btnRealtime = document.getElementById('btnDynamicRealtime');
-      const btnNhanVien = document.getElementById('btnDynamicNhanVien');
-      
-      if (btnLuyKe) btnLuyKe.onclick = () => openDynamicLink('luyke', 'manual');
-      if (btnRealtime) btnRealtime.onclick = () => openDynamicLink('realtime', 'manual');
-      if (btnNhanVien) btnNhanVien.onclick = () => openDynamicLink('nhanvien', 'manual');
-    })();
+    window.onload = loadData;
   </script>
 </body>
 </html>
