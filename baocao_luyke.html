@@ -91,25 +91,25 @@
     .todo-header-left { font-size: 18px; font-weight: 900; color: #b71c1c; display: flex; align-items: center; gap: 8px; }
     .todo-header-right { background: #d32f2f; color: white; padding: 6px 14px; border-radius: 12px; font-size: 13px; font-weight: 900; }
     
-    .todo-list { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; grid-auto-flow: column; gap: 14px; padding: 14px; background: #f8fafc; }
-    .todo-item { display: flex; flex-direction: column; padding: 12px; border: 2px solid #1e272e; background: #ffffff; border-radius: 10px; gap: 10px; box-shadow: 0 3px 6px rgba(0,0,0,0.06);}
-    .todo-top { display: flex; align-items: center; gap: 8px; border-bottom: 2px dashed #1e272e; padding-bottom: 8px;}
-    .todo-title-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
-    .todo-stt { color: white; width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; font-weight: 900; border-radius: 8px; font-size: 16px; flex-shrink: 0;}
-    .todo-icon { font-size: 24px; flex-shrink: 0; }
+    .todo-list { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; grid-auto-flow: column; gap: 8px; padding: 10px; background: #f8fafc; }
+    .todo-item { display: flex; flex-direction: column; padding: 8px; border: 2px solid #1e272e; background: #ffffff; border-radius: 8px; gap: 6px; box-shadow: 0 3px 6px rgba(0,0,0,0.06);}
+    .todo-top { display: flex; align-items: center; gap: 6px; border-bottom: 2px dashed #1e272e; padding-bottom: 6px;}
+    .todo-title-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
+    .todo-stt { color: white; width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; font-weight: 900; border-radius: 6px; font-size: 11px; flex-shrink: 0;}
+    .todo-icon { font-size: 16px; flex-shrink: 0; }
     /* CHO PHÉP XUỐNG DÒNG */
-    .todo-name { font-size: 16px; font-weight: 900; color: #d32f2f; text-transform: uppercase; line-height: 1.3;}
+    .todo-name { font-size: 11px; font-weight: 900; color: #d32f2f; text-transform: uppercase; line-height: 1.3;}
     
     .todo-bottom { display: flex; gap: 6px; justify-content: space-between; }
-    .todo-stat-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 2px; background: #f8fafc; border-radius: 8px; border: 2px solid #1e272e;}
+    .todo-stat-box { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; background: #f8fafc; border-radius: 6px; border: 1px solid #1e272e;}
     .todo-stat-box.highlight { background: #fff1f2; border-color: #d32f2f; }
     
-    .todo-stat-lbl { font-size: 11px; color: #64748b; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; text-align: center; letter-spacing: -0.3px;}
+    .todo-stat-lbl { font-size: 9px; color: #64748b; font-weight: 800; margin-bottom: 2px; text-transform: uppercase; text-align: center; letter-spacing: -0.3px;}
     .todo-stat-box.highlight .todo-stat-lbl { color: #b71c1c; }
     
-    .todo-stat-val { font-size: 24px; font-weight: 900; color: #1e272e; display: flex; align-items: baseline; gap: 2px; letter-spacing: -0.5px;}
-    .todo-stat-box.highlight .todo-stat-val { color: #e53935; font-size: 26px;}
-    .todo-stat-val span { font-size: 13px; font-weight: 800; }
+    .todo-stat-val { font-size: 15px; font-weight: 900; color: #1e272e; display: flex; align-items: baseline; gap: 2px; letter-spacing: -0.5px;}
+    .todo-stat-box.highlight .todo-stat-val { color: #e53935; font-size: 16px;}
+    .todo-stat-val span { font-size: 10px; font-weight: 800; }
 
     /* SUMMARY CARDS MỤC 3 MỚI (CHIA 2 KHỐI LỚN) */
     .td-summary-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px; margin-bottom: 20px; }
@@ -132,10 +132,10 @@
     /* FIX FONT NÚT BẤM (CHUYỂN SANG NUNITO TRÁNH LỖI DẤU NẶNG) */
     .btn-send { background: #00A1E4; color: #ffffff; border: none; padding: 15px 30px; font-size: 18px; border-radius: 8px; cursor: pointer; font-weight: 900; margin-bottom: 30px; font-family: 'Nunito', sans-serif;}
     
-    .top-actions { display: flex; gap: 10px; margin: 20px auto; justify-content: center; width: 1200px; flex-wrap: wrap;}
+    .top-actions { display: flex; gap: 10px; margin: 20px auto; justify-content: center; max-width: 1010px; width: 100%; flex-wrap: wrap; box-sizing: border-box;}
     .btn-action {
       background: white; border: 2px solid #cbd5e1; color: #475569; 
-      width: 160px; height: 60px; 
+      flex: 1; min-width: 130px; height: 60px; 
       padding: 5px; font-size: 13px; border-radius: 8px; font-weight: 800;
       cursor: pointer; display: flex; align-items: center; justify-content: center; 
       text-align: center; gap: 5px; font-family: 'Nunito', sans-serif;
@@ -171,39 +171,38 @@
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
       
       <div id="part1" class="report-box">
+        <!-- THANH TRẠNG THÁI (Đánh giá dự kiến) -->
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
+            <div id="top-status-badge" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 50px; background: #eff6ff; border: 2px solid #1d4ed8; font-weight: 900; font-size: 14px; color: #1d4ed8; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-transform: uppercase;">
+                <span id="top-status-icon" style="font-size: 16px;">🛡️</span>
+                <span>TÌNH TRẠNG SIÊU THỊ: <span id="top-status-text">ỔN ĐỊNH</span></span>
+            </div>
+        </div>
+
         <div class="header-title">BÁO CÁO LŨY KẾ CỤM SAVICO</div>
         <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span></div>
 
-        <!-- HEALTH BAR -->
-        <div class="status-bar">
-            <div class="sb-bg sb-left" id="sb-bg">
-                <div class="sb-left-icon" id="sb-icon">🛡️</div>
-                <div style="display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
-                    <div class="sb-label" style="justify-content: flex-start; margin-bottom: 2px; white-space: nowrap;">TÌNH TRẠNG SIÊU THỊ</div>
-                    <div class="sb-val" id="sb-status" style="color: #1d4ed8;">ỔN ĐỊNH</div>
+        <!-- THANH TIẾN ĐỘ TỔNG QUAN -->
+        <div style="width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 10px; padding: 0 5px; box-sizing: border-box;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 150px; font-size: 13px; font-weight: 900; color: #475569; text-transform: uppercase; display: flex; align-items: center; gap: 6px;"><i style="font-size: 16px;">⏱️</i> TIẾN ĐỘ NGÀY</div>
+                <div style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; border: 2px solid #1e272e; overflow: hidden; position: relative;">
+                    <div id="bar-time-fill" style="height: 100%; background: #f59e0b; width: 0%;"></div>
+                    <div id="bar-time-remaining" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e272e; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff; pointer-events: none;"></div>
                 </div>
+                <div id="bar-time-text" style="width: 60px; text-align: right; font-size: 16px; font-weight: 900; color: #f59e0b;">0%</div>
             </div>
-            <div class="sb-item">
-                <div class="sb-label"><i style="font-size: 14px;">📈</i> TIẾN ĐỘ THỰC TẾ</div>
-                <div class="sb-val" id="sb-tien-do">0%</div>
-            </div>
-            <div class="sb-item">
-                <div class="sb-label"><i style="font-size: 14px;">🚀</i> DỰ KIẾN THÁNG</div>
-                <div class="sb-val" id="sb-du-kien" style="color: #00A1E4;">0%</div>
-            </div>
-            <div class="sb-item">
-                <div class="sb-label"><i style="font-size: 14px;">⏳</i> DT CÒN LẠI</div>
-                <div class="sb-val" id="sb-con-thieu" style="color: #636e72;">0</div>
-            </div>
-            <div class="sb-item">
-                <div class="sb-label"><i style="font-size: 14px;">🎯</i> MT NGÀY KỲ VỌNG</div>
-                <div class="sb-val" id="sb-mt-ngay" style="color: #00b894;">0</div>
-            </div>
-            <div class="sb-right" id="sb-nguy-co-box">
-                <div style="display:flex; align-items:center; gap:6px; font-weight: 900; font-size: 13px;"><i style="font-size: 18px;">⚠️</i> Ngành nguy cơ</div>
-                <div style="font-weight: 900; font-size: 18px; color: #d63031;" id="sb-nguy-co">0 nhóm</div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="width: 150px; font-size: 13px; font-weight: 900; color: #475569; text-transform: uppercase; display: flex; align-items: center; gap: 6px;"><i style="font-size: 16px;">💰</i> HOÀN THÀNH DT</div>
+                <div style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; border: 2px solid #1e272e; overflow: hidden; position: relative;">
+                    <div id="bar-rev-fill" style="height: 100%; background: #10b981; width: 0%;"></div>
+                    <div id="bar-rev-remaining" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e272e; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff; pointer-events: none;"></div>
+                </div>
+                <div id="bar-rev-text" style="width: 60px; text-align: right; font-size: 16px; font-weight: 900; color: #10b981;">0%</div>
             </div>
         </div>
+
+
 
         <div class="sec-title"><span>1</span> DOANH THU & THI ĐUA</div>
         <div class="grid-4">
@@ -323,15 +322,7 @@
         <div class="footer">SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
       </div>
 
-  <div class="report-box comment-container" data-html2canvas-ignore="true">
-    <div class="comment-header">
-        <div class="comment-title">📝 NHẬN XÉT HỆ THỐNG (LŨY KẾ)</div>
-        <button class="btn-copy-small" onclick="copyComment(this)">📋 SAO CHÉP NỘI DUNG</button>
-    </div>
-    <div class="comment-body">
-        <pre id="commentBox">⏳ Đang phân tích dữ liệu lũy kế...</pre>
-    </div>
-  </div>
+
 
   </div> <!-- End of report-container -->
 
@@ -599,16 +590,37 @@
         setText("td-sum-dk-td", cntDK_TD);
         setText("td-sum-cb-td", (totalTD - cntDK_TD));
 
-        let sbStatusText = "ỔN ĐỊNH"; let sbStatusColor = "#1d4ed8"; let sbLeftBg = "#eff6ff"; let sbIcon = "🛡️";
-        if (totalHT >= 0.95) { sbStatusText = "XUẤT SẮC"; sbStatusColor = "#10b981"; sbLeftBg = "#f0fdf4"; sbIcon = "🌟"; }
-        else if (totalHT >= 0.85) { sbStatusText = "ỔN ĐỊNH"; sbStatusColor = "#1d4ed8"; sbLeftBg = "#eff6ff"; sbIcon = "🛡️"; }
-        else if (totalHT >= 0.70) { sbStatusText = "CẢNH BÁO"; sbStatusColor = "#f59e0b"; sbLeftBg = "#fff7ed"; sbIcon = "⚠️"; }
-        else { sbStatusText = "NGUY HIỂM"; sbStatusColor = "#ef4444"; sbLeftBg = "#fef2f2"; sbIcon = "🚨"; }
+        // Đánh giá trạng thái dựa vào % Hoàn thành dự kiến tháng
+        let dkHT = tTG > 0 ? totalDKThang / tTG : 0;
+        let sbStatusText = "ỔN ĐỊNH"; let sbStatusColor = "#1d4ed8"; let sbLeftBg = "#eff6ff"; let sbIcon = "🛡️"; let sbBorder = "#1d4ed8";
+        if (dkHT >= 1.20) { sbStatusText = "XUẤT SẮC"; sbStatusColor = "#10b981"; sbLeftBg = "#d1fae5"; sbIcon = "🌟"; sbBorder = "#059669"; }
+        else if (dkHT >= 1.00) { sbStatusText = "ỔN ĐỊNH"; sbStatusColor = "#1d4ed8"; sbLeftBg = "#dbeafe"; sbIcon = "🛡️"; sbBorder = "#2563eb"; }
+        else if (dkHT >= 0.70) { sbStatusText = "CẢNH BÁO"; sbStatusColor = "#f59e0b"; sbLeftBg = "#fef3c7"; sbIcon = "⚠️"; sbBorder = "#d97706"; }
+        else { sbStatusText = "NGUY HIỂM"; sbStatusColor = "#ef4444"; sbLeftBg = "#fee2e2"; sbIcon = "🚨"; sbBorder = "#dc2626"; }
 
-        setBg("sb-bg", sbLeftBg);
-        setText("sb-icon", sbIcon);
-        setText("sb-status", sbStatusText);
-        setColor("sb-status", sbStatusColor);
+        const topBadge = document.getElementById("top-status-badge");
+        if (topBadge) {
+            topBadge.style.background = sbLeftBg;
+            topBadge.style.borderColor = sbBorder;
+            topBadge.style.color = sbStatusColor;
+        }
+        setText("top-status-icon", sbIcon);
+        setText("top-status-text", sbStatusText);
+        
+        let timeProgress = daysPassed / daysInMonth;
+        setText("bar-time-text", formatPercent(timeProgress));
+        setText("bar-rev-text", formatPercent(totalHT));
+        if (document.getElementById("bar-time-fill")) document.getElementById("bar-time-fill").style.width = Math.min(timeProgress * 100, 100) + '%';
+        if (document.getElementById("bar-rev-fill")) {
+            document.getElementById("bar-rev-fill").style.width = Math.min(totalHT * 100, 100) + '%';
+            document.getElementById("bar-rev-fill").style.background = getColorClass(totalHT);
+            document.getElementById("bar-rev-text").style.color = getColorClass(totalHT);
+        }
+        
+        let actualDaysRem = daysInMonth - daysPassed;
+        setText("bar-time-remaining", actualDaysRem > 0 ? `CÒN LẠI ${actualDaysRem} NGÀY` : `HẾT THÁNG`);
+        let revRem = Math.max(0, tTG - tDT);
+        setText("bar-rev-remaining", revRem > 0 ? `CÒN THIẾU ${formatMoney(revRem)} TR` : `ĐÃ VỀ ĐÍCH 🏆`);
         
         let strTangTruong = totalCK >= 0 ? `+${Math.round(totalCK*100)}` : Math.round(totalCK*100);
         let colorTangTruong = totalCK >= 0 ? "#10b981" : "#ef4444";
@@ -1096,19 +1108,19 @@
     }
 
     // --- KHU VỰC NHẬN XÉT ---
-    const commentBox = `
+    const commentBoxHtml = `
         <div id="comment-section" class="report-box" style="margin-top: 30px; border-top: 4px solid #00A1E4; background: #f8fafc;" data-html2canvas-ignore="true">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <h3 style="margin:0; color: #1e293b; font-size: 18px;">💡 NHẬN XÉT HỆ THỐNG</h3>
                 <button id="btnCopyComment" style="background: #00A1E4; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">📋 SAO CHÉP</button>
             </div>
-            <div id="comment-content" style="white-space: pre-wrap; line-height: 1.6; color: #334155; font-size: 15px; text-align: left;">Đang khởi tạo nhận xét...</div>
+            <div id="commentBox" style="white-space: pre-wrap; line-height: 1.6; color: #334155; font-size: 15px; text-align: left;">Đang khởi tạo nhận xét...</div>
         </div>
     `;
-    document.getElementById('report-container').insertAdjacentHTML('beforeend', commentBox);
+    document.getElementById('report-container').insertAdjacentHTML('beforeend', commentBoxHtml);
 
     document.getElementById('btnCopyComment').addEventListener('click', () => {
-        const text = document.getElementById('comment-content').innerText;
+        const text = document.getElementById('commentBox').innerText;
         navigator.clipboard.writeText(text).then(() => {
             const btn = document.getElementById('btnCopyComment');
             btn.innerText = "✅ ĐÃ CHÉP";
@@ -1125,7 +1137,7 @@
         
         // Cập nhật nội dung nhận xét sau khi load xong data
         if (window.reportMessageText) {
-            document.getElementById('comment-content').innerText = window.reportMessageText;
+            document.getElementById('commentBox').innerText = window.reportMessageText;
         }
 
         // AUTO DOWNLOAD NẾU CÓ THAM SỐ ?auto=true
