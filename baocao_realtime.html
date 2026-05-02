@@ -115,6 +115,34 @@
     .btn-copy-small:hover { background: #1d4ed8; }
     .comment-body { padding: 0; background: transparent; }
     #commentBox { width: 100%; min-height: 150px; padding: 15px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; color: #1e293b; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 600; line-height: 1.6; white-space: pre-wrap; margin: 0; outline: none; box-sizing: border-box; }
+    /* DỰ KIẾN KẾT QUẢ CARDS */
+    .td-card-group { border: 2px solid #20c997; border-radius: 12px; background: #eefcf6; padding: 15px; margin-bottom: 20px; }
+    .td-card-group.not-done { border-color: #ffb8b8; background: #fff5f5; }
+    .td-card-group-title { font-size: 18px; font-weight: 900; color: #00b894; margin-bottom: 15px; text-transform: uppercase; border-bottom: 2px solid #20c997; padding-bottom: 8px; }
+    .td-card-group.not-done .td-card-group-title { color: #ff7675; border-bottom-color: #ffb8b8; }
+    
+    .td-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .td-card { background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+    .td-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px; }
+    .td-card-stt { background: #f39c12; color: white; border-radius: 8px; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 18px; flex-shrink: 0;}
+    .td-card-name { font-size: 18px; font-weight: 800; color: #2d3436; line-height: 1.2; flex: 1; text-transform: uppercase; }
+    
+    .td-card-mid { display: flex; gap: 16px; align-items: center; }
+    .td-card-circle-wrap { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+    .td-card-circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 6; }
+    .td-card-circle-fill { fill: none; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
+    .td-card-circle-text { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: 900; color: #1e293b; }
+    
+    .td-card-stats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .td-card-stat-row { display: flex; justify-content: space-between; align-items: center; }
+    .td-card-stat-label { color: #64748b; font-weight: 700; font-size: 14px; }
+    .td-card-stat-val { font-weight: 900; color: #1e293b; }
+    .td-card-stat-val.blue { color: #0ea5e9; font-size: 26px !important; }
+    .td-card-stat-val.red { color: #ef4444; font-size: 20px !important; }
+    
+    .td-card-bottom { margin-top: auto; background: #e0f2fe; border-left: 5px solid #0284c7; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-radius: 0 6px 6px 0; }
+    .td-card-bottom-label { font-size: 14px; font-weight: 900; color: #0284c7; }
+    .td-card-bottom-val { font-size: 22px; font-weight: 900; color: #0284c7; }
   </style>
 </head>
 <body>
@@ -177,15 +205,21 @@
       </div>
 
       <div id="part2" class="report-box">
-        <div class="td-header-row">
-            <div class="sec-title" style="margin: 0;"><span>3</span> CHI TIẾT THI ĐUA</div>
+        <div class="td-header-row" style="align-items: center; margin-bottom: 20px;">
+            <div style="display:flex; align-items:center; gap:20px;">
+                <div class="sec-title" style="margin: 0;"><span>3</span> CHI TIẾT THI ĐUA</div>
+                <div style="background:#e2e8f0; border-radius:8px; display:flex; padding:4px;">
+                    <button class="view-btn active" onclick="switchTDView('card')" id="btn-td-card" style="border:none; padding:6px 15px; border-radius:6px; font-weight:800; font-family:'Nunito', sans-serif; cursor:pointer; background:#fff; color:#0ea5e9; box-shadow:0 1px 3px rgba(0,0,0,0.1);">📱 Thẻ (Card)</button>
+                    <button class="view-btn" onclick="switchTDView('table')" id="btn-td-table" style="border:none; padding:6px 15px; border-radius:6px; font-weight:800; font-family:'Nunito', sans-serif; cursor:pointer; background:transparent; color:#64748b;">📋 Bảng (Table)</button>
+                </div>
+            </div>
             <div style="display:flex; gap: 20px; align-items: center;">
                 <div class="sb-label" style="margin:0;">🏆 ĐÃ VỀ ĐÍCH: <b id="td-sum-vd" style="color: #10b981; font-size: 24px; margin-left: 5px;">0</b></div>
                 <div class="sb-label" style="margin:0;">🚨 CẢNH BÁO: <b id="td-sum-cb" style="color: #d63031; font-size: 24px; margin-left: 5px;">0</b></div>
             </div>
         </div>
 
-        <div class="table-container">
+        <div class="table-container" id="thidua-table-container" style="display: none; margin-top: 0;">
             <table>
               <thead>
                 <tr>
@@ -201,13 +235,21 @@
             </table>
         </div>
 
+        <div id="thidua-cards-container" style="width: 100%; margin-top: 10px;"></div>
+
         <div class="footer">REALTIME SỨC KHỎE SIÊU THỊ | REPORT © BY NH.DƯƠNG-32859</div>
       </div>
 
   </div>
 
   <div class="report-box comment-container" data-html2canvas-ignore="true">
-    <!-- Header comment đã bỏ -->
+    <div class="comment-header" style="padding: 8px 15px; background: #f4f6f8; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 15px;">💡</span>
+            <span style="font-size: 14px; color: #003366; font-weight: 600; font-family: 'Inter', 'Segoe UI', sans-serif;">NHẬN XÉT HỆ THỐNG</span>
+        </div>
+        <button class="btn-copy-small" onclick="copyComment(this)" style="background: #00A1E4; color: white; padding: 6px 14px; font-size: 13px; font-weight: 600; border: none; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-family: 'Inter', 'Segoe UI', sans-serif;"><span style="font-size: 14px;">📋</span> SAO CHÉP</button>
+    </div>
     <div class="comment-body">
         <pre id="commentBox">⏳ Đang phân tích dữ liệu realtime...</pre>
     </div>
@@ -293,10 +335,22 @@
         let remainingHours = 13 - elapsedHours;
 
         let lk_tDT = 0, lk_tTG = 0;
+        let parsedBI = [];
         for(let row of dataBI) {
-          lk_tDT += parseVnNumber(getKey(row, "doanh thu quy đổi")); 
-          lk_tTG += parseVnNumber(getKey(row, "target")); 
+          let dt = parseVnNumber(getKey(row, "doanh thu quy đổi")); 
+          let tg = parseVnNumber(getKey(row, "target")); 
+          let sl = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let nganhHang = getKey(row, "nhóm ngành hàng", "ngành hàng", "salegroupmastername");
+          lk_tDT += dt; 
+          lk_tTG += tg; 
+          if (nganhHang && String(nganhHang).trim() !== "" && String(nganhHang).trim().toUpperCase() !== "N/A") {
+              if (sl > 0 || dt > 0) {
+                  parsedBI.push({ nganhHang: String(nganhHang).trim(), dt });
+              }
+          }
         }
+        parsedBI.sort((a,b) => b.dt - a.dt);
+        let top6LkNames = parsedBI.slice(0, 6).map(x => x.nganhHang.toLowerCase());
         
         let targetCoDinh = lk_tTG / daysInMonth;
         let targetBùTrừ = (lk_tTG - lk_tDT) / daysRemaining;
@@ -337,7 +391,7 @@
           let thucHien = sl; let isDT = false;
           if (dt > 0 && (sl === 0 || Math.abs((dt/target)-1) < Math.abs((sl/target)-1))) { thucHien = dt; isDT = true; }
           let mtN = Math.max(0, (target - thucHien) / daysRemaining);
-          thiDuaLuyKeMap[String(nganhHang).toLowerCase().trim()] = { mtNgay: mtN, isDT: isDT };
+          thiDuaLuyKeMap[String(nganhHang).toLowerCase().trim()] = { mtNgay: mtN, isDT: isDT, targetThang: target, lk_thucHien: thucHien };
         }
 
         let parsedRTBI = []; let rt_tDT = 0, rt_tTC = 0, rt_tSL = 0, rt_tTarget = 0;
@@ -370,11 +424,19 @@
           let cObj = configMap[nganhClean] || {};
           if (Object.keys(configMap).length > 0 && (!cObj.phanLoai || cObj.phanLoai === 0)) continue;
 
-          let lkInfo = thiDuaLuyKeMap[nganhClean] || { mtNgay: 0, isDT: false };
+          let lkInfo = thiDuaLuyKeMap[nganhClean] || { mtNgay: 0, isDT: false, targetThang: 0, lk_thucHien: 0 };
           let thucHien = lkInfo.isDT ? parseVnNumber(getKey(row, "revenue_RT")) : parseVnNumber(getKey(row, "quantity_RT"));
           let ht = lkInfo.mtNgay > 0 ? thucHien / lkInfo.mtNgay : (thucHien > 0 ? 1 : 0);
-          if(ht >= 1) rt_cntVD++; else if(ht < 0.5) rt_cntCB++;
-          parsedRTThiDua.push({ nganhHang, thucHien, mtNgay: lkInfo.mtNgay, htTarget: ht, isSL: !lkInfo.isDT, isTrongDiem: cObj.phanLoai === 2 });
+          if(ht >= 1) rt_cntVD++; else rt_cntCB++;
+          
+          let tongThucHien = lkInfo.lk_thucHien + thucHien;
+          let conLai = Math.max(0, lkInfo.targetThang - tongThucHien);
+          let ptThucHien = lkInfo.targetThang > 0 ? (tongThucHien / lkInfo.targetThang) : 0;
+          
+          parsedRTThiDua.push({ 
+              nganhHang, thucHien, mtNgay: lkInfo.mtNgay, htTarget: ht, isSL: !lkInfo.isDT, isTrongDiem: cObj.phanLoai === 2,
+              targetThang: lkInfo.targetThang, tongThucHien, ptThucHien, conLai 
+          });
         }
         parsedRTThiDua.sort((a,b) => b.htTarget - a.htTarget);
 
@@ -479,7 +541,100 @@
             </tr>`;
         }
         setHTML("table-thidua", htmlTD);
-        // TẠO NỘI DUNG NHẬN XÉT REALTIME
+        setHTML("td-sum-vd", rt_cntVD);
+        setHTML("td-sum-cb", rt_cntCB);
+        
+        let completedCards = [];
+        let notCompletedCards = [];
+        let cardStt = 1;
+        for (let i of parsedRTThiDua) {
+            let htTargetNgay = i.htTarget;
+            let percentCircle = Math.round(htTargetNgay * 100);
+            let circleColor = htTargetNgay >= 1 ? '#00b894' : '#ff7675';
+            let isDone = htTargetNgay >= 1;
+            
+            let dash = 2 * Math.PI * 38; 
+            let offset = dash - (Math.min(htTargetNgay, 1) * dash);
+            
+            let mtNgayFormat = "";
+            if (i.mtNgay < 1) {
+                if (i.isSL) mtNgayFormat = "1";
+                else mtNgayFormat = Math.round(i.mtNgay * 1000) + "k";
+            } else {
+                mtNgayFormat = formatMoney(i.mtNgay);
+            }
+            
+            let nameStyle = i.isTrongDiem ? `color:#d63031; font-weight: 900;` : `color:#2d3436; font-weight: 800;`;
+            let nameHtml = `<span style="${nameStyle}">${i.nganhHang}</span> <span style="font-size:14px; color:#7f8c8d; font-weight:900;">(${i.isSL ? 'SL' : 'DT'})</span>`;
+            
+            let conLaiDisplay = i.htTarget >= 1 ? '<span style="font-size:16px;">🏆 Đã đạt</span>' : formatMoney(Math.max(0, i.mtNgay - i.thucHien));
+
+            let cardHtml = `
+            <div class="td-card">
+                <div class="td-card-top">
+                    <div class="td-card-stt">${cardStt++}</div>
+                    <div class="td-card-name">${nameHtml}</div>
+                </div>
+                <div class="td-card-mid">
+                    <div class="td-card-circle-wrap">
+                        <svg viewBox="0 0 84 84" class="td-card-circle-bg"><circle cx="42" cy="42" r="38"></circle></svg>
+                        <svg viewBox="0 0 84 84" class="td-card-circle-fill" style="position:absolute; top:0; left:0; stroke:${circleColor}; stroke-dasharray:${dash}; stroke-dashoffset:${offset};"><circle cx="42" cy="42" r="38"></circle></svg>
+                        <div class="td-card-circle-text">${percentCircle}%</div>
+                    </div>
+                    <div class="td-card-stats" style="gap: 8px;">
+                        <div class="td-card-stat-row">
+                            <span class="td-card-stat-label">Target:</span>
+                            <span class="td-card-stat-val" style="font-size: 24px;">${mtNgayFormat}</span>
+                        </div>
+                        <div class="td-card-stat-row">
+                            <span class="td-card-stat-label">Còn lại:</span>
+                            <span class="td-card-stat-val red">${conLaiDisplay}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="td-card-bottom">
+                    <span class="td-card-bottom-label">THỰC HIỆN</span>
+                    <span class="td-card-bottom-val">${formatMoney(i.thucHien)}</span>
+                </div>
+            </div>`;
+            
+            if (isDone) completedCards.push(cardHtml);
+            else notCompletedCards.push(cardHtml);
+        }
+
+        let cardsContainerHtml = `
+            <div class="td-card-group">
+                <div class="td-card-group-title">DỰ KIẾN HOÀN THÀNH (${completedCards.length} NHÓM)</div>
+                <div class="td-cards">${completedCards.join('')}</div>
+            </div>
+            <div class="td-card-group not-done">
+                <div class="td-card-group-title">CHƯA HOÀN THÀNH (${notCompletedCards.length} NHÓM)</div>
+                <div class="td-cards">${notCompletedCards.join('')}</div>
+            </div>
+        `;
+        setHTML("thidua-cards-container", cardsContainerHtml);
+
+        // Đảm bảo toggle view gọi đúng hàm và hiển thị card đầu tiên
+        window.switchTDView = function(view) {
+            let btnCard = document.getElementById('btn-td-card');
+            let btnTable = document.getElementById('btn-td-table');
+            let containerCard = document.getElementById('thidua-cards-container');
+            let containerTable = document.getElementById('thidua-table-container');
+
+            if(view === 'card') {
+                btnCard.style.background = '#fff'; btnCard.style.color = '#0ea5e9'; btnCard.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                btnTable.style.background = 'transparent'; btnTable.style.color = '#64748b'; btnTable.style.boxShadow = 'none';
+                containerCard.style.display = 'block';
+                containerTable.style.display = 'none';
+            } else {
+                btnTable.style.background = '#fff'; btnTable.style.color = '#0ea5e9'; btnTable.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
+                btnCard.style.background = 'transparent'; btnCard.style.color = '#64748b'; btnCard.style.boxShadow = 'none';
+                containerCard.style.display = 'none';
+                containerTable.style.display = 'block';
+            }
+        };
+
+        // NỘI DUNG NHẬN XÉT CHO BOT TELEGRAMLTIME
         let now = new Date();
         let timeStr = now.getHours().toString().padStart(2, '0') + ":" + now.getMinutes().toString().padStart(2, '0') + ":" + now.getSeconds().toString().padStart(2, '0');
         
@@ -488,17 +643,40 @@
         msg += `- 🎯 Target Ngày: ${formatMoney(mucTieuNgayAll)}\n`;
         msg += `- 📈 Realtime: ${formatMoney(rt_tDT)} (${formatPercent(htChung)})\n`;
         msg += `- 📉 Còn lại: ${formatMoney(Math.max(0, mucTieuNgayAll - rt_tDT))}\n`;
-        msg += `- 🚀 Dự kiến: ${formatMoney((lk_tDT+rt_tDT)/currentDay*daysInMonth)} (${formatPercent((lk_tDT+rt_tDT)/lk_tTG)})\n`;
         msg += `- 🏆 Thi đua dự kiến đạt: ${rt_cntVD}/${parsedRTThiDua.length}\n`;
         msg += `- 💳 DT Trả góp: ${formatMoney(rt_tTC)} (${formatPercent(rt_tDT > 0 ? rt_tTC/rt_tDT : 0)})\n`;
         msg += `-------------------\n`;
-        msg += `🏁 TÌNH HÌNH THI ĐUA 6 nhóm tập trung:\n`;
 
-        let todoRT = parsedRTThiDua.filter(x => x.htTarget < 1).slice(0, 6);
-        if (todoRT.length === 0) {
+        msg += `🏁 TÌNH HÌNH NGÀNH HÀNG TẬP TRUNG:\n`;
+        let todoRT_NganhHang = [];
+        for (let name of top6LkNames) {
+            let row = dataRTBI.find(r => {
+                let n = getKey(r, "nhóm ngành hàng", "salegroupmastername");
+                return n && String(n).toLowerCase().trim() === name;
+            });
+            if (row) {
+                let dtqd = parseVnNumber(getKey(row, "revenue_KFactor_RT"));
+                let targetDay = parseVnNumber(getKey(row, "revenue_KFactor_AVEDay"));
+                let nganhHang = getKey(row, "nhóm ngành hàng", "salegroupmastername");
+                todoRT_NganhHang.push({ nganhHang: String(nganhHang).trim(), dtqd, targetDay });
+            }
+        }
+        if (todoRT_NganhHang.length === 0) {
+            msg += `- Chưa có dữ liệu realtime\n`;
+        } else {
+            msg += todoRT_NganhHang.map((item, idx) => {
+                let cl = Math.max(0, item.targetDay - item.dtqd);
+                return `${idx + 1}. ${item.nganhHang.replace("NNH ","")}: ${formatMoney(item.dtqd)}/${formatMoney(item.targetDay)} - Còn lại: ${formatMoney(cl)} TR`;
+            }).join('\n') + '\n';
+        }
+        msg += `-------------------\n`;
+
+        msg += `🏁 TÌNH HÌNH THI ĐUA TẬP TRUNG:\n`;
+        let todoRT_ThiDua = parsedRTThiDua.filter(x => x.htTarget < 1).slice(0, 6);
+        if (todoRT_ThiDua.length === 0) {
             msg += `✅ Tất cả các nhóm thi đua hiện tại đã đạt mục tiêu ngày!`;
         } else {
-            msg += todoRT.map((item, idx) => {
+            msg += todoRT_ThiDua.map((item, idx) => {
                 let cl = Math.max(0, item.mtNgay - item.thucHien);
                 let unit = item.isSL ? "SP" : "TR";
                 return `${idx + 1}. ${item.nganhHang}: ${formatMoney(item.thucHien)}/${formatMoney(item.mtNgay)} - Còn lại: ${formatMoney(cl)} ${unit}`;
@@ -549,13 +727,14 @@
             
             if(btn) {
                 const originalText = btn.innerHTML;
+                const originalBg = btn.style.background || "#0ea5e9";
                 btn.innerHTML = "✅ ĐÃ SAO CHÉP!";
                 btn.style.background = "#059669";
                 if (btn.classList.contains('btn-action')) btn.style.borderColor = "#059669";
                 
                 setTimeout(() => {
                     btn.innerHTML = originalText;
-                    btn.style.background = "#2563eb";
+                    btn.style.background = originalBg;
                     if (btn.classList.contains('btn-action')) btn.style.borderColor = "#2563eb";
                 }, 2000);
             }
