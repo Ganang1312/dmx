@@ -147,13 +147,27 @@
 </head>
 <body>
 
+  <!-- Modal Nhập liệu NV Realtime -->
+  <div id="rtInputModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
+      <div style="background:#fff; width: 450px; max-width:95%; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition:transform 0.3s ease;" id="rtInputModalBox">
+          <div style="background:#f39c12; color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:16px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+              <span>📊 DÁN DỮ LIỆU NHÂN VIÊN</span>
+              <button onclick="closeRtModal()" style="background:none; border:none; color:white; font-size:28px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
+          </div>
+          <div style="padding:20px; display:flex; flex-direction:column; gap:15px;">
+              <textarea id="rtModalTextarea" rows="6" style="width:100%; box-sizing:border-box; padding:10px; border:2px solid #cbd5e1; border-radius:8px; font-family:'Nunito', sans-serif; font-size:14px; resize:vertical; outline:none;" placeholder="Ví dụ: 162055 - D.V.Huy 1 28,324,074..."></textarea>
+              <button onclick="submitRtModal()" style="width:100%; background:#2563eb; color:white; padding:12px; font-size:16px; font-weight:900; border:none; border-radius:8px; cursor:pointer; font-family:'Nunito', sans-serif; box-shadow:0 4px 6px rgba(0,0,0,0.1);">XÁC NHẬN & CHẠY</button>
+          </div>
+      </div>
+  </div>
+
   <div class="top-actions" data-html2canvas-ignore="true">
       <button class="btn-action" id="btnDownloadSplit">📸 TẢI ẢNH TÁCH (LƯU MÁY)</button>
       <button class="btn-action" id="btnDownloadFull">📸 TẢI ẢNH TOÀN TRANG</button>
       <button class="btn-action" onclick="copyComment()" style="background: #2563eb; color: white; border-color: #2563eb;">📋 SAO CHÉP NHẬN XÉT</button>
       <span style="margin: 0 15px; color: #cbd5e1;">|</span>
       <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 ĐỔ SỐ LŨY KẾ</button>
-      <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')" style="border-color:#f39c12; color:#f39c12;">📈 ĐỔ SỐ REALTIME</button>
+      <button class="btn-action" onclick="openRtModal()" style="border-color:#f39c12; color:#f39c12;">📈 ĐỔ SỐ REALTIME</button>
       <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
   </div>
 
@@ -181,6 +195,11 @@
           <div class="card"><div class="card-title">🎯 MỤC TIÊU</div><div class="card-val" id="c-mt-ngay-card" style="color: #10b981;">0</div><div class="card-sub">TRIỆU ĐỒNG</div></div>
           <div class="card"><div class="card-title">💳 TRẢ GÓP</div><div class="card-val" id="c-tc-rt" style="color: #d63031;">0%</div><div class="card-sub" id="c-tc-rt-sub"><div class="highlight-target">DT: 0 TR</div></div></div>
           <div class="card"><div class="card-title">🏆 THI ĐUA ĐẠT</div><div class="card-val" id="c-nd-rt" style="color: #10b981;">0</div><div class="card-sub" id="c-nd-rt-sub"><div class="highlight-target">/ 0 NHÓM</div></div></div>
+        </div>
+
+        <div id="nv-chart-container" style="display:none; width:100%; margin-top:25px;">
+            <div class="sec-title" style="margin: 0 0 15px 0; font-size:18px; color:#f39c12;"><span style="background:#f39c12; width:28px; height:28px; font-size:14px;">📊</span> DOANH THU NHÂN VIÊN</div>
+            <div id="nv-chart-wrapper" style="display:flex; flex-direction:column; gap:4px;"></div>
         </div>
 
         <div class="sec-title" style="margin: 20px 0 0 0;"><span>2</span> CHI TIẾT DOANH THU</div>
@@ -310,18 +329,67 @@
         return "📦";
     }
 
+    function openRtModal() {
+        const m = document.getElementById('rtInputModal');
+        const b = document.getElementById('rtInputModalBox');
+        m.style.display = 'flex';
+        setTimeout(() => { m.style.opacity = '1'; b.style.transform = 'translateY(0)'; }, 10);
+    }
+    
+    function closeRtModal() {
+        const m = document.getElementById('rtInputModal');
+        const b = document.getElementById('rtInputModalBox');
+        m.style.opacity = '0';
+        b.style.transform = 'translateY(-20px)';
+        setTimeout(() => { m.style.display = 'none'; }, 300);
+    }
+
+    async function submitRtModal() {
+        const text = document.getElementById('rtModalTextarea').value;
+        const btn = document.querySelector('#rtInputModalBox button[onclick="submitRtModal()"]');
+        
+        let data = [];
+        if (text && text.trim() !== "") {
+            const lines = text.split('\n');
+            const regex = /^(\d+)\s+-\s+(.+?)\s+(\d+)\s+([\d,]+)$/;
+            for (let line of lines) {
+                let match = line.trim().match(regex);
+                if (match) {
+                    data.push({
+                        "mã nv": match[1],
+                        "tên nv": match[2],
+                        "số lượng": parseInt(match[3], 10),
+                        "doanh thu": parseInt(match[4].replace(/,/g, ''), 10)
+                    });
+                }
+            }
+        }
+        
+        btn.innerText = "⏳ ĐANG ĐẨY DỮ LIỆU...";
+        btn.style.background = "#0ea5e9";
+        try {
+            await fetch(GAS_URL, {
+                method: "POST", mode: "no-cors",
+                body: JSON.stringify({ sheetName: "Data_Realtime_NV", data: data })
+            });
+        } catch(e) {}
+        
+        closeRtModal();
+        openBILink('bcdtnh', 1, 'realtime_manual');
+    }
+
     async function loadData() {
       setText('btnSend', "⏳ Đang kết nối Big Data...");
       try {
-        const [resBI, resThiDua, resConfig, resRTBI, resRTThiDua] = await Promise.all([
+        const [resBI, resThiDua, resConfig, resRTBI, resRTThiDua, resRTNV] = await Promise.all([
             fetch(GAS_URL + "?sheet=Data_BI"), fetch(GAS_URL + "?sheet=Data_ThiDua"),
             fetch(GAS_URL + "?sheet=Config_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_BI"),
-            fetch(GAS_URL + "?sheet=Data_Realtime_ThiDua")
+            fetch(GAS_URL + "?sheet=Data_Realtime_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_NV")
         ]);
 
         const dataBI = await resBI.json(); const dataThiDua = await resThiDua.json();
         const configData = await resConfig.json(); const dataRTBI = await resRTBI.json();
-        const dataRTThiDua = await resRTThiDua.json();
+        const dataRTThiDua = await resRTThiDua.json(); const dataRTNV = await resRTNV.json();
 
         const currentDay = today.getDate();
         const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -355,14 +423,22 @@
         let targetCoDinh = lk_tTG / daysInMonth;
         let targetBùTrừ = (lk_tTG - lk_tDT) / daysRemaining;
         
-        // KIỂM TRA MỤC TIÊU RIÊNG CHO NGÀY LỄ (Ô M2, N2 TRONG CONFIG_THIDUA)
+        // KIỂM TRA MỤC TIÊU RIÊNG CHO NGÀY LỄ VÀ LẤY TỶ LỆ NHÂN VIÊN
         let holidayTarget = 0;
+        let userMap = {};
         if (configData && configData.length > 0) {
             let firstRow = configData[0];
             let configDay = parseVnNumber(getKey(firstRow, "ngày"));
             let configTarget = parseVnNumber(getKey(firstRow, "mục tiêu"));
             if (configDay === today.getDate() && configTarget > 0) {
                 holidayTarget = configTarget;
+            }
+            for (let row of configData) {
+                let userId = getKey(row, "user");
+                if (!userId || String(userId).trim() === "") continue;
+                let percent = parseVnNumber(getKey(row, "tỷ lệ %", "% chia"));
+                let ratio = percent <= 1 ? percent : percent / 100;
+                userMap[String(userId).trim()] = ratio;
             }
         }
 
@@ -633,6 +709,73 @@
                 containerTable.style.display = 'block';
             }
         };
+
+        // RENDER BIỂU ĐỒ DOANH THU NHÂN VIÊN
+        if (dataRTNV && !dataRTNV.error && dataRTNV.length > 0) {
+            document.getElementById('nv-chart-container').style.display = 'block';
+            let parsedNV = [];
+            for (let row of dataRTNV) {
+                let maNV = String(getKey(row, "mã nv")).trim();
+                let tenNV = getKey(row, "tên nv");
+                let dt = parseVnNumber(getKey(row, "doanh thu"));
+                if (dt > 0) {
+                    let ratio = 0;
+                    if (userMap && userMap[maNV]) ratio = userMap[maNV];
+                    let targetNV = (mucTieuNgayAll * 1000000) * ratio;
+                    parsedNV.push({ maNV, tenNV, dt, targetNV });
+                }
+            }
+            parsedNV.sort((a,b) => b.dt - a.dt);
+            
+            let maxDt = Math.max(...parsedNV.map(x => x.dt));
+            if (maxDt <= 0) maxDt = 1;
+
+            let htmlNV = "";
+            let sttNV = 1;
+            for (let nv of parsedNV) {
+                let ht = nv.targetNV > 0 ? nv.dt / nv.targetNV : (nv.dt > 0 ? 1 : 0);
+                let conLai = Math.max(0, nv.targetNV - nv.dt);
+                
+                let dtTr = (nv.dt / 1000000).toLocaleString('vi-VN', {maximumFractionDigits: 1});
+                let targetTr = (nv.targetNV / 1000000).toLocaleString('vi-VN', {maximumFractionDigits: 1});
+                let clTr = (conLai / 1000000).toLocaleString('vi-VN', {maximumFractionDigits: 1});
+                let clDisplay = ht >= 1 ? 'ĐẠT' : `${clTr}tr`;
+                let percentText = (ht * 100).toLocaleString('vi-VN', {maximumFractionDigits: 1});
+                
+                let icon = sttNV === 1 ? '🥇' : (sttNV === 2 ? '🥈' : (sttNV === 3 ? '🥉' : `${sttNV}.`));
+                
+                let barColor = '';
+                if (sttNV === 1) barColor = '#14b8a6'; // Teal 500
+                else if (sttNV === 2) barColor = '#6ee7b7'; // Emerald 300 
+                else if (sttNV === 3) barColor = '#bef264'; // Lime 300
+                else if (sttNV === 4) barColor = '#fcd34d'; // Amber 300
+                else if (sttNV === 5) barColor = '#fca5a5'; // Red 300
+                else barColor = '#f87171'; // Red 400
+
+                let barWidth = (nv.dt / maxDt) * 100;
+                if (barWidth < 1) barWidth = 1;
+
+                htmlNV += `
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 320px; max-width: 60%; flex-shrink: 0; text-align: left; display: flex; align-items: baseline; overflow: hidden; white-space: nowrap;">
+                        <div style="font-size: 15px; font-weight: 800; color: #1e293b; margin-right: 6px; flex-shrink: 0;">
+                            ${icon} ${nv.tenNV}
+                        </div>
+                        <div style="font-size: 11.5px; color: #64748b; font-weight: 600; overflow: hidden; text-overflow: ellipsis;">
+                            (🎯 ${targetTr}tr - ⏳ ${clDisplay} - 🔥 ${percentText}%)
+                        </div>
+                    </div>
+                    <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
+                        <div style="width: ${barWidth}%; background: ${barColor}; height: 26px; border-radius: 6px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1); transition: width 0.5s ease;"></div>
+                        <div style="font-weight: 900; font-size: 15px; color: #1e293b; white-space: nowrap;">${dtTr}tr</div>
+                    </div>
+                </div>`;
+                sttNV++;
+            }
+            setHTML('nv-chart-wrapper', htmlNV);
+        } else {
+            document.getElementById('nv-chart-container').style.display = 'none';
+        }
 
         // NỘI DUNG NHẬN XÉT CHO BOT TELEGRAMLTIME
         let now = new Date();
