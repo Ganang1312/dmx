@@ -20,8 +20,8 @@
     .date-text { text-align: center; font-weight: 800; color: #f39c12; font-size: 18px; margin-bottom: 20px; text-transform: uppercase;}
     
     .compare-bar-wrap { width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; background: #ffffff; padding: 15px 20px; border-radius: 12px; border: 2px solid #ced4da; box-sizing: border-box; }
-    .cb-row { display: flex; align-items: center; gap: 15px; font-size: 16px; font-weight: 900; color: #2d3436; }
-    .cb-label { width: 340px; display:flex; justify-content: space-between; align-items: center; white-space: nowrap; }
+    .cb-row { display: flex; align-items: center; gap: 15px; font-size: 20px; font-weight: 900; color: #2d3436; }
+    .cb-label { width: 480px; display:flex; justify-content: space-between; align-items: center; white-space: nowrap; flex-shrink: 0; }
     .cb-track { flex: 1; height: 20px; background: #f1f2f6; border-radius: 10px; overflow: hidden; position: relative; }
     .cb-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
 
@@ -199,7 +199,7 @@
 
         <div id="nv-chart-container" style="display:none; width:100%; margin-top:25px;">
             <div class="sec-title" style="margin: 0 0 15px 0; font-size:18px; color:#f39c12;"><span style="background:#f39c12; width:28px; height:28px; font-size:14px;">📊</span> DOANH THU NHÂN VIÊN</div>
-            <div id="nv-chart-wrapper" style="display:flex; flex-direction:column; gap:4px;"></div>
+            <div id="nv-chart-wrapper" style="display:flex; flex-direction:column; gap:12px;"></div>
         </div>
 
         <div class="sec-title" style="margin: 20px 0 0 0;"><span>2</span> CHI TIẾT DOANH THU</div>
@@ -519,10 +519,10 @@
         let htChung = mucTieuNgayAll > 0 ? (rt_tDT / mucTieuNgayAll) : 0;
         let thieuDTRT = Math.max(0, mucTieuNgayAll - rt_tDT);
         
-        setHTML("val-time-ratio", `${formatPercent(timeRatio)} <span style="font-size:12px; color:#64748b; font-weight:800; margin-left:6px;">(Còn ${remainingHours.toFixed(1)}h)</span>`); 
+        setHTML("val-time-ratio", `${formatPercent(timeRatio)} <span style="font-size:16px; color:#64748b; font-weight:800; margin-left:6px;">(Còn ${remainingHours.toFixed(1)}h)</span>`); 
         setWidth("fill-time-ratio", `${Math.min(timeRatio * 100, 100)}%`);
         
-        setHTML("val-target-ratio", `${formatPercent(htChung)} <span style="font-size:12px; color:#ef4444; font-weight:800; margin-left:6px;">(Còn ${formatMoney(thieuDTRT)} TR)</span>`); 
+        setHTML("val-target-ratio", `${formatPercent(htChung)} <span style="font-size:16px; color:#ef4444; font-weight:800; margin-left:6px;">(Còn ${formatMoney(thieuDTRT)} TR)</span>`); 
         setWidth("fill-target-ratio", `${Math.min(htChung * 100, 100)}%`);
         setBg("fill-target-ratio", getColorClass(htChung)); setColor("val-target-ratio", getColorClass(htChung));
 
@@ -742,7 +742,9 @@
                 let clDisplay = ht >= 1 ? 'ĐẠT' : `${clTr}tr`;
                 let percentText = (ht * 100).toLocaleString('vi-VN', {maximumFractionDigits: 1});
                 
-                let icon = sttNV === 1 ? '🥇' : (sttNV === 2 ? '🥈' : (sttNV === 3 ? '🥉' : `${sttNV}.`));
+                let iconHtml = sttNV <= 3 
+                    ? `<span style="font-size: 26px; line-height: 1;">${sttNV === 1 ? '🥇' : (sttNV === 2 ? '🥈' : '🥉')}</span>` 
+                    : `<span style="font-size: 20px; width: 26px; display: inline-block; text-align: center;">${sttNV}.</span>`;
                 
                 let barColor = '';
                 if (sttNV === 1) barColor = '#14b8a6'; // Teal 500
@@ -757,17 +759,17 @@
 
                 htmlNV += `
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 320px; max-width: 60%; flex-shrink: 0; text-align: left; display: flex; align-items: baseline; overflow: hidden; white-space: nowrap;">
-                        <div style="font-size: 15px; font-weight: 800; color: #1e293b; margin-right: 6px; flex-shrink: 0;">
-                            ${icon} ${nv.tenNV}
+                    <div style="width: 440px; max-width: 60%; flex-shrink: 0; text-align: left; display: flex; align-items: center; overflow: hidden; white-space: nowrap;">
+                        <div style="font-size: 20px; font-weight: 800; color: #1e293b; margin-right: 8px; flex-shrink: 0; display: flex; align-items: center; gap: 4px;">
+                            ${iconHtml} <span>${nv.tenNV}</span>
                         </div>
-                        <div style="font-size: 11.5px; color: #64748b; font-weight: 600; overflow: hidden; text-overflow: ellipsis;">
+                        <div style="font-size: 16px; color: #64748b; font-weight: 600; overflow: hidden; text-overflow: ellipsis;">
                             (🎯 ${targetTr}tr - ⏳ ${clDisplay} - 🔥 ${percentText}%)
                         </div>
                     </div>
                     <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
-                        <div style="width: ${barWidth}%; background: ${barColor}; height: 26px; border-radius: 6px; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.1); transition: width 0.5s ease;"></div>
-                        <div style="font-weight: 900; font-size: 15px; color: #1e293b; white-space: nowrap;">${dtTr}tr</div>
+                        <div style="width: ${barWidth}%; background: ${barColor}; height: 26px; border-radius: 6px; transition: width 0.5s ease;"></div>
+                        <div style="font-weight: 900; font-size: 20px; color: #1e293b; white-space: nowrap;">${dtTr}tr</div>
                     </div>
                 </div>`;
                 sttNV++;
