@@ -9,37 +9,84 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            /* Vibrant but Soft Pastel Palette */
-            --primary-accent: #0ABDE3;
-            --secondary-accent: #FF9F43;
-            --success-color: #00D2D3;
-            --danger-color: #FF6B6B;
-            --warning-color: #FECA57;
-
-            --text-primary: #2d3436;
-            --text-secondary: #636e72;
-            --text-on-dark: #FFFFFF;
-
-            /* Glassmorphism Variables */
-            --glass-bg: rgba(255, 255, 255, 0.65);
-            --glass-border: #546e7a;
-            /* Dark Visible Gray-Blue */
-            --border-main: #2d3436;
-            /* Unified Dark Border */
-
-            /* Claymorphism/Floating Effect - Refined */
-            --clay-shadow:
-                20px 20px 60px #cadbe6,
-                -20px -20px 60px #ffffff;
-
-            --card-radius: 20px;
-            --shadow-main: var(--clay-shadow);
-            --bg-main: linear-gradient(120deg, #e0c3fc 0%, #8ec5fc 100%) no-repeat fixed;
+        * {
+            box-sizing: border-box;
         }
 
-        /* ADDED: Hide controls in capture mode */
+        :root {
+            /* Apple UI Palette */
+            --primary-accent: #0071e3;
+            --secondary-accent: #1d1d1f;
+            --success-color: #16A34A;
+            --danger-color: #EF4444;
+            --warning-color: #F59E0B;
+            --purple-accent: #0071e3;
+            --pink-accent: #EF4444;
+
+            --text-primary: #1d1d1f;
+            --text-secondary: rgba(0, 0, 0, 0.8);
+            --text-on-dark: #ffffff;
+
+            /* Visual Accents */
+            --glass-bg: #ffffff;
+            --glass-border: transparent;
+            --border-main: transparent;
+            --card-shadow: rgba(0, 0, 0, 0.22) 3px 5px 30px 0px;
+            --card-radius: 8px;
+        }
+
+        html,
+        body {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            background-color: #f5f5f7;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            letter-spacing: -0.374px;
+            color: var(--text-primary);
+            line-height: 1.47;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 24px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            /* Increased gap */
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        header h1 {
+            color: #1d1d1f;
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-size: 40px;
+            font-weight: 600;
+            letter-spacing: -0.28px;
+            line-height: 1.07;
+            text-transform: none;
+        }
+
+        /* UPDATED GRID FOR 4 COLUMNS IN 1 ROW */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        /* Glassmorphism Card Style */
+        /* Restore Capture Mode Logic */
         .capture-mode .card,
         .capture-mode .input-section,
         .capture-mode .action-btn {
@@ -52,84 +99,32 @@
             display: none !important;
         }
 
-        html,
-        body {
-            width: 100%;
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-            /* White-Gray Tone */
-            background-color: #f5f7fa;
-            background-image: linear-gradient(to bottom, #ffffff, #eaeff2);
-            min-height: 100vh;
-            /* Changed Font to Tahoma as requested for better Vietnamese support */
-            font-family: 'Tahoma', 'Arial', sans-serif;
-            color: var(--text-primary);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 100%;
-            margin: 0;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 25px;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-
-        header h1 {
-            color: var(--text-primary);
-            margin: 0;
-            font-size: 2.5em;
-            font-weight: 700;
-        }
-
-        /* UPDATED GRID FOR 4 COLUMNS IN 1 ROW */
-        .input-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-
-        /* Glassmorphism Card Style */
         .input-section,
         .card,
         .kpi-group-card,
         .chart-wrapper {
-            background: var(--glass-bg);
-            padding: 24px;
-            border-radius: 20px;
-            box-shadow: var(--clay-shadow);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(12px);
+            background: #ffffff;
+            padding: 28px;
+            /* Wider padding */
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
             border: 1px solid var(--border-main);
-            /* Uniform dark border like Contest Cards */
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
+            /* Soft border instead of black */
             display: flex;
             flex-direction: column;
             position: relative;
-        }
-
-        .card:hover,
-        .kpi-group-card:hover {
-            transform: translateY(-5px) scale(1.005);
-            box-shadow: 0 15px 45px 0 rgba(31, 38, 135, 0.15);
+            margin-bottom: 20px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            /* Smooth hover transition */
         }
 
         .input-section h4 {
             margin-top: 0;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             font-size: 0.95em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            font-weight: 600;
         }
+
 
         .input-section h4 a {
             color: inherit;
@@ -143,13 +138,14 @@
 
         textarea {
             width: 100%;
-            padding: 12px;
-            background: rgba(236, 240, 243, 0.6);
-            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background-color: #f8fafc;
+            color: var(--text-primary);
+            font-family: inherit;
             font-size: 14px;
-            box-sizing: border-box;
             resize: vertical;
-            transition: all 0.3s ease;
             /* Deep Clay Inset Shadow */
             box-shadow: inset 6px 6px 10px rgba(163, 177, 198, 0.3), inset -6px -6px 10px rgba(255, 255, 255, 0.8);
             border: none;
@@ -229,25 +225,28 @@
         .interactive-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 13px;
+            font-size: 11px;
         }
 
         .interactive-table thead th {
             position: sticky;
             top: 0;
-            background-color: rgba(244, 247, 249, 0.9);
-            backdrop-filter: blur(5px);
-            color: var(--text-primary);
+            background-color: var(--primary-accent);
+            color: white;
             font-weight: 700;
-            padding: 8px;
+            padding: 8px 6px;
             text-align: center;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-            z-index: 1;
-            vertical-align: top;
+            border: none;
+            z-index: 10;
+            vertical-align: middle;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
+
         .interactive-table tbody td {
-            padding: 8px 10px;
+            padding: 4px 6px;
             border-bottom: 1px solid rgba(0, 0, 0, 0.05);
             text-align: right;
         }
@@ -320,51 +319,63 @@
             color: var(--danger-color);
         }
 
-        /* 3D EMBOSSED BUTTONS */
+        /* Apple Pill Buttons */
         .action-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            padding: 16px 28px;
-            font-size: 18px;
-            font-weight: 800;
-            font-family: 'Tahoma', 'Arial', sans-serif;
-            /* Explicit Font Fix */
-            color: var(--text-on-dark);
+            padding: 12px 25px;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 850;
+            color: white;
+            background-color: var(--primary-accent);
             border: none;
-            border-radius: 16px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            /* Soft Clay Button Shadow */
-            box-shadow:
-                6px 6px 12px rgba(163, 177, 198, 0.4),
-                -6px -6px 12px rgba(255, 255, 255, 0.4);
-            transform: translateY(0);
-            text-transform: uppercase;
+            transition: all 0.2s ease;
             letter-spacing: 0.5px;
-            position: relative;
-            overflow: hidden;
+            text-transform: uppercase;
             flex-grow: 1;
-            max-width: 320px;
+            max-width: 350px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
 
-        /* Shine effect on buttons */
-        .action-btn::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50%;
-            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), transparent);
-            pointer-events: none;
+        .action-btn-small {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 8px 20px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 850;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .action-btn:hover, .action-btn-small:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
         }
 
         .action-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 0 0 rgba(0, 0, 0, 0.2), 0 0 0 rgba(0, 0, 0, 0.2);
+            background-color: #ededf2;
+            color: #1d1d1f;
         }
+        
+        .action-btn:focus {
+            outline: 2px solid var(--primary-accent);
+        }
+
 
         .action-btn svg {
             width: 20px;
@@ -376,11 +387,11 @@
         }
 
         .captureBtn {
-            background: linear-gradient(45deg, var(--success-color), #05B386);
+            background-color: var(--success-color);
         }
 
         .copySummaryBtn {
-            background: linear-gradient(45deg, var(--primary-accent), #0d6c8b);
+            background-color: var(--primary-accent);
         }
 
         .dashboard-body {
@@ -407,50 +418,71 @@
         /* 3D PROGRESS BARS - COMPACT ROW */
         .progress-row {
             display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+            width: 100%;
+            /* Full width as requested */
         }
 
         .progress-bar-container {
-            flex: 1;
-            padding: 12px 20px;
-            min-width: 0;
+            width: 100%;
+            padding: 8px 18px;
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+            border: 1px solid #333333;
         }
 
         .progress-labels {
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .progress-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-title {
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 850;
             font-size: 0.9em;
+            color: var(--text-primary);
+        }
+
+        .progress-sub-val {
+            font-size: 0.95em;
             font-weight: 700;
-            margin-bottom: 8px;
             color: var(--text-secondary);
         }
 
         .progress-track {
             width: 100%;
-            height: 14px;
-            background-color: rgba(230, 230, 230, 0.6);
-            border-radius: 7px;
+            height: 10px;
+            /* Slightly thicker */
+            background-color: #E5E7EB;
+            /* Lighter modern gray */
+            border-radius: 50px;
             overflow: hidden;
-            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1), inset 0 -1px 2px rgba(255, 255, 255, 0.8);
-            border: 1px solid rgba(255, 255, 255, 0.4);
             position: relative;
         }
 
         .progress-fill {
             height: 100%;
-            border-radius: 7px;
-            transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 0;
+            transition: width 1.2s cubic-bezier(0.34, 1.56, 0.64, 1);
             position: relative;
-            /* Glossy Liquid Effect - REDUCED OPACITY for better Color Visibility */
             background-color: var(--primary-accent);
-            /* Default Color */
-            background-image: linear-gradient(to bottom,
-                    /* Highlight top */
-                    rgba(255, 255, 255, 0.3) 0%,
-                    rgba(255, 255, 255, 0.05) 40%,
-                    rgba(0, 0, 0, 0.05) 100%);
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            /* Removed white line gradient for cleaner flat UI look */
+        }
+
+        .progress-fill.target {
+            background-color: var(--secondary-accent);
         }
 
         .kpi-group-container {
@@ -463,7 +495,6 @@
         .kpi-group-card {
             background-color: #fff;
             border-radius: 15px;
-            box-shadow: var(--shadow-main);
             overflow: hidden;
             border: 1px solid var(--border-main);
             padding: 20px;
@@ -481,20 +512,19 @@
             gap: 10px;
             border-radius: 20px;
             margin: 15px 15px 0 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
         /* Section Backgrounds */
         .section-forecast {
             background-color: #F0FDF4;
-            border: 1px solid #16A34A;
+            border: none;
             border-radius: 20px;
             padding: 20px;
         }
 
         .section-improve {
             background-color: #FFF7ED;
-            border: 1px solid #F97316;
+            border: none;
             border-radius: 20px;
             padding: 20px;
         }
@@ -596,17 +626,41 @@
             flex-shrink: 0;
         }
 
+        /* NEW RICH KPI WIDGET SYSTEM */
+        .kpi-highlight-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: none;
+            transition: none;
+            height: 100%;
+            min-height: 250px;
+        }
+
+        .kpi-header-block {
+            padding: 8px 15px;
+            font-size: 0.85em;
+            font-weight: 850;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
         .chart-container {
             position: relative;
+            height: 250px;
             width: 100%;
-            /* Removed fixed height to allow flex to control it */
             flex-grow: 1;
         }
 
         .summary-textarea {
             height: 500px;
-            background-color: #f8f9fa;
-            border: 1px solid var(--border-main);
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            line-height: 1.6;
+            font-size: 15px;
+            color: var(--text-primary);
         }
 
         .toast-notification {
@@ -717,6 +771,70 @@
             width: 100%;
         }
 
+        /* Parallel Layout for Cards */
+        .contest-card-parallel {
+            display: flex;
+            gap: 0;
+            align-items: stretch;
+            flex-wrap: nowrap;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .contest-card-parallel .section-column {
+            flex: 1;
+            min-width: 0;
+            padding: 20px;
+        }
+
+        .contest-card-parallel .contest-card-grid {
+            grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+            gap: 12px;
+        }
+
+        .contest-card-parallel .contest-card {
+            padding: 15px;
+            border: 1px solid #000000;
+            /* Pronounced black border */
+            border-radius: 12px;
+        }
+
+        .contest-card-parallel .c-pie-container {
+            width: 85px;
+            height: 85px;
+        }
+
+        .contest-card-parallel .percentage-text {
+            font-size: 8px;
+        }
+
+        .contest-card-parallel .c-card-title {
+            font-size: 0.85em;
+        }
+
+        .contest-card-parallel .c-stat-label {
+            font-size: 10px;
+        }
+
+        .contest-card-parallel .c-stat-val {
+            font-size: 11px;
+        }
+
+        .contest-card-parallel .contest-section-header {
+            font-size: 1.25em !important;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            border-bottom: none;
+            background: #f8fafc;
+            /* Subtle background for card headers in parallel mode */
+        }
+
         .contest-section-header {
             font-size: 1.8em;
             font-weight: 800;
@@ -745,6 +863,355 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
             gap: 15px;
+        }
+
+        /* --- NEW DETAILED TABLE STYLES --- */
+        .contest-table-container {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            margin-top: 30px;
+            border: 1px solid #eef2f7;
+        }
+
+        .premium-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 14px;
+        }
+
+        .premium-table thead th {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            font-weight: 850;
+            text-transform: none;
+            padding: 15px 12px;
+            text-align: center;
+            border-bottom: 2px solid #cbd5e1;
+            border-right: 1px dashed #cbd5e1;
+            font-size: 1em;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .premium-table thead th:last-child {
+            border-right: none;
+        }
+
+        /* Side-by-side Optimization */
+        .contest-tables-parallel {
+            margin-top: 25px;
+            width: 100%;
+        }
+
+        .contest-tables-parallel .premium-table {
+            font-size: 12px;
+        }
+
+        .contest-tables-parallel .premium-table thead th {
+            padding: 10px 4px;
+            font-size: 0.85em;
+            letter-spacing: 0;
+        }
+
+        .contest-tables-parallel .premium-table tbody td {
+            padding: 8px 4px;
+        }
+
+        .contest-tables-parallel .stt-circle {
+            width: 24px;
+            height: 24px;
+            font-size: 11px;
+        }
+
+        .contest-tables-parallel .category-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .contest-tables-parallel .cell-progress-container {
+            width: 60px;
+        }
+
+        .contest-tables-parallel .contest-table-container {
+            margin-top: 0;
+            /* Clear margin when inside parallel layout */
+        }
+
+        /* Segmented Display Mode Toggle */
+        .display-mode-toggle {
+            display: inline-flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
+            height: 40px;
+            align-items: center;
+            box-sizing: border-box;
+        }
+
+        .display-mode-toggle input[type="radio"] {
+            display: none;
+        }
+
+        .display-mode-toggle label {
+            padding: 0 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            gap: 8px;
+            color: #64748b;
+        }
+
+        .display-mode-toggle input[type="radio"]:checked+label {
+            background: white;
+            color: var(--primary-accent);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .display-mode-toggle label i {
+            font-size: 1.1em;
+        }
+
+        /* --- CONTEST CONTROLS TOOLBAR --- */
+        #contestComparisonControls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 15px;
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            flex-wrap: nowrap;
+            width: 100%;
+            box-sizing: border-box;
+            justify-content: space-between;
+        }
+
+        #contestComparisonControls .control-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        #contestComparisonControls label {
+            font-weight: 700;
+            font-size: 0.82em;
+            color: #475569;
+            white-space: nowrap;
+        }
+
+        #contestComparisonControls input[type="date"] {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 0 8px;
+            font-family: inherit;
+            height: 38px;
+            box-sizing: border-box;
+            background: #f8fafc;
+            color: #1e293b;
+            font-size: 0.85em;
+        }
+
+        #contestComparisonControls .action-btn-small {
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 0 12px;
+            white-space: nowrap;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            font-size: 0.85em;
+        }
+
+        #contestComparisonControls .action-btn-small:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-separator {
+            width: 1px;
+            height: 24px;
+            background: #e2e8f0;
+            margin: 0 2px;
+            flex-shrink: 0;
+        }
+
+        .premium-table tbody td {
+            padding: 10px 8px;
+            border-bottom: 1px dashed #e2e8f0;
+            border-right: 1px dashed #e2e8f0;
+            vertical-align: middle;
+            color: #1e293b;
+            text-align: center;
+        }
+
+        .premium-table tbody td:last-child {
+            border-right: none;
+        }
+
+        .premium-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .premium-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .td-stt {
+            width: 50px;
+            text-align: center !important;
+        }
+
+        .stt-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 13px;
+            margin: 0 auto;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .stt-done {
+            background: #dcfce7;
+            /* Soft green */
+            color: #16A34A;
+            /* Success green from root */
+        }
+
+        .stt-warning {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .stt-danger {
+            background: #fee2e2;
+            /* Soft red */
+            color: #EF4444;
+            /* Danger red from root */
+        }
+
+        .stt-neutral {
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .td-name {
+            text-align: left !important;
+            font-weight: 700;
+            min-width: 180px;
+        }
+
+        .name-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .category-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        .category-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .medal-badge {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .cell-progress-container {
+            width: 120px;
+            margin-left: auto;
+        }
+
+        .cell-progress-track {
+            height: 8px;
+            background: #f1f5f9;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .cell-progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+        }
+
+        .remaining-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 700;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .remaining-high {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .remaining-done {
+            background: #d1fae5;
+            color: #10b981;
+        }
+
+        .daily-target-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            font-weight: 700;
+        }
+
+        .projected-percent {
+            font-weight: 800;
+            font-size: 1.1em;
+            color: var(--primary-accent);
+        }
+
+        .projected-percent.reached {
+            color: var(--success-color);
+        }
+
+        .projected-percent.at-risk {
+            color: var(--danger-color);
         }
 
         .contest-card {
@@ -788,14 +1255,13 @@
             font-weight: 800;
             font-size: 13px;
             flex-shrink: 0;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            /* Gold Gradient for Rank */
-            background: linear-gradient(135deg, #4b6584, #778ca3);
+            box-shadow: none;
+            background: #1d1d1f;
         }
 
         .rank-top {
-            background: linear-gradient(135deg, #f1c40f, #f39c12);
-            box-shadow: 0 4px 10px rgba(243, 156, 18, 0.4);
+            background: #0071e3;
+            box-shadow: none;
         }
 
         .c-card-title {
@@ -861,7 +1327,7 @@
 
         .percentage-text {
             fill: var(--text-primary);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
             font-weight: 800;
             font-size: 0.5em;
             text-anchor: middle;
@@ -1224,84 +1690,277 @@
             }
         }
 
-        /* --- NEW KPI REDESIGN STYLES (REFINED) --- */
-        .kpi-group-container {
-            display: block;
+        /* UPDATED KPI REDESIGN STYLES (8 CARD SYSTEM) */
+        .kpi-row-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
             width: 100%;
-            margin-bottom: 25px;
         }
 
-        /* KPI CARDS - RESTORED */
-        .kpi-group-card {
-            background-color: #fff;
-            border-radius: 15px;
-            box-shadow: var(--shadow-main);
-            overflow: hidden;
-            border: 1px solid var(--border-main);
-            padding: 20px;
+        /* --- UPDATED WAR ROOM KPI GRID STYLES (8 Cards on right, 4x2) --- */
+        .kpi-layout-war-room {
+            display: grid;
+            grid-template-columns: 1.6fr repeat(4, 1fr);
+            grid-template-rows: repeat(2, auto);
+            /* Switched to auto to fit content */
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 15px;
         }
 
-        .kpi-new-card {
-            background: #fff;
-            border-radius: 20px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            padding: 0;
-            /* Remove padding here, handling inside */
+        .kpi-card-main-big {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 16px 20px 16px 25px;
+            /* Added padding-left for accent bar */
+            box-shadow: var(--card-shadow);
             border: 1px solid var(--border-main);
             display: flex;
             flex-direction: column;
-            height: 100%;
             position: relative;
-            transition: transform 0.3s ease;
-            overflow: visible;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+
+
+        .kpi-card-sub {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 14px 12px 14px 18px;
+            /* Adjusted padding for accent bar */
+            box-shadow: var(--card-shadow);
+            border: 1px solid var(--border-main);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            /* Changed to left alignment for better look with accent bar */
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            /* Changed to left alignment */
+        }
+
+        .kpi-card-sub .card-header-v2 {
+            justify-content: flex-start;
+            width: 100%;
+            font-size: 1.05em;
+            margin-bottom: 6px;
+            /* Tightened */
+        }
+
+        .kpi-card-sub .card-val-v2 {
+            font-size: 2.1em;
+            /* Increased significantly */
+            margin: 4px 0;
+            line-height: 1.1;
+        }
+
+        .kpi-card-sub .card-subtitle-v2 {
+            font-size: 0.9em;
+            margin-top: 2px;
+            /* Tightened */
+        }
+
+        /* Gauge Styling */
+        .gauge-container {
+            position: relative;
+            width: 100%;
+            max-width: 340px;
+            height: 160px;
+            /* Reduced */
+            margin: 0 auto;
+        }
+
+        .gauge-svg-war {
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-bg-path {
+            fill: none;
+            stroke: #e5e7eb;
+            stroke-width: 10;
+            stroke-linecap: round;
+        }
+
+        .gauge-fill-path {
+            fill: none;
+            stroke: #14b8a6;
+            stroke-width: 10;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1s ease;
+        }
+
+        .gauge-labels {
+            position: absolute;
+            top: 105px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .gauge-main-val {
+            font-size: 1.8em;
+            font-weight: 850;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            margin-bottom: 0px;
+        }
+
+        .gauge-sub-info {
+            font-size: 1.1em;
+            font-weight: 800;
+            color: #1e293b;
+            background: #f1f5f9;
+            padding: 1px 10px;
+            border-radius: 99px;
+            margin-top: 0px;
+        }
+
+        .main-top-metric {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            background: transparent;
+            border: none;
+            padding: 5px 0;
+            margin-bottom: 0px;
+        }
+
+        .main-top-metric-label {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #64748b;
+        }
+
+        .main-top-metric-val {
+            font-size: 2em;
+            font-weight: 900;
+            color: #14b8a6;
+            letter-spacing: -0.02em;
+        }
+
+        .main-top-metric-val span {
+            font-size: 0.55em;
+            color: #94a3b8;
+            margin-left: 4px;
+            font-weight: 600;
+        }
+
+        .main-line-chart-container {
+            flex: 1;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .card-header-v2 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 700;
+            color: #334155;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-val-v2 {
+            font-weight: 900;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-subtitle-v2 {
+            font-weight: 500;
+            color: #64748b;
+            position: relative;
+            z-index: 1;
+        }
+
+        .icon-v2 {
+            font-size: 1.25em;
+            color: #f59e0b;
+        }
+
+        .kpi-new-card {
+            background: #ffffff;
+            border-radius: var(--card-radius);
+            box-shadow: var(--card-shadow);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            transition: none;
+            /* Removed transition to avoid any hover hints */
         }
 
         .kpi-new-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            transform: none !important;
+            box-shadow: var(--card-shadow) !important;
         }
 
-        .kpi-header-block {
-            padding: 12px 15px;
-            text-align: center;
-            color: white;
-            font-weight: 800;
-            font-size: 1.1em;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            letter-spacing: 0.5px;
-            margin: 15px 15px 5px 15px;
-            border-radius: 12px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+
+        @media (max-width: 1400px) {
+            .kpi-layout-war-room {
+                grid-template-columns: 1.4fr repeat(2, 1fr);
+                grid-template-rows: repeat(4, 180px);
+            }
+
+            .kpi-card-main-big {
+                grid-row: span 4;
+            }
         }
 
-        .kpi-header-block svg {
-            width: 22px;
-            height: 22px;
+        @media (max-width: 1000px) {
+            .kpi-layout-war-room {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto;
+            }
+
+            .kpi-card-main-big {
+                grid-column: span 2;
+                grid-row: auto;
+                height: 350px;
+            }
         }
 
-        .pill-blue {
-            background: linear-gradient(90deg, #0ABDE3, #00D2D3);
+        @media (max-width: 768px) {
+            .kpi-layout-war-room {
+                grid-template-columns: 1fr;
+            }
+
+            .kpi-card-main-big {
+                grid-column: span 1;
+            }
         }
 
-        .pill-orange {
-            background: linear-gradient(90deg, #FF9F43, #2ed573);
+        @media (max-width: 1200px) {
+            .kpi-row-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
 
-        .pill-red {
-            background: linear-gradient(90deg, #ff6b6b, #ee5253);
+
+        @media (max-width: 768px) {
+            .kpi-row-container {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .pill-cyan {
-            background: linear-gradient(90deg, #00d2d3, #0abde3);
-        }
 
-        .pill-teal {
-            background: linear-gradient(90deg, #1dd1a1, #10ac84);
-        }
 
         /* CATEGORY DETAIL MODAL STYLES */
         #categoryDetailModal .modal-content {
@@ -1314,7 +1973,7 @@
         }
 
         .detail-modal-header {
-            background: linear-gradient(135deg, var(--primary-accent), #0d6c8b);
+            background: #1d1d1f;
             color: white;
             padding: 20px 30px;
             display: flex;
@@ -1671,16 +2330,10 @@
             border: 1px solid var(--border-main);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(12px);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             height: 100%;
-        }
-
-        .kpi-highlight-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         }
 
         /* FORCE BORDER TO MATCH TIER 2 & STYLE NEW CARDS */
@@ -1696,12 +2349,6 @@
             flex-direction: column;
             height: 100%;
             overflow: hidden;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .kpi-new-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         }
 
         /* Typography Boost for Highlights */
@@ -1746,9 +2393,9 @@
         .grid-row-highlights {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            height: 300px;
-            /* Fixed height for uniformity */
+            gap: 15px;
+            height: auto;
+            /* Allow content to control height */
         }
 
         .grid-row-analytics {
@@ -1769,7 +2416,198 @@
                 /* Allow stacking on mobile */
             }
         }
+
+        /* --- GLOBAL FORCE: BLACK BORDERS & NO HOVER --- */
+        .card,
+        .input-section,
+        .chart-wrapper,
+        .kpi-card-sub,
+        .kpi-card-main-big,
+        .kpi-new-card,
+        .kpi-highlight-card,
+        .report-section,
+        .progress-bar-container,
+        .contest-card,
+        .kpi-group-card,
+        .contest-table-container,
+        .interactive-table-wrapper {
+            border: 1px solid var(--border-main) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+        }
+
+        .card:hover,
+        .input-section:hover,
+        .chart-wrapper:hover,
+        .kpi-card-sub:hover,
+        .kpi-card-main-big:hover,
+        .kpi-new-card:hover,
+        .kpi-highlight-card:hover,
+        .progress-bar-container:hover,
+        .contest-card:hover,
+        .kpi-group-card:hover {
+            transform: translateY(-2px) !important;
+            /* Lift effect per request */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        /* Remove any lift/glow effects & Ensure Accent Bars Win */
+        [class*="accent-"] {
+            box-shadow: none !important;
+        }
+
+        .accent-blue {
+            border-left: 6px solid #3b82f6 !important;
+        }
+
+        .accent-orange {
+            border-left: 6px solid #f97316 !important;
+        }
+
+        .accent-red {
+            border-left: 6px solid #ef4444 !important;
+        }
+
+        .accent-green {
+            border-left: 6px solid #10b981 !important;
+        }
+
+        .accent-indigo {
+            border-left: 6px solid #6366f1 !important;
+        }
+
+        .accent-teal {
+            border-left: 6px solid #0d9488 !important;
+        }
+
+        .accent-amber {
+            border-left: 6px solid #f59e0b !important;
+        }
+
+        .accent-purple {
+            border-left: 6px solid #8b5cf6 !important;
+        }
+
+        /* Top Health Header Premium Design - Redesigned for Compactness */
+        .top-health-bar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border-left: 5px solid var(--status-color, #16A34A);
+        }
+
+        .health-status-badge {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: fit-content;
+            padding-right: 20px;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .status-icon-wrapper {
+            width: 44px;
+            height: 44px;
+            font-size: 1.4em;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .status-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .status-label {
+            font-size: 0.75em;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .status-value {
+            font-size: 1.3em;
+            font-weight: 850;
+            line-height: 1.2;
+        }
+
+        .health-metrics-row {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: space-between;
+        }
+
+        .health-metric-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .metric-icon {
+            font-size: 1.4em;
+            color: #94a3b8;
+        }
+
+        .metric-content {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .health-metric-label {
+            font-size: 0.75em;
+            color: #64748b;
+            font-weight: 700;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .health-metric-val {
+            font-size: 1.2em;
+            font-weight: 850;
+            color: #1e293b;
+            line-height: 1.2;
+        }
+
+        .metric-divider {
+            width: 1px;
+            height: 30px;
+            background: #e2e8f0;
+            margin: 0;
+        }
+
+        .health-badge-risk {
+            background: #fff1f2;
+            color: #e11d48;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 850;
+            font-size: 1.0em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #fecdd3;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
     </style>
+
 </head>
 
 <body>
@@ -1781,7 +2619,7 @@
         <div id="luyKeInputGrid" class="input-grid">
             <div class="input-section">
                 <div class="input-header-flex">
-                    <h4><a href="https://bi.thegioididong.com/sieu-thi-con?id=72762&tab=bcdtnh&rt=2&dm=1"
+                    <h4><a href="https://bi.thegioididong.com/sieu-thi-con?id=16753&tab=bcdtnh&rt=2&dm=1"
                             target="_blank" rel="noopener noreferrer">Dữ liệu Báo cáo Kinh doanh</a></h4>
                 </div>
                 <div class="input-wrapper">
@@ -1794,7 +2632,7 @@
             </div>
             <div class="input-section">
                 <div class="input-header-flex">
-                    <h4><a href="https://bi.thegioididong.com/thi-dua-st?id=72762&tab=1&rt=2&dm=2&mt=1" target="_blank"
+                    <h4><a href="https://bi.thegioididong.com/thi-dua-st?id=16753&tab=1&rt=2&dm=2&mt=1" target="_blank"
                             rel="noopener noreferrer">Dữ liệu Thi đua</a></h4>
                 </div>
                 <div class="input-wrapper">
@@ -1817,54 +2655,140 @@
                 </div>
                 <div id="dailyComparisonInputContainer"></div>
             </div>
+
+            <!-- NEW: HISTORY MANAGEMENT SECTION (SIMPLIFIED) -->
+            <div class="input-section history-section"
+                style="grid-column: 1 / -1; background: #f0f9ff; border: 1px solid #bae6fd;">
+                <div class="input-header-flex" style="margin-bottom: 12px;">
+                    <h4 style="color: #0369a1;"><i class="fa-solid fa-calendar-check"></i> LƯU TRỮ & XEM LẠI KẾT QUẢ
+                        THÁNG</h4>
+                </div>
+                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <label
+                            style="font-weight: 850; color: #0369a1; text-transform: uppercase; font-size: 0.85em;">Chọn
+                            Tháng:</label>
+                        <select id="historyMonthSelect"
+                            style="padding: 10px 15px; border-radius: 8px; border: 1px solid #bae6fd; font-weight: 700; background: white; min-width: 150px; cursor: pointer;">
+                            <option value="1">Tháng 1</option>
+                            <option value="2">Tháng 2</option>
+                            <option value="3">Tháng 3</option>
+                            <option value="4">Tháng 4</option>
+                            <option value="5">Tháng 5</option>
+                            <option value="6">Tháng 6</option>
+                            <option value="7">Tháng 7</option>
+                            <option value="8">Tháng 8</option>
+                            <option value="9">Tháng 9</option>
+                            <option value="10">Tháng 10</option>
+                            <option value="11">Tháng 11</option>
+                            <option value="12">Tháng 12</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button id="saveByMonthBtn" class="action-btn-small"
+                            style="background: var(--success-color); padding: 10px 25px; font-weight: 800;"><i
+                                class="fa-solid fa-floppy-disk"></i> LƯU KẾT QUẢ</button>
+                        <button id="loadByMonthBtn" class="action-btn-small"
+                            style="background: var(--primary-accent); padding: 10px 25px; font-weight: 800;"><i
+                                class="fa-solid fa-folder-open"></i> XEM LẠI</button>
+                    </div>
+
+                    <div
+                        style="margin-left: auto; font-size: 0.8em; color: #0c4a6e; font-style: italic; background: #e0f2fe; padding: 5px 12px; border-radius: 20px;">
+                        * Hệ thống tự động nhận diện ngày báo cáo từ dữ liệu bạn dán vào.
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="button-container">
-            <button id="analyzeBtn" class="action-btn analyzeBtn">TẠO DASHBOARD LUỸ KẾ</button>
-            <button id="exportAllBtn" class="action-btn" style="background: var(--warning-color); color: #333;">
+            <button id="analyzeBtn" class="action-btn analyzeBtn">TẠO DASHBOARD LŨY KẾ</button>
+            <button id="exportAllBtn" class="action-btn" style="background: var(--warning-color); color: #1d1d1f;">
                 <svg fill="currentColor" viewBox="0 0 24 24">
                     <path d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z" />
                 </svg>
-                Xuất Dữ liệu
+                XUẤT DỮ LIỆU
             </button>
             <button id="importAllBtn" class="action-btn" style="background: var(--secondary-accent);">
                 <svg fill="currentColor" viewBox="0 0 24 24">
                     <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z" />
                 </svg>
-                Nhập Dữ liệu
+                NHẬP DỮ LIỆU
             </button>
-            <button id="showInputsBtnLuyKe" class="action-btn" style="display: none; background: #6c757d;">Chỉnh sửa Dữ
-                liệu</button>
+            <button id="showInputsBtnLuyKe" class="action-btn" style="display: none; background: #6c757d;">ẨN/HIỆN NHẬP LIỆU</button>
             <button id="captureBtnLuyKe" class="action-btn captureBtn">
                 <svg fill="currentColor" viewBox="0 0 24 24">
                     <path
                         d="M4,4H7L9,2H15L17,4H20A2,2 0 0,1 22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6A2,2 0 0,1 4,4M12,7A5,5 0 0,0 7,12A5,5 0 0,0 12,17A5,5 0 0,0 17,12A5,5 0 0,0 12,7M12,9A3,3 0 0,1 15,12A3,3 0 0,1 12,15A3,3 0 0,1 9,12A3,3 0 0,1 12,9Z" />
                 </svg>
-                Chụp ảnh Báo cáo
+                CHỤP ẢNH BÁO CÁO
             </button>
         </div>
         <div id="dashboard-body-luyke" class="dashboard-body">
             <div id="capture-area-luyke">
                 <div id="capture-content-luyke">
-                    <div id="reportTitleLuyKe" class="report-title"></div>
+                    <!-- ULTRA-COMPACT DYNAMIC SIMULATION BAR (SINGLE ROW) -->
+                    <div id="dynamic-target-controls" class="card" style="display: none; display: flex !important; flex-direction: row !important; padding: 6px 15px !important; border-radius: 8px; margin-bottom: 12px; background: #fff; border: 1px solid #e2e8f0; align-items: center; gap: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); width: 100%; border-left: 4px solid var(--primary-accent);">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0; border-right: 1px solid #f1f5f9; padding-right: 15px;">
+                            <i class="fa-solid fa-wand-magic-sparkles" style="color: var(--primary-accent); font-size: 1.1em;"></i>
+                            <span style="font-size: 0.8em; font-weight: 850; color: #1e293b; text-transform: uppercase; white-space: nowrap;">Giả lập kết quả</span>
+                        </div>
+
+                        <div style="flex-grow: 1; display: flex; align-items: center; gap: 15px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.8em; font-weight: 700; color: #64748b;">Chế độ:</span>
+                                <select id="target-mode-select" style="padding: 4px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 700; font-size: 0.85em; background: #f8fafc; cursor: pointer; min-width: 180px;">
+                                    <option value="original">Dự báo thực tế (BI)</option>
+                                    <option value="custom">Nhập DT phấn đấu (Tr)</option>
+                                    <option value="percent">% HT kỳ vọng</option>
+                                </select>
+                            </div>
+
+                            <div id="target-value-container" style="display: none; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.8em; font-weight: 700; color: #64748b;">Giá trị:</span>
+                                <input type="number" id="target-custom-value" style="width: 110px; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--primary-accent); font-weight: 850; font-size: 0.9em; color: var(--primary-accent);" placeholder="Triệu đồng..." />
+                            </div>
+                        </div>
+
+                        <button id="applyDynamicTargetBtn" class="action-btn-small" style="background: var(--primary-accent); padding: 6px 15px; border-radius: 8px; font-weight: 850; font-size: 0.8em; margin: 0; flex-shrink: 0;">
+                            <i class="fa-solid fa-arrows-rotate"></i> CẬP NHẬT GIẢ LẬP
+                        </button>
+                    </div>
+
+                    <div id="reportTitleLuyKe" class="report-title" style="margin-top: 0;"></div>
+
+                    <div id="top-health-header" class="top-health-bar" style="display: none;"></div>
                     <div class="progress-row">
-                        <div class="progress-bar-container card">
-                            <div class="progress-labels"><span>Tiến độ Tháng</span><span
-                                    id="progress-summary-date"></span>
+                        <!-- PROGRESS DAY (TIẾN ĐỘ NGÀY) TO TOP -->
+                        <!-- PROGRESS DAY (TIẾN ĐỘ NGÀY) TO TOP -->
+                        <div class="progress-bar-container">
+                            <div class="progress-labels">
+                                <div class="progress-title-group">
+                                    <span class="progress-title"><i class="fa-solid fa-bullseye"
+                                            style="margin-right: 6px; color: #e67e22;"></i>TIẾN ĐỘ NGÀY:</span>
+                                    <span id="progress-text-target" class="progress-sub-val"></span>
+                                </div>
+                                <span id="progress-summary-target"
+                                    style="font-size: 1.15em; font-weight: 850; color: #e67e22;">0%</span>
+                            </div>
+                            <div class="progress-track">
+                                <div class="progress-fill target" id="progress-fill-target"></div>
+                            </div>
+                        </div>
+                        <!-- PROGRESS REVENUE (TIẾN ĐỘ DOANH THU) -->
+                        <div class="progress-bar-container">
+                            <div class="progress-labels">
+                                <div class="progress-title-group">
+                                    <span class="progress-title"><i class="fa-solid fa-calendar-day"
+                                            style="margin-right: 6px; color: #0abde3;"></i>TIẾN ĐỘ DOANH THU:</span>
+                                    <span id="progress-text-date" class="progress-sub-val"></span>
+                                </div>
+                                <span id="progress-summary-date"
+                                    style="font-size: 1.15em; font-weight: 850; color: #0abde3;">0%</span>
                             </div>
                             <div class="progress-track">
                                 <div class="progress-fill" id="progress-fill-date"></div>
                             </div>
-                            <div class="progress-text-wrapper"><span id="progress-text-date"
-                                    style="font-size: 0.8em; color: var(--text-muted);"></span></div>
-                        </div>
-                        <div class="progress-bar-container card">
-                            <div class="progress-labels"><span>Tiến độ Target</span><span
-                                    id="progress-summary-target"></span></div>
-                            <div class="progress-track">
-                                <div class="progress-fill" id="progress-fill-target"></div>
-                            </div>
-                            <div class="progress-text-wrapper"><span id="progress-text-target"
-                                    style="font-size: 0.8em; color: var(--text-muted);"></span></div>
                         </div>
                     </div>
 
@@ -1879,27 +2803,51 @@
                     </div>
 
                     <div id="contestComparisonControls">
-                        <label for="contest-date-current">Ngày hiện tại:</label>
-                        <input type="date" id="contest-date-current" />
-                        <label for="contest-date-previous">Ngày so sánh:</label>
-                        <input type="date" id="contest-date-previous" />
-                        <button id="compareContestBtn" class="action-btn-small"
-                            style="background-color: var(--primary-accent); padding: 8px 16px;">So sánh Thi đua</button>
-                        <button id="saveContestDataBtn" class="action-btn-small"
-                            style="background-color: var(--success-color); padding: 8px 16px;">Lưu Dữ liệu Hiện
-                            tại</button>
+                        <div class="control-group">
+                            <label for="contest-date-current"><i class="fa-solid fa-calendar-check"></i> Hiện
+                                tại:</label>
+                            <input type="date" id="contest-date-current" />
+                        </div>
+                        <div class="control-group">
+                            <label for="contest-date-previous"><i class="fa-solid fa-calendar-minus"></i> So
+                                sánh:</label>
+                            <input type="date" id="contest-date-previous" />
+                        </div>
 
-                        <!-- UPDATED: Integrated directly into row, no new lines -->
-                        <div id="contestCategoryFilterControls"
-                            style="display: flex; gap: 15px; align-items: center; border-left: 2px solid #ccc; padding-left: 15px; margin-left: 5px;">
-                            <label><input type="checkbox" id="selectAllContestCategories"> Hiển thị TẤT CẢ Ngành
-                                hàng</label>
-                            <button id="openCategorySelectModal" class="action-btn-small"
-                                style="background-color: var(--secondary-accent); padding: 8px 16px;">
-                                Chọn Ngành hàng cụ thể
-                            </button>
-                            <span id="selectedCategoryCount"
-                                style="font-weight: 600; color: var(--text-primary);"></span>
+                        <div class="control-separator"></div>
+
+                        <button id="compareContestBtn" class="action-btn-small" style="background-color: var(--primary-accent);">So sánh</button>
+                        <button id="saveContestDataBtn" class="action-btn-small"
+                            style="background-color: var(--success-color);">Lưu dữ liệu</button>
+
+                        <div class="control-separator"></div>
+
+                        <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" id="selectAllContestCategories"
+                                style="width: 16px; height: 16px; cursor: pointer;">
+                            <span>Tất cả</span>
+                        </label>
+
+                        <button id="openCategorySelectModal" class="action-btn-small"
+                            style="background-color: var(--secondary-accent);">
+                            Chọn Nhóm
+                        </button>
+
+                        <span id="selectedCategoryCount"
+                            style="font-weight: 700; color: var(--text-primary); font-size: 0.8em; line-height: 1.2;"></span>
+
+                        <div class="control-separator"></div>
+
+                        <div id="contestDisplayModeControls" style="display: flex; align-items: center; gap: 8px;">
+                            <label style="font-weight: 700;">Giao diện:</label>
+                            <div class="display-mode-toggle" style="height: 38px;">
+                                <input type="radio" id="modeCard" name="contestDisplayMode" value="card" checked>
+                                <label for="modeCard" title="Dạng thẻ Card" style="padding: 0 10px;"><i
+                                        class="fa-solid fa-table-cells-large"></i> Thẻ Card</label>
+                                <input type="radio" id="modeTable" name="contestDisplayMode" value="table">
+                                <label for="modeTable" title="Dạng bảng chi tiết" style="padding: 0 10px;"><i
+                                        class="fa-solid fa-list-ol"></i> Bảng</label>
+                            </div>
                         </div>
                     </div>
 
@@ -2036,12 +2984,7 @@
     <script>
         var globalProcessedContestDataForDetail = [];
         var categoryTrendChartInstance = null;
-        var VIBRANT_PALETTE = ['#0ABDE3', '#00D2D3', '#FECA57', '#FF9F43', '#FF6B6B', '#5f27cd'];
-        var formatNumber = (num, decimals = 0) => {
-            const number = parseFloat(num);
-            return isNaN(number) ? '' : number.toLocaleString('vi-VN', { maximumFractionDigits: decimals });
-        };
-        var getColor = (value, threshold1 = 50, threshold2 = 100) => value < threshold1 ? '#FF6B6B' : value < threshold2 ? '#FECA57' : '#00D2D3';
+
 
         function extractData(fullText, regex) {
 
@@ -2381,12 +3324,12 @@
             input.click();
         }
 
-        var VIBRANT_PALETTE = ['#108AB1', '#06D7A0', '#FFD167', '#F78C6A', '#F04770', '#073A4B'];
+        var VIBRANT_PALETTE = ['#2563EB', '#16A34A', '#F59E0B', '#EF4444', '#0EA5E9', '#06B6D4', '#8B5CF6', '#F97316', '#6366F1', '#14B8A6']; // Updated to Modern Executive Colors
         var formatNumber = (num, decimals = 0) => {
             const number = parseFloat(num);
             return isNaN(number) ? '' : number.toLocaleString('vi-VN', { maximumFractionDigits: decimals });
         };
-        var getColor = (value, threshold1 = 50, threshold2 = 100) => value < threshold1 ? '#F04770' : value < threshold2 ? '#FFD167' : '#06D7A0'; // Note: Yellow for mid-range, Green for success
+        var getColor = (value, threshold1 = 50, threshold2 = 100) => value < threshold1 ? '#EF4444' : value < threshold2 ? '#F59E0B' : '#16A34A'; // 50=Red, <100=Orange, >=100=Green
 
         function showToast(message, isError = false) {
             const toast = document.createElement('div');
@@ -2493,7 +3436,27 @@
             } catch (e) { console.error(e); showToast('Lỗi khi lưu dữ liệu thi đua.', true); }
         }
 
-        function processFullContestData(allContests, daysRemaining) {
+        function getCategoryIcon(name) {
+            const n = name.toLowerCase();
+            if (n.includes('điện thoại')) return '<i class="fa-solid fa-mobile-screen-button" style="color: #3b82f6;"></i>';
+            if (n.includes('laptop')) return '<i class="fa-solid fa-laptop" style="color: #64748b;"></i>';
+            if (n.includes('quạt')) return '<i class="fa-solid fa-wind" style="color: #0ea5e9;"></i>';
+            if (n.includes('điện tử') || n.includes('tivi')) return '<i class="fa-solid fa-tv" style="color: #4338ca;"></i>';
+            if (n.includes('máy giặt') || n.includes('máy sấy')) return '<i class="fa-solid fa-soap" style="color: #0891b2;"></i>';
+            if (n.includes('máy lọc')) return '<i class="fa-solid fa-filter" style="color: #10b981;"></i>';
+            if (n.includes('gia dụng')) return '<i class="fa-solid fa-kitchen-set" style="color: #f59e0b;"></i>';
+            if (n.includes('âm thanh') || n.includes('loa')) return '<i class="fa-solid fa-volume-high" style="color: #8b5cf6;"></i>';
+            if (n.includes('camera')) return '<i class="fa-solid fa-camera" style="color: #ef4444;"></i>';
+            if (n.includes('tủ lạnh')) return '<i class="fa-solid fa-snowflake" style="color: #06b6d4;"></i>';
+            if (n.includes('điều hòa') || n.includes('máy lạnh')) return '<i class="fa-solid fa-temperature-arrow-down" style="color: #0ea5e9;"></i>';
+            if (n.includes('phụ kiện')) return '<i class="fa-solid fa-headset" style="color: #6366f1;"></i>';
+            if (n.includes('credit') || n.includes('trả góp')) return '<i class="fa-solid fa-credit-card" style="color: #f43f5e;"></i>';
+            if (n.includes('đồng hồ')) return '<i class="fa-solid fa-clock" style="color: #7c3aed;"></i>';
+            if (n.includes('xe đạp')) return '<i class="fa-solid fa-bicycle" style="color: #10b981;"></i>';
+            return '<i class="fa-solid fa-box-open" style="color: #94a3b8;"></i>';
+        }
+
+        function processFullContestData(allContests, daysRemaining, scaleFactor = 1) {
             let processedItems = [];
             if (!allContests || allContests.length === 0) return { all: [], veDich: [], canCoGwang: [], canTapTrung: [], baoDong: [], onTrack: [], behind: [] };
 
@@ -2518,7 +3481,6 @@
                     if ((str.match(/\./g) || []).length > 1) return parseFloat(str.replace(/\./g, ''));
 
                     // Single dot -> Treat as Decimal (EN style or Raw Float)
-                    // User Feedback: 1.900 should be 1.9, not 1900. 183.90 should be 183.9.
                     return parseFloat(str);
                 }
 
@@ -2546,12 +3508,13 @@
 
                     // Apply Smart Parsing
                     const actual = parseSmart(actualStr);
-                    const target = parseSmart(targetStr);
+                    const originalTarget = parseSmart(targetStr);
+                    const target = originalTarget * scaleFactor;
 
                     const remaining = target - actual;
                     processedItems.push({
                         name: row[0],
-                        percentProjected: parseFloat((row[percentIndex] || '').replace(/,/g, '.')) || 0, // Percent usually uses comma decimal in VN
+                        percentProjected: (parseFloat((row[percentIndex] || '').replace(/,/g, '.')) || 0) / scaleFactor,
                         percentActual: target > 0 ? (actual / target * 100) : 0,
                         actual, target, remaining,
                         dailyTarget: remaining > 0 && daysRemaining > 0 ? remaining / daysRemaining : 0,
@@ -2571,7 +3534,7 @@
             Chart.defaults.color = 'var(--text-secondary)';
             Chart.defaults.font.family = "'Segoe UI', Roboto, sans-serif";
             Chart.defaults.font.weight = '700';
-            Chart.defaults.elements.bar.borderRadius = 8;
+            Chart.defaults.elements.bar.borderRadius = 0;
             Chart.defaults.scale.grid.display = false;
             createYearlyDataTable();
             createDailyComparisonTable();
@@ -2646,6 +3609,7 @@
 
         function parseLuyKeData(text) {
             const headers = ["Nhóm ngành hàng", "Số lượng", "DTQĐ", "Target (QĐ)", "Lãi gộp QĐ", "% HT Target (QĐ)", "+/- DTCK Tháng (QĐ)", "Đơn giá", "DT Trả Góp", "Tỷ Trọng Trả Góp"];
+
             const rawLines = text.trim().split('\n');
             const dataRows = rawLines[0].toLowerCase().includes('nhóm ngành hàng') ? rawLines.slice(1) : rawLines;
             return dataRows.map(line => {
@@ -2660,308 +3624,308 @@
             });
         }
 
-        function renderLuyKeKPIs(kpis, daysUsed, daysInMonth, yearlyData, reportDate) {
-            const progressPercentDate = (daysUsed / daysInMonth) * 100;
-            const progressFillDate = document.getElementById('progress-fill-date');
-            progressFillDate.style.width = `${progressPercentDate}%`;
-            progressFillDate.style.backgroundColor = getColor(progressPercentDate); /* Dynamic Color based on Days */
-            document.getElementById('progress-text-date').textContent = `Đã qua ${daysUsed}/${daysInMonth} ngày`;
-            document.getElementById('progress-summary-date').textContent = `${formatNumber(progressPercentDate, 1)}%`;
-
-            const progressPercentTarget = kpis.htTarget > 100 ? 100 : kpis.htTarget;
-            const progressFillTarget = document.getElementById('progress-fill-target');
-            progressFillTarget.style.width = `${progressPercentTarget}%`;
-            progressFillTarget.style.backgroundColor = getColor(kpis.htTarget);
-            document.getElementById('progress-text-target').textContent = `${formatNumber(kpis.htTarget, 1)}%`;
-            document.getElementById('progress-summary-target').textContent = `${formatNumber(kpis.luyKe)} / ${formatNumber(kpis.target)}`;
-
+        function renderLuyKeKPIs(kpis, daysUsed, daysInMonth, yearlyData, reportDate, processedContestData, dailyData) {
             const kpiContainer = document.getElementById('kpi-group-container');
-            const today = new Date();
             const currentMonth = reportDate.getMonth() + 1;
-            const dayOfWeek = today.getDay();
-
             const doanhThuConLai = kpis.target - kpis.luyKe;
-            const doanhThuConLaiDisplay = doanhThuConLai <= 0 ? '🏆' : `${formatNumber(doanhThuConLai, 0)} Triệu`;
-            const doanhThuConLaiColor = doanhThuConLai <= 0 ? 'var(--success-color)' : 'var(--text-primary)';
-            const iconDoanhThuConLai = doanhThuConLai <= 0
-                ? '<path fill="currentColor" d="M19.5,2H4.5A2.5,2.5 0 0,0 2,4.5V7H4V18A4,4 0 0,0 8,22H16A4,4 0 0,0 20,18V7H22V4.5A2.5,2.5 0 0,0 19.5,2M18,7V18A2,2 0 0,1 16,20H8A2,2 0 0,1 6,18V7Z"/>'
-                : '<path fill="currentColor" d="M13,9H11V4H13V9M12,13.5A1.5,1.5 0 0,1 10.5,12A1.5,1.5 0 0,1 12,10.5A1.5,1.5 0 0,1 13.5,12A1.5,1.5 0 0,1 12,13.5M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2C22,6.48 17.5,2 12,2Z"/>';
 
+            // Calculations for secondary cards
             const yearlyTargetTotal = yearlyData.filter(row => parseInt(row['Tháng']) <= currentMonth).reduce((sum, row) => sum + (row['Target tháng'] || 0), 0);
             const pastMonthsActual = yearlyData.filter(row => parseInt(row['Tháng']) < currentMonth).reduce((sum, row) => sum + (row['Doanh thu tháng'] || 0), 0);
             const yearlyActualTotal = pastMonthsActual + kpis.dtDuKien;
             const yearlyPercent = yearlyTargetTotal > 0 ? (yearlyActualTotal / yearlyTargetTotal * 100) : 0;
             const yearlyRemaining = yearlyTargetTotal - yearlyActualTotal;
-            const daysRemainingInMonth = daysInMonth - today.getDate() + 1;
-            const mucTieuTraNoNgay = daysRemainingInMonth > 0 ? Math.max(0, (kpis.dtDuKien + yearlyRemaining - kpis.luyKe) / daysRemainingInMonth) : 0;
+            const luyKeNamNgoaiSum = yearlyData.filter(row => parseInt(row['Tháng']) <= currentMonth).reduce((sum, row) => sum + (row['Doanh thu năm ngoái'] || 0), 0);
+            const targetBaseYearPrev = luyKeNamNgoaiSum * 1.1;
+            const yearlyComparisonValue = yearlyActualTotal - targetBaseYearPrev;
+            const yearlyComparisonPercent = targetBaseYearPrev > 0 ? (yearlyComparisonValue / targetBaseYearPrev * 100) : 0;
 
-            const mucTieuKyVongThang = kpis.target / daysInMonth;
-            let mucTieuNgayKyVong = Math.max(mucTieuKyVongThang, kpis.mucTieuNgay);
-            let kyVongLabel = "MT ngày kỳ vọng";
-            if (dayOfWeek === 0 || dayOfWeek === 6) { mucTieuNgayKyVong *= 2; kyVongLabel += " (x2)"; }
+            let reachingTargetCount = 0;
+            let totalSelected = 0;
+            if (processedContestData && processedContestData.all) {
+                const selectedItems = processedContestData.all.filter(item => currentSelectedCategories.includes(item.name));
+                reachingTargetCount = selectedItems.filter(item => item.percentProjected >= 100).length;
+                totalSelected = selectedItems.length;
+            }
+            const competitionPercent = totalSelected > 0 ? (reachingTargetCount / totalSelected * 100) : 0;
 
-            // CARD 1: TIẾN ĐỘ THÁNG
-            let card1Html = `
-            <div class="kpi-highlight-card">
-                 <div class="kpi-header-block pill-blue">
-                    <i class="fa-solid fa-chart-line"></i>
-                    TIẾN ĐỘ THÁNG
-                </div>
-                <div class="kpi-body-content" style="gap: 10px; justify-content: space-between;">
-                    <div class="kpi-split-row" style="border-bottom: 1px dashed #eee; padding-bottom: 8px; margin-bottom: 0; align-items: center;">
-                        <div class="kpi-chart-left" style="width: 40%;">
-                            <svg viewBox="0 0 36 36" class="donut-svg">
-                                <circle cx="18" cy="18" r="15.9155" class="donut-bg" />
-                                <circle cx="18" cy="18" r="15.9155" class="donut-fill" stroke="${getColor(kpis.htTarget)}" stroke-dasharray="${Math.min(kpis.htTarget, 100).toFixed(2)}, 100" transform="rotate(-90 18 18)" />
-                            </svg>
-                            <div class="donut-inner-text">
-                                <span class="donut-percent-label" style="font-size: 0.8em;">% Thực hiện</span>
-                                <span class="donut-percent-val" style="color:${getColor(kpis.htTarget)}; font-size: 1.5em; font-weight:800;">${formatNumber(kpis.htTarget, 1)}%</span>
-                            </div>
-                        </div>
-                        <div class="kpi-stats-right" style="width: 60%; display: flex; flex-direction: column; gap: 8px;">
-                             <!-- Row 1: Target & Luy Ke -->
-                             <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                                <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                                    <div style="display:flex; align-items:center; gap:4px; color: #ff3838; font-size: 0.9em; font-weight: 800;">
-                                        <i class="fa-solid fa-bullseye"></i> TARGET
-                                    </div>
-                                    <div style="font-weight: 900; font-size: 1.6em; color: #ff3838;">${formatNumber(kpis.target, 0)}</div>
-                                </div>
-                                <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                                    <div style="display:flex; align-items:center; gap:4px; color: var(--text-secondary); font-size: 0.8em; font-weight: 600;">
-                                        <i class="fa-solid fa-coins" style="color: #f1c40f;"></i> LUỸ KẾ
-                                    </div>
-                                    <div style="font-weight: 800; font-size: 1.3em;">${formatNumber(kpis.luyKe, 0)}</div>
-                                </div>
-                             </div>
-                             
-                             <!-- Row 2: DT Du Kien & % HT DK -->
-                             <div style="display: flex; justify-content: space-between; align-items: flex-end; padding-top: 6px; border-top: 1px dashed #eee;">
-                                <div style="display:flex; flex-direction:column; align-items:flex-start;">
-                                    <div style="font-size: 0.85em; color: #636e72; display: flex; align-items: center; gap: 5px;">
-                                        <i class="fa-solid fa-calculator" style="color: #6c5ce7;"></i> DT Dự kiến
-                                    </div>
-                                    <div style="font-weight: 700; font-size: 1.1em;">${formatNumber(kpis.dtDuKien, 0)}</div>
-                                </div>
-                                <div style="display:flex; flex-direction:column; align-items:flex-end;">
-                                    <div style="font-size: 0.85em; color: #636e72; display: flex; align-items: center; gap: 5px;">
-                                        <i class="fa-solid fa-percent" style="color: #00cec9;"></i> % HT DK
-                                    </div>
-                                    <div style="font-weight: 700; font-size: 1.1em; color: ${getColor(kpis.htDuKien)};">${formatNumber(kpis.htDuKien, 1)}%</div>
-                                </div>
-                             </div>
-                        </div>
-                    </div>
+            const formatVal = (v) => formatNumber(v, 0);
+            const getTrendIcon = (val) => {
+                if (val > 0) return '<i class="fa-solid fa-arrow-up"></i>';
+                if (val < 0) return '<i class="fa-solid fa-arrow-down"></i>';
+                return '';
+            };
 
-                    <div style="width: 100%; display: flex; flex-direction: column; gap: 6px;">
-                        <!-- Target -->
-                        <div>
-                            <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
-                                <span style="font-size: 0.7em; color: #636e72;">Target</span>
-                                <span style="font-size: 0.7em; font-weight:700; color: #636e72;">100% (${formatNumber(kpis.target, 0)} Tr)</span>
-                            </div>
-                            <div style="height: 6px; background: #dfe6e9; border-radius: 3px; width: 100%;">
-                                <div style="width: 100%; background: #b2bec3; height: 100%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-                        <!-- Actual -->
-                        <div>
-                            <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
-                                <span style="font-size: 0.7em; color: #636e72;">% HT</span>
-                                <span style="font-size: 0.7em; font-weight:700; color: ${getColor(kpis.htTarget)};">${formatNumber(kpis.htTarget, 1)}% (${formatNumber(kpis.luyKe, 0)} Tr)</span>
-                            </div>
-                            <div style="height: 6px; background: #dfe6e9; border-radius: 3px; width: 100%;">
-                                <div style="width: ${Math.min(kpis.htTarget, 100)}%; background: ${getColor(kpis.htTarget)}; height: 100%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-                        <!-- Projected -->
-                        <div>
-                            <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
-                                <span style="font-size: 0.7em; color: #636e72;">% HT DK</span>
-                                <span style="font-size: 0.7em; font-weight:700; color: ${getColor(kpis.htDuKien)};">${formatNumber(kpis.htDuKien, 1)}% (${formatNumber(kpis.dtDuKien, 0)} Tr)</span>
-                            </div>
-                            <div style="height: 6px; background: #dfe6e9; border-radius: 3px; width: 100%;">
-                                <div style="width: ${Math.min(kpis.htDuKien, 100)}%; background: ${getColor(kpis.htDuKien)}; height: 100%; border-radius: 3px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
+            const displayDailyTarget = kpis.mucTieuNgay;
 
-            // CARD 2: PHÂN TÍCH CHI TIẾT
-            const maxBarValue = Math.max(kpis.mucTieuNgay, doanhThuConLai, 1);
-            const p1 = (kpis.mucTieuNgay / maxBarValue) * 100;
-            const p2 = (Math.max(0, doanhThuConLai) / maxBarValue) * 100;
+            // Dynamic Colors for "Thực hiện / Target" Card based on %HT Target
+            let mainBg, mainTopBar, mainShadow;
+            if (kpis.htTarget < 50) {
+                mainBg = '#ef4444'; // Red-500
+                mainTopBar = '#dc2626'; // Red-600
+                mainShadow = 'rgba(239, 68, 68, 0.4)';
+            } else if (kpis.htTarget < 85) {
+                mainBg = '#f59e0b'; // Amber-500
+                mainTopBar = '#d97706'; // Amber-600
+                mainShadow = 'rgba(245, 158, 11, 0.4)';
+            } else {
+                mainBg = '#1b7a5e'; // Current Dark Green
+                mainTopBar = '#10b981'; // Emerald-500
+                mainShadow = 'rgba(27, 122, 94, 0.4)';
+            }
 
-            let card2Html = `
-            <div class="kpi-highlight-card">
-                 <div class="kpi-header-block pill-orange">
-                    <i class="fa-solid fa-list-check"></i>
-                    PHÂN TÍCH CHI TIẾT
-                </div>
-                <div class="kpi-body-content" style="justify-content: center; gap: 15px;">
-                    
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <div class="bar-chart-row" style="margin-bottom: 0;">
-                            <div class="bar-chart-label" style="width: 100px; font-size: 0.9em; display:flex; gap: 5px; align-items:center;"><i class="fa-solid fa-crosshairs" style="color:#e67e22;"></i> MT ngày</div>
-                            <div class="bar-chart-track" style="height: 14px; border-radius: 7px;">
-                                <div class="bar-chart-bar" style="width: ${p1}%; background-color: #FF9F43; height: 10px; border-radius: 6px;"></div>
-                            </div>
-                            <div class="bar-chart-value" style="font-size: 1.0em; font-weight: 700;">${formatNumber(kpis.mucTieuNgay, 0)}</div>
-                        </div>
-
-                        <div class="bar-chart-row" style="margin-bottom: 0;">
-                            <div class="bar-chart-label" style="width: 100px; font-size: 0.9em; display:flex; gap: 5px; align-items:center;"><i class="fa-solid fa-hourglass-half" style="color:#0984e3;"></i> Còn lại</div>
-                            <div class="bar-chart-track" style="height: 14px; border-radius: 7px;">
-                                 <div class="bar-chart-bar" style="width: ${p2}%; background-color: #00D2D3; height: 10px; border-radius: 6px;"></div>
-                            </div>
-                            <div class="bar-chart-value" style="color: ${doanhThuConLaiColor}; font-size: 1.0em; font-weight: 700;">${doanhThuConLaiDisplay}</div>
-                        </div>
-                    </div>
-
-                    <div class="green-info-box" style="padding: 8px; margin: 0; gap: 4px; border-radius: 10px;">
-                         <div class="green-info-row">
-                            <span class="green-info-label" style="font-size: 0.95em;"><i class="fa-solid fa-chart-line" style="color:#00b894;"></i> % Tăng trưởng</span>
-                            <span class="green-info-value" style="color:${kpis.growthRate >= 0 ? '#388E3C' : '#D32F2F'}; font-size: 1.1em; font-weight: 700;">${kpis.growthRate >= 0 ? '▲' : '▼'}${formatNumber(Math.abs(kpis.growthRate), 1)}%</span>
-                         </div>
-                         <div class="green-info-row">
-                            <span class="green-info-label" style="font-size: 0.95em;"><i class="fa-solid fa-scale-balanced" style="color:#9b59b6;"></i> ± DT cùng kỳ</span>
-                            <span class="green-info-value" style="color:${kpis.chenhLech >= 0 ? '#388E3C' : '#D32F2F'}; font-size: 1.1em; font-weight: 700;">${kpis.chenhLech >= 0 ? '▲' : '▼'}${formatNumber(Math.abs(kpis.chenhLech), 0)}</span>
-                         </div>
-                    </div>
-
-                    <div class="card2-item" style="border-top:1px dashed #eee; padding-top:10px; margin-bottom:0; display:flex; flex-direction: column; gap: 6px;">
-                         <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                             <div class="card2-label-group" style="gap: 8px;">
-                                  <i class="fa-solid fa-credit-card" style="color: #ff7675;"></i>
-                                  <span class="card2-label" style="font-size: 0.95em;">Tỷ trọng trả góp</span>
-                             </div>
-                             <div style="display:flex; align-items:center; gap:8px;">
-                                 <span class="card2-value" style="font-size: 1.25em; font-weight: 700; color: ${getColor(kpis.tyTrongTraGop)};">${formatNumber(kpis.tyTrongTraGop, 1)}%</span>
-                                 <div style="width:20px; height:20px; position:relative;">
-                                     <svg viewBox="0 0 36 36" style="width:100%; height:100%;">
-                                         <circle cx="18" cy="18" r="15.9155" fill="none" stroke="#dfe6e9" stroke-width="3"></circle>
-                                         <circle cx="18" cy="18" r="15.9155" fill="none" stroke="${getColor(kpis.tyTrongTraGop)}" stroke-width="3" stroke-dasharray="${Math.min(kpis.tyTrongTraGop, 100)}, 100" transform="rotate(-90 18 18)"></circle>
-                                     </svg>
-                                 </div>
-                             </div>
-                         </div>
-                         <div style="display:flex; align-items:center; justify-content:space-between; width:100%;">
-                             <div class="card2-label-group" style="padding-left: 28px;">
-                                  <span class="card2-label" style="font-size: 0.9em; color: #b2bec3;">Doanh thu trả góp</span>
-                             </div>
-                             <span class="card2-value" style="font-size: 1.0em; color: #636e72;">${formatNumber(kpis.doanhThuTraGop, 0)}</span>
-                         </div>
-                    </div>
-                </div>
-            </div>`;
-
-            // CARD 3: PHÂN TÍCH NĂM
-            const currentMonthData = yearlyData.find(d => parseInt(d['Tháng']) === currentMonth);
-            const dtNamNgoaiThangNay = currentMonthData ? (currentMonthData['Doanh thu năm ngoái'] || 0) : 0;
-            const diffYearly = kpis.dtDuKien - dtNamNgoaiThangNay;
-            const percentDiffYearly = dtNamNgoaiThangNay > 0 ? (diffYearly / dtNamNgoaiThangNay * 100) : 0;
-            const colorYearlyDiff = diffYearly >= 0 ? '#388E3C' : '#D32F2F';
-
-            let card3Html = `
-            <div class="kpi-highlight-card">
-                 <div class="kpi-header-block pill-red">
-                    <i class="fa-regular fa-calendar-check"></i>
-                    PHÂN TÍCH NĂM
-                </div>
-                <div class="kpi-body-content">
-                    <div class="kpi-split-row" style="border-bottom: 1px dashed #eee; padding-bottom: 4px; margin-bottom: 4px; align-items: center;">
-                        <div class="kpi-chart-left" style="width: 45%;">
-                            <svg viewBox="0 0 36 36" class="donut-svg">
-                                <circle cx="18" cy="18" r="15.9155" class="donut-bg" />
-                                <circle cx="18" cy="18" r="15.9155" class="donut-fill" stroke="${getColor(yearlyPercent)}" stroke-dasharray="${Math.min(yearlyPercent, 100).toFixed(2)}, 100" transform="rotate(-90 18 18)" />
-                            </svg>
-                            <div class="donut-inner-text">
-                                <span class="donut-percent-label" style="font-size: 0.8em;">% HT năm</span>
-                                <span class="donut-percent-val" style="color:${getColor(yearlyPercent)}; font-size: 1.5em; font-weight:800;">${formatNumber(yearlyPercent, 1)}%</span>
-                            </div>
-                        </div>
-                        <div class="kpi-stats-right" style="width: 55%; justify-content:center; gap: 4px;">
-                             <div class="stat-group" style="display:flex; flex-direction:column; align-items:flex-end; gap:0px; width: 100%;">
-                                <div style="display:flex; align-items:center; gap: 6px; color: var(--text-secondary);">
-                                    <i class="fa-solid fa-hand-holding-dollar" style="color:#00b894;"></i>
-                                    <span class="stat-label-small" style="font-size:0.9em;">DT Nợ năm</span>
-                                </div>
-                                <span class="stat-value-large" style="font-size: 1.6em !important;">${formatNumber(yearlyRemaining, 0)} Tr</span>
-                             </div>
-                        </div>
-                    </div>
-
-                    <div style="background-color: ${diffYearly >= 0 ? '#E8F5E9' : '#FFEBEE'}; padding: 8px 12px; border-radius: 10px; margin-bottom: 4px; display: flex; flex-direction: column; gap: 4px;">
-                        <div style="font-size: 0.85em; font-weight: 600; color: #636e72; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-clock-rotate-left" style="color:#0984e3;"></i> So với Năm ngoái (Tháng):</div>
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 800; color: ${colorYearlyDiff}; font-size: 1.15em;">${diffYearly >= 0 ? '+' : ''}${formatNumber(diffYearly, 0)}</span>
-                            <span style="font-weight: 700; color: ${colorYearlyDiff}; font-size: 1.0em; background: rgba(255,255,255,0.6); px: 6px; border-radius: 4px;">${diffYearly >= 0 ? '▲' : '▼'}${formatNumber(Math.abs(percentDiffYearly), 1)}%</span>
-                        </div>
-                    </div>
-
-                     <div style="display:flex; flex-direction:column; gap:6px; margin-top:2px;">
-                        <div class="card2-item" style="border:none; padding:0; margin:0; display:flex; align-items:center; justify-content:space-between;">
-                            <div class="card2-label-group" style="gap:6px;">
-                                <i class="fa-solid fa-money-bill-transfer" style="color:#fdcb6e;"></i>
-                                <span class="card2-label" style="font-size: 0.95em;">MT trả nợ/ngày</span>
-                            </div>
-                            <span class="card2-value" style="font-size: 1.05em; font-weight: 700;">${formatNumber(mucTieuTraNoNgay, 0)} Tr</span>
-                        </div>
-
-                        <div class="card2-item" style="border:none; padding:0; margin:0; display:flex; align-items:center; justify-content:space-between;">
-                            <div class="card2-label-group" style="gap:6px;">
-                                <i class="fa-solid fa-bullseye" style="color: #ff4757;"></i>
-                                <span class="card2-label" style="font-size: 0.95em;">${kyVongLabel}</span>
-                            </div>
-                            <span class="card2-value" style="color:#ff4757; font-size: 1.05em; font-weight: 700;">${formatNumber(mucTieuNgayKyVong, 0)} Tr</span>
-                        </div>
-                    </div>
-                </div>
-            </div>`;
-
-            // CHART CONTAINERS for Secondary Row - NOW 3 COLUMNS INCLUDING YEARLY REVENUE
-            const contributionChartHtml = `
-            <div class="kpi-new-card" style="height: 100%; overflow: hidden;">
-                <div id="contribution-chart-wrapper" style="height: 100%; display: flex; flex-direction: column;"></div>
-            </div>`;
-
-            const growthChartHtml = `
-            <div class="kpi-new-card" style="height: 100%; overflow: hidden;">
-                <div id="growth-chart-wrapper" style="height: 100%; display: flex; flex-direction: column;"></div>
-            </div>`;
-
-            // Yearly Revenue Chart moved to KPI Grid (3rd Slot)
-            const yearlyChartHtml = `
-            <div class="kpi-new-card" style="height: 100%; overflow: hidden;">
-                 <div id="yearly-revenue-kpi-container" style="height: 100%; display: flex; flex-direction: column;"></div>
-            </div>`;
-
-            // WRAPPING - STANDARDIZED HEIGHTS
             kpiContainer.innerHTML = `
-                <div class="master-layout-fix" style="display: flex; flex-direction: column; width: 100%;">
-                    
-                    <!-- ROW 1: HIGHLIGHTS -->
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 30px;">
-                        ${card1Html}
-                        ${card2Html}
-                        ${card3Html}
+                <style>
+                .kpid-wrapper { display: flex; gap: 15px; width: 100%; flex-wrap: wrap; margin-bottom: 20px; font-family: 'Segoe UI', system-ui, sans-serif; align-items: stretch; }
+                .kpid-block { background: #fff; border-radius: 12px; border: 1px solid #e2e8f0; padding: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; justify-content: flex-start; }
+                .kpid-left-col { flex: 1.8; min-width: 600px; }
+                .kpid-right-col { flex: 1; min-width: 300px; display: flex; flex-direction: column; }
+                .kpid-header { font-size: 1.1em; font-weight: 850; color: #000; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+                .kpid-grid-3 { display: grid; grid-template-columns: 1.4fr 0.9fr 0.9fr; gap: 12px; flex: 1; align-items: stretch; }
+                .kpid-grid-2x2 { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; flex: 1; min-height: 0; }
+                
+                .kpid-card-main { background: ${mainBg}; border-radius: 10px; color: #fff; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; overflow: hidden; box-shadow: 0 4px 10px ${mainShadow}; width: 100%; height: 100%; box-sizing: border-box; transition: background 0.3s ease; }
+                .kpid-card-main-title { font-size: 1.25em; font-weight: 850; opacity: 1; letter-spacing: -0.3px; text-align: center; }
+                
+                .kpid-card-light { background: #f8fafc; border-radius: 10px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center; border: 1px solid #f1f5f9; box-shadow: inset 0 0 0 1px #fff; width: 100%; height: 100%; box-sizing: border-box; }
+                .kpid-card-title { font-size: 1.1em; font-weight: 850; color: #000; }
+                .kpid-card-val { font-size: 2.8em; font-weight: 950; color: #0f172a; line-height: 1.1; margin: 10px 0; display: flex; align-items: center; justify-content: center; flex-grow: 1; }
+                
+                .kpid-card-mini { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 15px 10px; display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; width: 100%; height: 100%; box-sizing: border-box; min-height: 0; }
+                .kpid-card-mini.bg-orange { background: #fff7ed; border-color: #ffedd5; }
+                .kpid-card-mini.bg-red { background: #fff1f2; border-color: #ffe4e6; }
+                .kpid-mini-title { font-size: 1.05em; font-weight: 850; color: #000; display: flex; align-items: center; justify-content: center; gap: 4px; }
+                .kpid-mini-val { font-size: 2.6em; font-weight: 950; margin: 6px 0; line-height: 1.1; display:flex; align-items:center; justify-content: center; gap: 5px; flex-grow: 1; }
+                .kpid-mini-sub { font-size: 0.95em; font-weight: 700; color: #475569; }
+                
+                .kpid-up { color: #16a34a; }
+                .kpid-down { color: #dc2626; }
+                </style>
+                <div class="kpid-wrapper">
+                    <div class="kpid-block kpid-left-col">
+                        <div class="kpid-header">
+                            <i class="fa-solid fa-chart-column" style="color: #3b82f6;"></i> KẾT QUẢ NỔI BẬT
+                        </div>
+                        <div class="kpid-grid-3">
+                            <!-- Card 1: Thực hiện/Target (Size Maximized) -->
+                            <div class="kpid-card-main" style="position: relative; overflow: hidden; padding: 12px 10px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: ${mainTopBar};"></div>
+                                <div class="kpid-card-main-title" style="text-transform: uppercase; font-size: 0.9em; letter-spacing: 1.5px; opacity: 1; display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 2px;">
+                                    <i class="fa-solid fa-gauge-high"></i> Thực hiện / Target
+                                </div>
+                                
+                                <!-- Donut Chart Container: Scaled Up -->
+                                <div style="position: relative; width: 185px; height: 185px; margin: 2px 0;">
+                                    <svg viewBox="0 0 100 100" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                        <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8" />
+                                        <circle cx="50" cy="50" r="44" fill="none" stroke="#ffffff" stroke-width="8" stroke-dasharray="276.46" stroke-dashoffset="${276.46 - (Math.min(kpis.htTarget, 100) / 100) * 276.46}" stroke-linecap="round" />
+                                    </svg>
+                                    <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 2.4em; font-weight: 950; color: #ffffff; text-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                        ${formatNumber(kpis.htTarget, 1)}%
+                                    </div>
+                                </div>
+                                
+                                <!-- Metrics Below Donut: Scaled Up -->
+                                <div style="width: 100%; display: flex; flex-direction: column; gap: 2px; text-align: center;">
+                                    <div style="font-size: 1.75em; font-weight: 950; letter-spacing: -1px; color: #ffffff; line-height: 1;">
+                                        ${formatVal(kpis.luyKe)} / ${formatVal(kpis.target)}
+                                    </div>
+                                    <div style="font-size: 1.25em; font-weight: 900; background: rgba(255,255,255,0.18); padding: 4px 20px; border-radius: 8px; width: fit-content; margin: 6px auto 0; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                        MT Ngày: ${formatVal(displayDailyTarget)} Tr
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Card 2: Dự kiến tháng (Balanced Refinement + Cheetah Track) -->
+                            <div class="kpid-card-light" style="background: #ffffff; border: 1px solid transparent; position: relative; overflow: hidden; padding: 12px 12px 10px; display: flex; flex-direction: column; align-items: center; height: 100%; box-shadow: var(--card-shadow); border-radius: 8px;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #0071e3;"></div>
+                                
+                                <!-- Top Content Group -->
+                                <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 4px;">
+                                    <div class="kpid-card-title" style="font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                        <i class="fa-solid fa-bullseye" style="color: #3b82f6;"></i> Dự kiến tháng
+                                    </div>
+                                    <div class="kpid-card-val" style="font-size: 3.5em; color: #1e293b; margin: 0; letter-spacing: -1.5px; line-height: 1.0; flex-grow: 0;">${formatVal(kpis.dtDuKien)}</div>
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; background: #ecfdf5; color: #059669; padding: 4px 15px; border-radius: 20px; font-weight: 850; font-size: 0.85em; border: 1px solid #d1fae5; width: fit-content; white-space: nowrap;">
+                                        <i class="fa-solid fa-circle-check"></i> Dự kiến đạt ${formatNumber(kpis.htDuKien, 0)}%
+                                    </div>
+                                </div>
+
+                                <!-- Running Cheetah Decoration -->
+                                <div style="width: 100%; height: 75px; position: relative; margin: 4px 0; overflow: visible;">
+                                    <div style="position: absolute; bottom: 32px; left: 0; width: 100%; height: 6px; background: linear-gradient(90deg, #ecfdf5 0%, #10b981 100%); opacity: 0.2; border-radius: 3px;"></div>
+                                    <div style="position: absolute; bottom: 28px; left: 80%; width: 2px; height: 35px; background: #059669; opacity: 0.6;">
+                                        <div style="position: absolute; top: -12px; left: -10px; font-size: 0.65em; font-weight: 900; color: #059669; background: #fff; padding: 0 4px;">100%</div>
+                                    </div>
+                                    <div style="position: absolute; bottom: 32px; left: ${Math.min(kpis.htDuKien * 0.8, 95)}%; transform: translateX(-50%); transition: all 1s ease-out;">
+                                        <div style="position: relative;">
+                                            <i class="fa-solid fa-person-running" style="color: #3b82f6; font-size: 2.2em; transform: rotate(-5deg);"></i>
+                                            <div style="position: absolute; right: 80%; top: 60%; width: 35px; height: 3px; background: linear-gradient(90deg, transparent, #3b82f6); opacity: 0.3;"></div>
+                                            <div style="position: absolute; top: 38px; left: 50%; transform: translateX(-50%); font-size: 0.75em; font-weight: 900; color: #059669; white-space: nowrap; background: rgba(255,255,255,1); padding: 2px 8px; border-radius: 4px; border: 1px solid #d1fae5; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.1);">Vượt đích!</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Footer Group: Titled & Centered Installment Card -->
+                                <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); display: flex; flex-direction: column; align-items: center; width: 100%; margin-top: 5px; margin-bottom: 2px;">
+                                    <div style="font-size: 0.85em; color: #64748b; font-weight: 850; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; white-space: nowrap; display: flex; align-items: center; gap: 6px;">
+                                        <i class="fa-solid fa-credit-card" style="color: #f43f5e;"></i> Tỷ trọng trả góp
+                                    </div>
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; width: 100%;">
+                                        <div style="flex-shrink: 0; width: 62px; height: 62px; position: relative;">
+                                            <svg viewBox="0 0 36 36" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                                                <circle cx="18" cy="18" r="16" fill="none" stroke="#f1f5f9" stroke-width="5" />
+                                                <circle cx="18" cy="18" r="16" fill="none" stroke="${getColor(kpis.tyTrongTraGop, 8, 15)}" stroke-width="5" stroke-dasharray="${Math.min(kpis.tyTrongTraGop, 100)}, 100" stroke-linecap="round" />
+                                            </svg>
+                                            <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 1.0em; font-weight: 950; color: ${getColor(kpis.tyTrongTraGop, 8, 15)};">${formatNumber(kpis.tyTrongTraGop, 0)}%</div>
+                                        </div>
+                                        <div style="font-size: 2.1em; color: #1e293b; font-weight: 955; white-space: nowrap; line-height: 1; letter-spacing: -1px;">${formatVal(kpis.doanhThuTraGop)} Tr</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Card 3: Doanh thu còn lại (Balanced Refinement + Horse Track) -->
+                            <div class="kpid-card-light" style="background: #ffffff; border: 1px solid transparent; position: relative; overflow: hidden; padding: 12px 12px 10px; display: flex; flex-direction: column; align-items: center; height: 100%; box-shadow: var(--card-shadow); border-radius: 8px;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #0071e3;"></div>
+                                
+                                <!-- Top Content Group -->
+                                <div style="display: flex; flex-direction: column; align-items: center; width: 100%; gap: 4px;">
+                                    <div class="kpid-card-title" style="color: #000; font-size: 0.85em; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                        <i class="fa-solid fa-hourglass-half" style="color: #0ea5e9;"></i> Doanh thu còn lại
+                                    </div>
+                                    <div class="kpid-card-val" style="font-size: 3.5em; color: #1e293b; margin: 0; letter-spacing: -1.5px; line-height: 1.0; flex-grow: 0;">${formatVal(doanhThuConLai)}</div>
+                                    <div style="display: flex; align-items: center; justify-content: center; gap: 6px; background: #e0f2fe; color: #0369a1; padding: 4px 15px; border-radius: 20px; font-weight: 850; font-size: 0.85em; border: 1px solid #bae6fd; width: fit-content; white-space: nowrap;">
+                                        <i class="fa-solid fa-calendar-days"></i> Còn ${daysInMonth - daysUsed} ngày để bán
+                                    </div>
+                                </div>
+
+                                <!-- Time Progress Horse Decoration -->
+                                <div style="width: 100%; height: 75px; position: relative; margin: 4px 0; overflow: visible;">
+                                    <div style="position: absolute; bottom: 32px; left: 0; width: 100%; height: 8px; background: #f1f5f9; border-radius: 4px;"></div>
+                                    <div style="position: absolute; bottom: 32px; left: 0; width: ${(daysUsed / daysInMonth) * 100}%; height: 8px; background: #0071e3; border-radius: 4px; box-shadow: none;"></div>
+                                    <div style="position: absolute; bottom: 32px; left: ${Math.min((daysUsed / daysInMonth) * 100, 95)}%; transform: translateX(-50%); transition: all 1s ease-in-out;">
+                                        <div style="position: relative;">
+                                            <div style="position: absolute; right: 100%; top: -5px; transform: translateX(-5px); color: #1e293b; font-size: 0.85em; font-weight: 950; white-space: nowrap; letter-spacing: -0.5px;">
+                                                ${formatVal(kpis.mucTieuNgayBase)}
+                                            </div>
+                                            <i class="fa-solid fa-horse" style="color: #1e293b; font-size: 1.8em; transform: rotate(-5deg);"></i>
+                                            <div style="position: absolute; top: 35px; left: 50%; transform: translateX(-50%); font-size: 0.75em; font-weight: 900; color: #0369a1; white-space: nowrap; background: rgba(255,255,255,1); padding: 2px 8px; border-radius: 4px; box-shadow: 0 2px 6px rgba(14, 165, 233, 0.1);">Còn ${daysInMonth - daysUsed} ngày cơ hội</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Last 7 Days Revenue Bar Chart -->
+                                <div style="width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 4px; height: 75px; margin-top: auto; padding-bottom: 2px;">
+                                    ${(() => {
+                                        // Get last 7 days with data
+                                        const last7Days = (dailyData || [])
+                                            .filter(d => d['DT Tháng này'] > 0)
+                                            .sort((a, b) => parseInt(a['Ngày']) - parseInt(b['Ngày']))
+                                            .slice(-7);
+                                        
+                                        const maxRev = Math.max(...last7Days.map(d => d['DT Tháng này']), 1);
+                                        
+                                        return last7Days.map(d => {
+                                            const h = (d['DT Tháng này'] / maxRev) * 100;
+                                            return `
+                                                <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;">
+                                                    <span style="font-size: 0.55em; font-weight: 850; color: #0369a1; margin-bottom: 2px;">${formatNumber(d['DT Tháng này'], 0)}</span>
+                                                    <div style="width: 100%; background: #0071e3; height: ${h}%; border-radius: 0;" title="Ngày ${d['Ngày']}: ${formatNumber(d['DT Tháng này'])}"></div>
+                                                    <span style="font-size: 0.5em; font-weight: 800; color: #94a3b8; margin-top: 2px;">${d['Ngày'].padStart(2, '0')}</span>
+                                                </div>
+                                            `;
+                                        }).join('');
+                                    })()}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- ROW 2: ANALYTICS -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr 2fr; gap: 30px; height: 300px; min-height: 300px;">
-                        ${contributionChartHtml}
-                        ${growthChartHtml}
-                        ${yearlyChartHtml}
+                    <div class="kpid-block kpid-right-col">
+                        <div class="kpid-header">
+                            <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b;"></i> XU HƯỚNG & CẢNH BÁO
+                        </div>
+                        <div class="kpid-grid-2x2">
+                            <!-- Card 4: Tăng trưởng tháng -->
+                            <div class="kpid-card-mini" style="position: relative; overflow: hidden; padding-top: 20px;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #22c55e;"></div>
+                                <div class="kpid-mini-title" style="text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px;"><i class="fa-solid fa-chart-line" style="color:#22c55e;"></i> Tăng trưởng tháng</div>
+                                <div class="kpid-mini-val ${kpis.growthRate >= 0 ? 'kpid-up' : 'kpid-down'}" style="font-size: 2.8em; margin: 8px 0;">${kpis.growthRate >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(kpis.growthRate), 1)}%</div>
+                                <div class="kpid-mini-sub" style="font-weight: 700;">(${kpis.chenhLech >= 0 ? '▲' : '▼'}${formatVal(Math.abs(kpis.chenhLech))} Tr)</div>
+                            </div>
+                            <!-- Card 5: Hiệu suất thi đua -->
+                            <div class="kpid-card-mini" style="position: relative; overflow: hidden; padding-top: 20px; background: #fffcf0; border-color: #fee2e2;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #f59e0b;"></div>
+                                <div class="kpid-mini-title" style="font-weight: 800; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <i class="fa-solid fa-trophy" style="color: #f59e0b;"></i> Hiệu suất thi đua
+                                </div>
+                                <div class="kpid-mini-val" style="color: #000; font-size: 3.2em; font-weight: 900; margin: 8px 0;">${reachingTargetCount}/${totalSelected}</div>
+                                <div class="kpid-mini-sub" style="font-weight: 700; color: #d97706;">Dự kiến: ${formatNumber(competitionPercent, 0)}%</div>
+                            </div>
+                            <!-- Card 6: Tăng trưởng Năm -->
+                            <div class="kpid-card-mini" style="position: relative; overflow: hidden; padding-top: 20px;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: #4f46e5;"></div>
+                                <div class="kpid-mini-title" style="text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                    <i class="fa-solid fa-chart-line" style="color: #6366f1;"></i> Tăng trưởng Năm
+                                </div>
+                                <div class="kpid-mini-val ${yearlyComparisonPercent >= 0 ? 'kpid-up' : 'kpid-down'}" style="font-size: 2.8em; margin: 8px 0;">
+                                    ${yearlyComparisonPercent >= 0 ? '▲' : '▼'} ${formatNumber(Math.abs(yearlyComparisonPercent), 1)}%
+                                </div>
+                                <div class="kpid-mini-sub" style="font-weight: 700;">(${yearlyComparisonValue >= 0 ? '▲' : '▼'}${formatVal(Math.abs(yearlyComparisonValue))} Tr)</div>
+                            </div>
+                            <!-- REDESIGNED Card 7: HT Năm Dự Kiến & Chênh lệch -->
+                            <div class="kpid-card-mini" style="position: relative; overflow: hidden; padding: 12px 10px; background: ${yearlyPercent >= 100 ? '#f0fdf4' : '#fff5f5'}; border-color: ${yearlyPercent >= 100 ? '#bbf7d0' : '#fee2e2'}; display: flex; flex-direction: column; justify-content: center;">
+                                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: ${yearlyPercent >= 100 ? '#16a34a' : '#ef4444'};"></div>
+                                
+                                <div class="kpid-mini-title" style="text-transform: uppercase; font-size: 0.75em; letter-spacing: 0.5px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 5px;">
+                                    <i class="fa-solid fa-earth-asia" style="color: ${yearlyPercent >= 100 ? '#16a34a' : '#dc2626'};"></i> HT Năm Dự Kiến
+                                                                    </div>
+                                
+                                <div class="kpid-mini-val" style="color: ${yearlyPercent >= 100 ? '#115e59' : '#991b1b'}; font-size: 2.8em; font-weight: 950; margin: 4px 0; letter-spacing: -1.5px;">
+                                    ${formatNumber(yearlyPercent, 1)}%
+                                </div>
+                                
+                                <div style="font-size: 0.85em; font-weight: 800; color: #475569; margin-bottom: 6px;">
+                                    Dự kiến: <span style="color: ${yearlyPercent >= 100 ? '#16a34a' : '#dc2626'};">${formatVal(yearlyActualTotal)}/${formatVal(yearlyTargetTotal)}</span>
+                                </div>
+                                
+                                <div class="kpid-mini-sub" style="font-weight: 700; color: ${yearlyRemaining <= 0 ? '#134e4a' : '#ef4444'}; font-size: 0.75em; background: rgba(255,255,255,0.5); padding: 3px 8px; border-radius: 4px; display: inline-block;">
+                                    <i class="fa-solid ${yearlyRemaining <= 0 ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> 
+                                    ${yearlyRemaining <= 0 ? 'DT DƯ NĂM: ' : 'DT NỢ NĂM: '}${formatVal(Math.abs(yearlyRemaining))} Tr
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; height: 280px;">
+                    <div class="kpi-new-card" style="overflow: hidden;">
+                        <div id="analytics-charts-wrapper" style="height: 100%; display: flex; flex-direction: column;"></div>
+                    </div>
+                    <div class="kpi-new-card" style="overflow: hidden;">
+                        <div id="yearly-revenue-kpi-container" style="height: 100%; display: flex; flex-direction: column; padding: 15px 20px;"></div>
                     </div>
                 </div>
             `;
 
-            // Hide the old static container if it exists
+            setTimeout(() => {
+                new Chart('kpiDonutTraGop', {
+                    type: 'doughnut',
+                    data: {
+                        datasets: [{
+                            data: [kpis.tyTrongTraGop, 100 - kpis.tyTrongTraGop],
+                            backgroundColor: ['#3b82f6', '#f1f5f9'],
+                            borderWidth: 0, cutout: '75%'
+                        }]
+                    },
+                    options: { maintainAspectRatio: false, plugins: { datalabels: { display: false } } }
+                });
+            }, 100);
+
             const oldYearlyWrapper = document.getElementById('yearly-revenue-chart-wrapper');
             if (oldYearlyWrapper) oldYearlyWrapper.style.display = 'none';
         }
+
 
         function hideYearlyRevenueChart() {
             const container = document.getElementById('yearly-revenue-chart-wrapper');
@@ -3036,7 +4000,7 @@
                     const diffPercentColor = row.DiffPercent >= 0 ? '#388E3C' : '#D32F2F';
 
                     // Format Money Diff: +/- Value
-                    const diffMoneyStr = (row.DiffMoney >= 0 ? '+' : '') + formatNumber(row.DiffMoney, 0);
+                    const diffMoneyStr = (row.DiffMoney >= 0 ? '▲' : '▼') + formatNumber(Math.abs(row.DiffMoney), 0);
 
                     // Daily Target display logic: text-align right below bar
                     const mtNgayDisplay = row.MTNgay > 0
@@ -3049,7 +4013,7 @@
                         <td style="text-align:center; color:#555;">${formatNumber(row.Contribution, 1)}%</td>
                         <td>${formatNumber(row["Target (QĐ)"])}</td>
                         <td style="color:${diffMoneyColor}; font-weight:600; font-size:0.95em;">${diffMoneyStr}</td>
-                        <td style="color:${diffPercentColor}; font-weight:600; font-size:0.95em;">${Math.abs(row.DiffPercent) < 0.01 && row.DiffPercent !== 0 ? (row.DiffPercent > 0 ? '+' : '-') + '0%' : (row.DiffPercent > 0 ? '+' : '') + formatNumber(row.DiffPercent, 1) + '%'}</td>
+                        <td style="color:${diffPercentColor}; font-weight:600; font-size:0.95em;">${Math.abs(row.DiffPercent) < 0.01 && row.DiffPercent !== 0 ? (row.DiffPercent > 0 ? '▲' : '▼') + '0%' : (row.DiffPercent > 0 ? '▲' : '▼') + formatNumber(Math.abs(row.DiffPercent), 1) + '%'}</td>
                         <td>
                             <div class="bar-wrapper" style="display: flex; flex-direction: column; justify-content: center; height: 100%;">
                                 <div class="bar-info-row" style="margin-top:0; font-size:0.9em; display:flex; justify-content:space-between; margin-bottom: 3px; align-items:center;">
@@ -3057,8 +4021,8 @@
                                     <span style="color:${row.ConLai <= 0 ? 'var(--success-color)' : '#999'}; font-size:0.85em; font-weight:600;">${row.ConLai <= 0 ? '✔ Về đích' : ('Còn: ' + formatNumber(row.ConLai, 0))}</span>
                                 </div>
                                 <div class="bar-container-row">
-                                    <div class="bar-track" style="height: 6px; background: #eee; border-radius:3px;">
-                                        <div class="bar-fill" style="height: 100%; border-radius:3px; width: ${Math.min(row["% HT Target (QĐ)"], 100)}%; background-color: ${getColor(row["% HT Target (QĐ)"])};"></div>
+                                    <div class="bar-track" style="height: 6px; background: #eee; border-radius:0;">
+                                        <div class="bar-fill" style="height: 100%; border-radius:0; width: ${Math.min(row["% HT Target (QĐ)"], 100)}%; background-color: ${getColor(row["% HT Target (QĐ)"])};"></div>
                                     </div>
                                 </div>
                                 ${mtNgayDisplay}
@@ -3091,12 +4055,12 @@
                 // Compact Header for Card - Matching other Analytics Cards
                 wrapper.innerHTML = `
                 <div class="kpi-header-block pill-blue" style="margin-bottom: 5px; align-self: flex-start; font-size: 0.8em; padding: 4px 10px;">
-                     <svg fill="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H6V1H8V3H16V1H18V3H19M19,19V8H5V19H19Z"/></svg>
+                     <svg fill="#3b82f6" viewBox="0 0 24 24" style="width:14px;height:14px; margin-right:5px;"><path d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H6V1H8V3H16V1H18V3H19M19,19V8H5V19H19Z"/></svg>
                     DOANH THU NĂM
                 </div>
                 <div class="chart-container" style="flex: 1; min-height: 0;"><canvas id="yearlyRevenueChart"></canvas></div>`;
             } else {
-                wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H6V1H8V3H16V1H18V3H19M19,19V8H5V19H19Z"/></svg>Doanh thu Năm</h2><div class="chart-container" style="height: 250px;"><canvas id="yearlyRevenueChart"></canvas></div>`;
+                wrapper.innerHTML = `<h2><svg class="title-icon" style="color: #3b82f6;" viewBox="0 0 24 24"><path fill="currentColor" d="M9,10H7V12H9V10M13,10H11V12H13V10M17,10H15V12H17V10M19,3A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3H6V1H8V3H16V1H18V3H19M19,19V8H5V19H19Z"/></svg>Doanh thu Năm</h2><div class="chart-container" style="height: 250px;"><canvas id="yearlyRevenueChart"></canvas></div>`;
             }
 
             const currentMonth = reportDate.getMonth() + 1;
@@ -3110,7 +4074,7 @@
                             label: 'Năm ngoái',
                             data: yearlyData.map(d => d['Doanh thu năm ngoái'] || 0),
                             backgroundColor: '#b2bec3', /* Grey */
-                            borderRadius: 6,
+                            borderRadius: 0,
                             barPercentage: 0.6,
                             categoryPercentage: 0.8,
                             order: 1,
@@ -3127,7 +4091,7 @@
                             backgroundColor: 'rgba(254, 202, 87, 0.4)', /* Yellow/Amber Transparent matching VIBRANT_PALETTE[2] */
                             borderColor: VIBRANT_PALETTE[2], // Yellow for target border
                             borderWidth: 1,
-                            borderRadius: 6,
+                            borderRadius: 0,
                             barPercentage: 0.6,
                             categoryPercentage: 0.8,
                             order: 2,
@@ -3140,7 +4104,7 @@
                                 const val = ctx.raw;
                                 return parseInt(yearlyData[ctx.dataIndex]['Tháng']) === currentMonth ? VIBRANT_PALETTE[3] : VIBRANT_PALETTE[0]; // Orange for current, Blue for others
                             },
-                            borderRadius: 6,
+                            borderRadius: 0,
                             barPercentage: 0.6,
                             categoryPercentage: 0.8,
                             order: 3,
@@ -3179,8 +4143,8 @@
         function renderDailyComparisonChart(dailyData, yearlyData, kpis, reportDate, daysInMonth) {
             const wrapper = document.getElementById('daily-comparison-chart-wrapper');
             if (!dailyData || dailyData.length === 0 || dailyData.every(d => (d['DT Tháng này'] === 0 && d['DT Tháng trước'] === 0))) { hideDailyComparisonChart(); return; }
-            // HEIGHT UPDATE: 270px canvas + ~80px header/padding = ~350px Total
-            wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3H18V1M17,12H12V17H17V12Z"/></svg>So sánh Doanh thu Ngày</h2><div class="chart-container" style="height: 270px;"><canvas id="dailyComparisonChart"></canvas></div>`;
+            // HEIGHT UPDATE: 210px canvas to match yearly charts in middle row
+            wrapper.innerHTML = `<h2><svg class="title-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M19,19H5V8H19M16,1V3H8V1H6V3H5C3.89,3 3,3.9 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3H18V1M17,12H12V17H17V12Z"/></svg>So sánh Doanh thu Ngày</h2><div class="chart-container" style="height: 250px; position: relative;"><canvas id="dailyComparisonChart"></canvas></div>`;
             const monthTarget = yearlyData.find(row => parseInt(row['Tháng']) === reportDate.getMonth() + 1)?.['Target tháng'] || 0;
             const dailyTarget = monthTarget > 0 && daysInMonth > 0 ? monthTarget / daysInMonth : (kpis.target > 0 && daysInMonth > 0 ? kpis.target / daysInMonth : 0);
             const thisMonthRevenue = new Array(daysInMonth).fill(null), lastMonthRevenue = new Array(daysInMonth).fill(null);
@@ -3191,7 +4155,29 @@
                     if (d['DT Tháng trước'] > 0) lastMonthRevenue[dayIndex] = d['DT Tháng trước'];
                 }
             });
-            const weekendColorCallback = (context) => { const dayOfWeek = new Date(reportDate.getFullYear(), reportDate.getMonth(), context.dataIndex + 1).getDay(); return dayOfWeek === 0 || dayOfWeek === 6 ? VIBRANT_PALETTE[4] : VIBRANT_PALETTE[1]; };
+            const weekendColorCallback = (context) => {
+                if (context.dataIndex === undefined) return '#009944'; // Green from triangle
+                const dayOfWeek = new Date(reportDate.getFullYear(), reportDate.getMonth(), context.dataIndex + 1).getDay();
+                return (dayOfWeek === 0 || dayOfWeek === 6) ? '#ef4444' : '#009944'; // Work day matched to triangle
+            };
+
+            // Calculation for centered weekend labels
+            const weekendLabelData = new Array(daysInMonth).fill(null);
+            const weekendPillData = new Array(daysInMonth).fill(null);
+            
+            // Fixed height for the pill above the bars
+            const maxDaily = Math.max(...thisMonthRevenue.filter(v => v !== null), 1);
+            const pillYLevel = maxDaily * 1.15;
+
+            for (let i = 0; i < daysInMonth; i++) {
+                const dayOfWeek = new Date(reportDate.getFullYear(), reportDate.getMonth(), i + 1).getDay();
+                if (dayOfWeek === 6) { // Saturday
+                    // ONLY SHOW LABEL if the day has actual revenue data (i.e. it has already occurred)
+                    if (thisMonthRevenue[i] !== null || (i + 1 < daysInMonth && thisMonthRevenue[i+1] !== null)) {
+                        weekendPillData[i] = pillYLevel;
+                    }
+                }
+            }
 
             new Chart('dailyComparisonChart', {
                 type: 'bar',
@@ -3199,14 +4185,66 @@
                     labels: Array.from({ length: daysInMonth }, (_, i) => `Ngày ${i + 1}`),
                     datasets: [
                         {
+                            type: 'line',
+                            label: 'Cuối tuần',
+                            data: weekendPillData,
+                            showLine: false,
+                            pointRadius: 0,
+                            order: 0,
+                            datalabels: {
+                                display: (ctx) => ctx.dataset.data[ctx.dataIndex] !== null,
+                                formatter: () => '🎁 Cuối tuần',
+                                color: '#1e3a8a',
+                                backgroundColor: '#fff7ed',
+                                borderColor: '#f59e0b',
+                                borderWidth: 1.5,
+                                borderRadius: 6,
+                                padding: { top: 4, bottom: 4, left: 6, right: 6 },
+                                font: { weight: '850', size: 9 },
+                                anchor: 'center',
+                                align: 'center',
+                                // SHIFT RIGHT: This pushes the label from Saturday's center to the GAP between Sat and Sun
+                                // The value depends on category width, but 'center' on a line point at Sat 
+                                // plus a horizontal offset is very reliable.
+                                //@ts-ignore
+                                listeners: {
+                                    beforeRender: (ctx) => {
+                                        const chart = ctx.chart;
+                                        const meta = chart.getDatasetMeta(2); // 'Hiện tại' is index 2
+                                        if (meta.data[0]) {
+                                            const categoryWidth = meta.data[0].width || 20;
+                                            // Shift right by roughly half the category gap
+                                            ctx.properties.x += categoryWidth * 0.6;
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            label: 'Cuối tuần ', // Space for unique legend
+                            data: [],
+                            backgroundColor: '#ef4444',
+                            order: 4,
+                            stack: 'Stack 0'
+                        },
+                        {
                             label: 'Hiện tại',
                             data: thisMonthRevenue,
                             backgroundColor: weekendColorCallback,
-                            order: 2,
-                            borderRadius: 4,
+                            order: 3,
+                            borderRadius: 0,
                             barPercentage: 0.7,
                             categoryPercentage: 0.8,
-                            datalabels: { display: (ctx) => ctx.dataset.data[ctx.dataIndex] !== null, formatter: (value) => formatNumber(value, 0), color: (ctx) => weekendColorCallback(ctx), align: 'top', anchor: 'end', offset: -5, font: { weight: 'bold' } }
+                            stack: 'Stack 0',
+                            datalabels: { 
+                                display: (ctx) => ctx.dataset.data[ctx.dataIndex] !== null, 
+                                formatter: (value) => formatNumber(value, 0), 
+                                color: (ctx) => weekendColorCallback(ctx), 
+                                align: 'top', 
+                                anchor: 'end', 
+                                offset: -5, 
+                                font: { weight: 'bold', size: 10 }
+                            }
                         },
                         {
                             type: 'line',
@@ -3219,8 +4257,8 @@
                             borderWidth: 2,
                             fill: false,
                             tension: 0.3,
-                            order: 1,
-                            datalabels: { display: (ctx) => ctx.dataset.data[ctx.dataIndex] !== null, formatter: (value) => formatNumber(value, 0), color: '#888', align: 'bottom', font: { size: 10 } }
+                            order: 2,
+                            datalabels: { display: (ctx) => ctx.dataset.data[ctx.dataIndex] !== null, formatter: (value) => formatNumber(value, 0), color: '#888', align: 'bottom', font: { size: 12 } }
                         },
                         {
                             type: 'line',
@@ -3232,7 +4270,7 @@
                             borderWidth: 2,
                             pointRadius: 0,
                             fill: false,
-                            order: 0,
+                            order: 1,
                             datalabels: { display: true, color: VIBRANT_PALETTE[2], align: 'end', anchor: 'end', formatter: (value, context) => context.dataIndex === Math.floor(daysInMonth / 2) ? formatNumber(value, 0) : '', font: { weight: 'bold' } }
                         }
                     ]
@@ -3241,13 +4279,26 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { font: { size: 9 }, boxWidth: 6 } },
-                        tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#333', bodyColor: '#333', borderColor: '#ddd', borderWidth: 1, displayColors: true, boxPadding: 4 },
-                        datalabels: { display: true, font: { size: 8 } }
+                        legend: { 
+                            position: 'top', 
+                            labels: { 
+                                font: { size: 12, weight: '700' }, 
+                                color: '#1e293b',
+                                boxWidth: 8,
+                                filter: (item) => item.text !== 'Cuối tuần' 
+                            } 
+                        },
+                        tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#1e293b', bodyColor: '#1e293b', borderColor: '#cbd5e1', borderWidth: 1 },
+                        datalabels: { display: true, font: { size: 12, weight: '700' } } 
                     },
                     scales: {
-                        y: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 8 }, callback: (value) => formatNumber(value, 0) } },
-                        x: { grid: { display: false }, ticks: { font: { size: 8 }, callback: function (val) { return this.getLabelForValue(val).replace('Ngày ', ''); }, autoSkip: false, maxRotation: 0, minRotation: 0 } }
+                        y: { 
+                            beginAtZero: true, 
+                            suggestedMax: pillYLevel * 1.1, 
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' }, 
+                            ticks: { font: { size: 11, weight: '600' }, color: '#475569', callback: (value) => formatNumber(value, 0) } 
+                        },
+                        x: { grid: { display: false }, ticks: { font: { size: 11, weight: '600' }, color: '#475569', callback: function (val) { return this.getLabelForValue(val).replace('Ngày ', ''); }, autoSkip: false } }
                     }
                 }
             });
@@ -3256,30 +4307,32 @@
 
         function renderLuyKeCharts(data) {
             const chartData = data.filter(row => row["DTQĐ"] > 0), growthData = data.filter(r => r.DTQĐ !== 0 || (r["+/- DTCK Tháng (QĐ)"] !== 0 && r["+/- DTCK Tháng (QĐ)"] !== -100));
-            // Cập nhật cấu trúc tiêu đề dạng Pill và đồng bộ khung cho biểu đồ
-            // Cập nhật cấu trúc tiêu đề dạng Pill và đồng bộ khung cho biểu đồ
-            document.getElementById('contribution-chart-wrapper').innerHTML = `
-                <div class="kpi-header-block pill-cyan" style="font-size: 0.8em; padding: 4px 10px; margin-bottom: 5px;">
-                    <svg fill="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M11 2v9h9a9 9 0 00-9-9zm2 1.08a7 7 0 016.92 6.92H13V3.08zM4 12a8 8 0 018-8v8H4zm9 8a8 8 0 01-8-8h8v8z"/></svg>
-                    TỶ TRỌNG DOANH THU
-                </div>
-                <div class="kpi-body-content" style="padding: 0 10px 10px 10px; display: flex; flex-direction: column; flex-grow: 1; min-height: 0;">
-                    <div class="chart-container" style="flex: 1; min-height: 0; position: relative;"><canvas id="contributionChart"></canvas></div>
-                </div>`;
 
-            document.getElementById('growth-chart-wrapper').innerHTML = `
-                <div class="kpi-header-block pill-teal" style="font-size: 0.8em; padding: 4px 10px; margin-bottom: 5px;">
-                    <svg fill="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M22,21H2V3H4V19H22V21M18,17V9H20V17H18M14,17V12H16V17H14M10,17V5H12V17H10M6,17V14H8V17H6Z"/></svg>
-                    Tăng/Giảm Cùng kỳ
-                </div>
-                <div class="kpi-body-content" style="padding: 0 10px 10px 10px; display: flex; flex-direction: column; flex-grow: 1; min-height: 0;">
-                    <div class="chart-container" style="flex: 1; min-height: 0; position: relative;"><canvas id="growthDriverChart"></canvas></div>
-                </div>`;
+            const wrapper = document.getElementById('analytics-charts-wrapper');
+            if (wrapper) {
+                wrapper.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 15px 4px 15px;">
+                        <div class="kpi-header-block pill-cyan" style="font-size: 0.75em; padding: 3px 10px; margin:0;">
+                             <svg fill="#06b6d4" viewBox="0 0 24 24" style="width:12px;height:12px; margin-right:5px;"><path d="M11 2v9h9a9 9 0 00-9-9zm2 1.08a7 7 0 016.92 6.92H13V3.08zM4 12a8 8 0 018-8v8H4zm9 8a8 8 0 01-8-8h8v8z"/></svg> TỶ TRỌNG NGÀNH HÀNG VÀ BIẾN ĐỘNG
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 0; flex: 1; min-height: 0; padding: 0 15px 15px 15px;">
+                        <div style="display: flex; flex-direction: column; height: 100%; min-height: 0; justify-content: center;">
+                            <div class="chart-container" style="flex: 1; position: relative; min-height: 0;"><canvas id="contributionChart"></canvas></div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; height: 100%; min-height: 0;">
+                            <div class="chart-container" style="flex: 1; position: relative; min-height: 0;"><canvas id="growthDriverChart"></canvas></div>
+                        </div>
+                    </div>
+                `;
+            }
 
-            const sortedDataByDT = [...chartData].sort((a, b) => b.DTQĐ - a.DTQĐ), totalDT = sortedDataByDT.reduce((s, r) => s + r.DTQĐ, 0), threshold = 0.05 * totalDT;
-            const topCategories = [], otherCategories = [];
-            for (const item of sortedDataByDT) { if (item.DTQĐ >= threshold || topCategories.length < 5) topCategories.push(item); else otherCategories.push(item); }
-            if (otherCategories.length > 0) topCategories.push({ "Nhóm ngành hàng": "Ngành hàng khác", "DTQĐ": otherCategories.reduce((s, r) => s + r.DTQĐ, 0) });
+            const sortedDataByDT = [...chartData].sort((a, b) => b.DTQĐ - a.DTQĐ);
+            const totalDT = sortedDataByDT.reduce((s, r) => s + r.DTQĐ, 0);
+            const top5 = sortedDataByDT.slice(0, 5);
+            const others = sortedDataByDT.slice(5);
+            const topCategories = [...top5];
+            if (others.length > 0) topCategories.push({ "Nhóm ngành hàng": "Ngành hàng khác", "DTQĐ": others.reduce((s, r) => s + r.DTQĐ, 0) });
 
             new Chart('contributionChart', {
                 type: 'doughnut',
@@ -3290,7 +4343,8 @@
                         backgroundColor: VIBRANT_PALETTE,
                         borderColor: '#fff',
                         borderWidth: 2,
-                        hoverOffset: 10
+                        hoverOffset: 15,
+                        cutout: '50%'
                     }]
                 },
                 options: {
@@ -3298,30 +4352,48 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#333', bodyColor: '#333', borderColor: '#ddd', borderWidth: 1, displayColors: true, boxPadding: 4 },
+                        tooltip: {
+                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                            titleColor: '#1e293b',
+                            bodyColor: '#1e293b',
+                            borderColor: '#e2e8f0',
+                            borderWidth: 1,
+                            displayColors: true,
+                            boxPadding: 6,
+                            padding: 10
+                        },
                         datalabels: {
                             display: true,
                             color: '#fff',
-                            font: { size: 9, weight: 'bold' },
+                            // Fixed: The font size property itself cannot be a callback inside a static object in this version
+                            font: { size: 10, weight: '700' }, // Softened weight
                             formatter: (value, ctx) => {
                                 const label = ctx.chart.data.labels[ctx.dataIndex];
                                 const percent = ((value / totalDT) * 100).toFixed(1);
+                                if (parseFloat(percent) < 7) return percent + '%';
                                 return label + '\n' + formatNumber(value, 0) + ' (' + percent + '%)';
                             },
-                            anchor: 'center',
-                            align: 'center',
                             textAlign: 'center',
-                            backgroundColor: 'rgba(0, 0, 0, 0.45)',
-                            borderRadius: 4,
-                            padding: 2
+                            backgroundColor: 'rgba(0, 0, 0, 0.85)', // Darker background for contrast
+                            borderRadius: 6,
+                            padding: 6,
+                            anchor: 'center',
+                            align: 'center'
                         }
                     },
-                    layout: { padding: 5 }
+                    layout: { padding: 15 } // More padding to avoid clipping bold text
                 }
             });
             allChartsLuyKe.push(Chart.getChart("contributionChart"));
 
-            const calcData = growthData.map(r => ({ name: r["Nhóm ngành hàng"], diff: r.DTQĐ - ((1 + r["+/- DTCK Tháng (QĐ)"] / 100) !== 0 ? r.DTQĐ / (1 + r["+/- DTCK Tháng (QĐ)"] / 100) : 0) })).filter(d => d.diff !== 0).sort((a, b) => a.diff - b.diff);
+            const calcData = growthData.map(r => ({
+                name: r["Nhóm ngành hàng"],
+                diff: r.DTQĐ - ((1 + r["+/- DTCK Tháng (QĐ)"] / 100) !== 0 ? r.DTQĐ / (1 + r["+/- DTCK Tháng (QĐ)"] / 100) : 0),
+                percent: r["+/- DTCK Tháng (QĐ)"] || 0
+            })).filter(d => d.diff !== 0).sort((a, b) => a.diff - b.diff);
+
+            const maxVal = Math.max(...calcData.map(d => Math.abs(d.diff)), 1);
+            const scaleLimit = maxVal * 1.5;
 
             new Chart('growthDriverChart', {
                 type: 'bar',
@@ -3329,10 +4401,10 @@
                     labels: calcData.map(d => d.name),
                     datasets: [{
                         data: calcData.map(d => d.diff),
-                        backgroundColor: calcData.map(d => d.diff > 0 ? VIBRANT_PALETTE[1] : VIBRANT_PALETTE[4]),
-                        borderRadius: 4,
-                        barPercentage: 0.9,
-                        categoryPercentage: 1.0
+                        backgroundColor: calcData.map(d => d.diff > 0 ? '#10b981' : '#f43f5e'),
+                        borderRadius: 0,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.85,
                     }]
                 },
                 options: {
@@ -3341,35 +4413,54 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.9)', titleColor: '#333', bodyColor: '#333', borderColor: '#ddd', borderWidth: 1, displayColors: true, boxPadding: 4 },
+                        tooltip: { backgroundColor: 'rgba(255, 255, 255, 0.95)', titleColor: '#333', bodyColor: '#333', borderColor: '#ddd', borderWidth: 1, displayColors: true, boxPadding: 4 },
                         datalabels: {
                             display: true,
-                            color: '#000',
-                            font: { size: 9, weight: 'bold' },
-                            formatter: (value) => value !== 0 ? formatNumber(value, 0) : '',
-                            anchor: 'end',
-                            align: 'right',
-                            offset: 2,
-                            textStrokeColor: '#fff',
-                            textStrokeWidth: 2
+                            color: '#1e293b', // Dark slate instead of pure black
+                            font: { size: 10, weight: '700' }, // Medium-bold weight
+                            formatter: (value, ctx) => {
+                                if (Math.abs(value) === 0) return '';
+                                const percent = calcData[ctx.dataIndex].percent;
+                                return `${value > 0 ? '+' : ''}${formatNumber(value, 0)} (${percent > 0 ? '+' : ''}${formatNumber(percent, 0)}%)`;
+                            },
+                            anchor: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'end' : 'start',
+                            align: (ctx) => ctx.dataset.data[ctx.dataIndex] >= 0 ? 'right' : 'left',
+                            offset: 6
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, display: false },
+                        x: {
+                            min: -scaleLimit,
+                            max: scaleLimit,
+                            grid: {
+                                display: true,
+                                color: (ctx) => ctx.tick.value === 0 ? '#475569' : 'rgba(0,0,0,0.05)',
+                                lineWidth: (ctx) => ctx.tick.value === 0 ? 1.5 : 1
+                            },
+                            ticks: { 
+                                display: true, 
+                                font: { size: 10, weight: '600' }, 
+                                color: '#475569',
+                                callback: (val) => val === 0 ? '0' : ''
+                            }
+                        },
                         y: {
                             grid: { display: false },
                             border: { display: false },
                             ticks: {
-                                font: { size: 8 },
-                                color: '#2d3436',
-                                padding: -4,
-                                crossAlign: 'far',
+                                font: { size: 11, weight: '700' }, 
+                                color: '#1e293b',
                                 autoSkip: false,
-                                maxRotation: 0
+                                crossAlign: 'far',
+                                padding: 10,
+                                callback: function(value, index) {
+                                    const label = this.getLabelForValue(value);
+                                    return label.length > 20 ? label.substring(0, 18) + '...' : label;
+                                }
                             }
                         }
                     },
-                    layout: { padding: { left: 5, right: 30 } }
+                    layout: { padding: { left: 40, right: 35, top: 10, bottom: 10 } }
                 }
             });
             allChartsLuyKe.push(Chart.getChart("growthDriverChart"));
@@ -3416,8 +4507,8 @@
                         <div class="c-card-title tooltip">${item.name}<span class="tooltiptext">${item.percentProjected < 50 ? "Cần tập trung cao độ!" : item.percentProjected < 70 ? "Cần cải thiện thêm!" : "Duy trì phong độ tốt!"}</span></div>
                     </div>
                     
-                    <div class="c-card-body">
-                         <div class="c-pie-container">
+                    <div class="c-card-body" style="align-items: center; gap: 15px;">
+                         <div class="c-pie-container" style="flex-shrink: 0;">
                             <svg viewBox="0 0 36 36" class="circular-chart">
                                 <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                                 <path class="circle" stroke-dasharray="${percentage}, 100" stroke="${strokeColor}" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
@@ -3441,16 +4532,15 @@
                                 <span class="c-stat-label">Còn lại:</span>
                                 <span class="c-stat-val ${item.remaining <= 0 ? 'val-success' : 'val-danger'}">${item.remaining <= 0 ? '0' : formatNumber(item.remaining, 0)}</span>
                             </div>
-                            <div class="c-stat-row" style="margin-top: 8px; background: #E1F5FE; border-left: 5px solid #0288D1; padding: 6px 12px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                <span class="c-stat-label" style="color: #01579B; font-weight: 700; text-transform: uppercase; font-size: 0.9em;">Mục tiêu ngày</span>
-                                <span class="c-stat-val" style="color: #0277BD; font-size: 1.3em; font-weight: 800;">${formatNumber(item.dailyTarget, 0)}</span>
-                            </div>
                          </div>
                     </div>
-                    
-                    <div class="c-card-footer">
-                        <span>Tăng trưởng (vs hôm qua):</span>
-                        <span class="growth-badge ${growthClass}">${growthIcon} ${growthVal}</span>
+
+                    <div style="display: flex; gap: 8px; margin-top: 12px; align-items: stretch;">
+                         ${diff !== 0 ? `<div class="growth-badge ${growthClass}" style="flex: 1; justify-content: center; padding: 6px 4px; border-radius: 6px; font-weight: 850; font-size: 1.15em; display: flex; align-items: center;">${growthIcon} ${growthVal}</div>` : ''}
+                         <div class="c-stat-row" style="flex: 1.4; background: #E1F5FE; border-left: 5px solid #0288D1; padding: 6px 12px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 50px;">
+                             <span class="c-stat-label" style="color: #01579B; font-weight: 700; text-transform: uppercase; font-size: 0.75em; line-height: 1.1;">Mục tiêu ngày</span>
+                             <span class="c-stat-val" style="color: #0277BD; font-size: 1.35em; font-weight: 850; line-height: 1.2;">${formatNumber(item.dailyTarget, 0)}</span>
+                         </div>
                     </div>
                 </div>`;
                 });
@@ -3459,15 +4549,151 @@
                 return gridHtml;
             };
 
-            wrapper.innerHTML = `<h2><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M13,9V3.5L18.5,9M6,2C4.89,2 4,2.89 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2H6Z" /></svg>Bảng Chi Tiết Thi Đua Ngành Hàng</h2><div class="progress-bar-container" style="padding: 0 0 25px 0;"><div class="progress-labels"><span>Tiến độ Về Đích (Dự kiến)</span><span>${filteredOnTrack.length} / ${filteredAll.length} Nhóm</span></div><div class="progress-track"><div class="progress-fill" style="width: ${progressPercentContest}%; background-color: ${getColor(progressPercentContest, 50, 80)};"></div></div><div class="progress-text-wrapper"><span class="progress-text">${formatNumber(progressPercentContest, 1)}%</span></div></div>
-            <div class="contest-split-layout" style="gap: 30px;">
-                <div class="section-forecast">
-                     ${createContestCardGrid(filteredOnTrack, 'Dự Kiến Hoàn Thành', 'header-success', true, 1)}
+            const createPremiumContestTable = (data, title, headerClass, isSuccess, startRank) => {
+                if (!data || data.length === 0) return '';
+
+                // Sort by % HT dự kiến descending
+                const sortedData = [...data].sort((a, b) => b.percentProjected - a.percentProjected);
+
+                let tableHtml = `
+                <div class="contest-section" style="margin-top: 0;">
+                    <div class="contest-section-header ${headerClass}" style="font-size: 1.25em !important; font-weight: 850; padding: 10px 15px; border-radius: 10px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); margin-bottom: 15px;">
+                        <span style="font-size: 1.1em;">${isSuccess ? '🏆' : '⚠️'}</span>
+                        <div style="flex-grow: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${title} <span style="font-size: 0.6em; opacity: 0.8; font-weight: 600;">(${data.length})</span></div>
+                    </div>
+                    <div class="contest-table-container" style="box-shadow: none; border: none; margin-top: 0; background: transparent;">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th class="td-stt"><i class="fa-solid fa-hashtag" style="font-size: 0.8em; color: #64748b;"></i></th>
+                                    <th class="td-name" style="min-width: 120px;"><i class="fa-solid fa-layer-group" style="font-size: 0.8em; color: #6366f1;"></i> Ngành hàng</th>
+                                    <th style="text-align: center;"><i class="fa-solid fa-calendar-day" style="font-size: 0.8em; color: #0ea5e9;"></i> MT Ngày</th>
+                                    <th><i class="fa-solid fa-bullseye" style="font-size: 0.8em; color: #f59e0b;"></i> Target</th>
+                                    <th><i class="fa-solid fa-chart-line" style="font-size: 0.8em; color: #10b981;"></i> Thực hiện</th>
+                                    <th style="text-align: center;"><i class="fa-solid fa-percent" style="font-size: 0.8em; color: #3b82f6;"></i> % HT</th>
+                                    <th><i class="fa-solid fa-hourglass-half" style="font-size: 0.8em; color: #f43f5e;"></i> Còn lại</th>
+                                    <th><i class="fa-solid fa-rocket" style="font-size: 0.8em; color: #8b5cf6;"></i> % Dự kiến</th>
+                                </tr>
+                            </thead>
+                            <tbody>`;
+
+                sortedData.forEach((item, index) => {
+                    const diff = item.actual - (previousContestDataMap[item.name.toLowerCase()] || 0);
+                    const growthColor = diff > 0 ? '#10b981' : (diff < 0 ? '#f43f5e' : '#64748b');
+                    const growthIcon = diff > 0 ? '▲' : (diff < 0 ? '▼' : '');
+                    const growthHtml = diff !== 0 ? `<div style="font-size: 0.75em; color: ${growthColor}; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 2px;">${growthIcon} ${formatNumber(Math.abs(diff), 0)}</div>` : '';
+
+                    const sttClass = isSuccess ? 'stt-done' : 'stt-danger';
+
+                    const remainingClass = item.remaining <= 0 ? 'remaining-done' : (item.percentProjected < 80 ? 'remaining-high' : '');
+                    const barColor = item.percentActual >= 100 ? '#16A34A' : (item.percentActual >= 80 ? '#2563EB' : '#EF4444');
+
+                    const projectedReachedClass = item.percentProjected >= 100 ? 'reached' : (item.percentProjected < 80 ? 'at-risk' : '');
+
+                    const isHTReached = item.percentActual >= 100;
+                    const cupIcon = isHTReached ? '<i class="fa-solid fa-trophy" style="color: #f59e0b; margin-left: 5px;"></i>' : '';
+
+                    tableHtml += `
+                                <tr onclick="window.showCategoryDetail('${item.name.replace(/'/g, "\\'")}')" style="cursor: pointer;">
+                                    <td class="td-stt">
+                                        <div class="stt-circle ${sttClass}">${startRank + index}</div>
+                                    </td>
+                                    <td class="td-name">
+                                        <div class="name-wrapper">
+                                            <div class="category-icon" style="background: transparent; border: none; width: 24px; height: 24px;">
+                                                ${getCategoryIcon(item.name)}
+                                            </div>
+                                            <span style="font-weight: 700; font-size: 0.95em;">${item.name}</span>
+                                            ${cupIcon}
+                                        </div>
+                                    </td>
+                                    <td style="font-weight: 850; text-align: center; color: #1e293b;">
+                                        ${formatNumber(item.dailyTarget, 0)}
+                                    </td>
+                                    <td style="font-weight: 600; color: #64748b;">${formatNumber(item.target)}</td>
+                                    <td>
+                                        <div style="font-weight: 850; color: var(--primary-accent);">${formatNumber(item.actual)}</div>
+                                        ${growthHtml}
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+                                            <span style="font-size: 11px; font-weight: 850; color: #1e293b;">${formatNumber(item.percentActual, 1)}%</span>
+                                            <div class="cell-progress-container" style="margin: 0; width: 80px;">
+                                                <div class="cell-progress-track" style="height: 6px;">
+                                                    <div class="cell-progress-fill" style="width: ${Math.min(item.percentActual, 100)}%; background: ${barColor};"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="remaining-badge ${remainingClass}">${item.remaining <= 0 ? '0' : formatNumber(item.remaining, 0)}</span>
+                                    </td>
+                                    <td>
+                                        <div style="background: ${item.percentProjected >= 100 ? '#ecfdf5' : '#f8fafc'}; padding: 4px 8px; border-radius: 6px; border: 1px solid ${item.percentProjected >= 100 ? '#10b981' : '#e2e8f0'}; display: flex; justify-content: center;">
+                                            <span class="projected-percent ${projectedReachedClass}" style="font-size: 0.95em; font-weight: 850;">${formatNumber(item.percentProjected, 1)}%</span>
+                                        </div>
+                                    </td>
+                                </tr>`;
+                });
+
+                tableHtml += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>`;
+                return tableHtml;
+            };
+
+            const displayMode = document.querySelector('input[name="contestDisplayMode"]:checked')?.value || 'card';
+
+            if (displayMode === 'card') {
+                wrapper.innerHTML = `
+                <h2 style="text-align: center; font-size: 1.8em; margin-bottom: 25px; color: var(--primary-accent); display: flex; align-items: center; justify-content: center; gap: 15px;">
+                    <i class="fa-solid fa-layer-group"></i> Chi Tiết Thi Đua Ngành Hàng
+                    <span style="font-size: 0.55em; background: #e0f2fe; color: #0284c7; padding: 6px 16px; border-radius: 30px; font-weight: 800;">
+                        Dự kiến đạt: ${filteredOnTrack.length}/${filteredAll.length} nhóm
+                    </span>
+                </h2>
+                <div class="progress-bar-container" style="padding: 0 0 25px 0;">
+                    <div class="progress-labels"><span>Tiến độ Về Đích (Dự kiến)</span><span>${filteredOnTrack.length} / ${filteredAll.length} Nhóm</span></div>
+                    <div class="progress-track"><div class="progress-fill" style="width: ${progressPercentContest}%; background-color: ${getColor(progressPercentContest, 50, 80)};"></div></div>
+                    <div class="progress-text-wrapper"><span class="progress-text">${formatNumber(progressPercentContest, 1)}%</span></div>
                 </div>
-                <div class="section-improve">
-                     ${createContestCardGrid(filteredBehind, 'Cần Cải Thiện', 'header-warning', false, filteredOnTrack.length + 1)}
-                </div>
-            </div>`;
+                <div class="contest-card-parallel">
+                    <div class="section-column">
+                         ${createContestCardGrid(filteredOnTrack, 'Dự Kiến Hoàn Thành', 'header-success', true, 1)}
+                    </div>
+                    <div style="width: 1px; background: #eef2f7; align-self: stretch; margin: 30px 0;"></div>
+                    <div class="section-column">
+                         ${createContestCardGrid(filteredBehind, 'Cần Cải Thiện', 'header-warning', false, filteredOnTrack.length + 1)}
+                    </div>
+                </div>`;
+            } else {
+                wrapper.innerHTML = `
+                <div class="contest-detailed-tables-wrapper" style="width: 100%;">
+                    <h2 style="text-align: center; font-size: 1.8em; margin-bottom: 25px; color: var(--primary-accent); display: flex; align-items: center; justify-content: center; gap: 15px;">
+                        <i class="fa-solid fa-ranking-star"></i> Xếp Hạng Chi Tiết Ngành Hàng
+                        <span style="font-size: 0.55em; background: #e0f2fe; color: #0284c7; padding: 6px 16px; border-radius: 30px; font-weight: 800;">
+                            Dự kiến đạt: ${filteredOnTrack.length}/${filteredAll.length} nhóm
+                        </span>
+                    </h2>
+                    <div class="contest-tables-parallel" style="display: flex; gap: 0; align-items: stretch; flex-wrap: nowrap; background: #ffffff; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.08); overflow: hidden;">
+                        <div class="table-column" style="flex: 1; min-width: 0; padding: 20px;">
+                            ${createPremiumContestTable(filteredOnTrack, 'Dự kiến hoàn thành', 'header-success', true, 1)}
+                        </div>
+                        <div style="width: 1px; background: #eef2f7; align-self: stretch; margin: 30px 0;"></div>
+                        <div class="table-column" style="flex: 1; min-width: 0; padding: 20px;">
+                            ${createPremiumContestTable(filteredBehind, 'Cần cải thiện', 'header-warning', false, filteredOnTrack.length + 1)}
+                        </div>
+                    </div>
+                </div>`;
+            }
+
+            // GLOBAL SYNC: Update Top Header Risk Count whenever table renders
+            const riskBadge = document.querySelector('.top-health-bar .health-badge-risk');
+            if (riskBadge) {
+                riskBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Ngành nguy cơ: ${filteredBehind.length} nhóm`;
+            }
         }
 
         // START: Cập nhật hàm renderLuyKeSummary - FIXED ERROR
@@ -3526,15 +4752,64 @@
                 try { selectAllCheckbox.checked = !localStorage.getItem(CONTEST_CATEGORY_FILTER_KEY) || JSON.parse(localStorage.getItem(CONTEST_CATEGORY_FILTER_KEY)).length === 0; } catch (e) { selectAllCheckbox.checked = true; }
             }
 
+            // PERSIST DISPLAY MODE: Restore saved selection during setup
+            try {
+                const savedDisplayMode = localStorage.getItem('contestDisplayMode');
+                if (savedDisplayMode) {
+                    const radio = document.querySelector(`input[name="contestDisplayMode"][value="${savedDisplayMode}"]`);
+                    if (radio) radio.checked = true;
+                }
+            } catch (e) { console.error("Error restoring display mode:", e); }
+
+            // PERSIST TARGET MODE
+            try {
+                const savedTargetMode = localStorage.getItem('targetModeSelect');
+                if (savedTargetMode) {
+                    document.getElementById('target-mode-select').value = savedTargetMode;
+                    document.getElementById('target-value-container').style.display = (savedTargetMode === 'original') ? 'none' : 'block';
+                    document.getElementById('target-custom-value').value = localStorage.getItem('targetCustomValue') || '';
+                }
+            } catch (e) { console.error("Error restoring target mode:", e); }
+
+            document.getElementById('target-mode-select').addEventListener('change', function() {
+                const isOriginal = this.value === 'original';
+                document.getElementById('target-value-container').style.display = isOriginal ? 'none' : 'flex';
+                localStorage.setItem('targetModeSelect', this.value);
+            });
+            document.getElementById('target-custom-value').addEventListener('input', function() {
+                localStorage.setItem('targetCustomValue', this.value);
+            });
+
+            document.getElementById('applyDynamicTargetBtn').addEventListener('click', () => {
+                const mainData = document.getElementById('mainDataInput').value;
+                const contestData = document.getElementById('contestDataInput').value;
+                if (!mainData.trim()) { showToast('Nhập dữ liệu trước khi cập nhật mục tiêu.', true); return; }
+                
+                const previous = document.getElementById('contest-date-previous').value;
+                let oldContestDataMap = getContestDataForComparison(previous);
+                displayLuyKeDashboard(mainData, contestData, getStructuredTableData('yearlyDataTable'), getStructuredTableData('dailyComparisonTable'), oldContestDataMap);
+                showToast('🎯 Đã cập nhật dashboard theo mục tiêu mới!');
+            });
+
             document.getElementById('analyzeBtn').addEventListener('click', () => {
                 const mainData = document.getElementById('mainDataInput').value;
                 const contestData = document.getElementById('contestDataInput').value;
-                let oldContestDataMap = getContestDataForComparison(previous);
-                try { localStorage.setItem('luyKeMainData', mainData); localStorage.setItem('luyKeContestData', contestData); saveCurrentContestData(current); } catch (e) { console.error(e); }
+                
+                // Save textarea contents for persistence on refresh, but NOT the daily history map
+                try { 
+                    localStorage.setItem('luyKeMainData', mainData); 
+                    localStorage.setItem('luyKeContestData', contestData); 
+                } catch (e) { console.error(e); }
+
                 if (!mainData.trim()) { showToast('Vui lòng dán dữ liệu Báo cáo Kinh doanh.', true); return; }
+                
                 document.getElementById('luyKeInputGrid').style.display = 'none';
                 document.getElementById('showInputsBtnLuyKe').style.display = 'inline-flex';
-                displayLuyKeDashboard(parseLuyKeData(mainData), contestData.trim() ? parseAllContestData(contestData) : [], getStructuredTableData('yearlyDataTable'), getStructuredTableData('dailyComparisonTable'), oldContestDataMap);
+                document.getElementById('showInputsBtnLuyKe').textContent = 'Chỉnh sửa Dữ liệu';
+
+                const previousDateUI = document.getElementById('contest-date-previous').value;
+                let oldContestDataMap = getContestDataForComparison(previousDateUI);
+                displayLuyKeDashboard(mainData, contestData, getStructuredTableData('yearlyDataTable'), getStructuredTableData('dailyComparisonTable'), oldContestDataMap);
             });
 
             document.getElementById('showInputsBtnLuyKe').addEventListener('click', function () {
@@ -3580,22 +4855,43 @@
                 const contestData = document.getElementById('contestDataInput').value;
                 if (!contestData.trim()) { showToast('Vui lòng dán dữ liệu Thi đua.', true); return; }
 
-                // 1. Calculate Date Logic
-                let today = new Date(), reportDate = new Date(today), daysUsed, daysInMonth, daysRemaining;
-                if (today.getDate() === 1) {
-                    const prev = new Date(today.getFullYear(), today.getMonth(), 0);
-                    daysInMonth = prev.getDate();
-                    daysUsed = prev.getDate();
-                    daysRemaining = 0;
-                    reportDate = prev;
+                // --- FIX: Define missing variables ---
+                const mainDataTextForScale = document.getElementById('mainDataInput').value;
+                let reportDate = new Date();
+                const dateMatch = mainDataTextForScale.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+                if (dateMatch) {
+                    reportDate = new Date(parseInt(dateMatch[3]), parseInt(dateMatch[2]) - 1, parseInt(dateMatch[1]));
+                }
+                let daysInMonth = new Date(reportDate.getFullYear(), reportDate.getMonth() + 1, 0).getDate();
+                let daysUsed, daysRemaining;
+                if (reportDate.getDate() === 1) {
+                    const prevMonthDate = new Date(reportDate.getFullYear(), reportDate.getMonth(), 0);
+                    daysInMonth = prevMonthDate.getDate();
+                    daysUsed = prevMonthDate.getDate();
+                    reportDate = prevMonthDate;
                 } else {
-                    daysUsed = today.getDate() - 1;
-                    daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-                    daysRemaining = daysInMonth - daysUsed;
+                    daysUsed = reportDate.getDate() - 1;
+                }
+                daysRemaining = daysInMonth - daysUsed;
+                // ------------------------------------
+
+                // 1b. Calculate Scale Factor based on Target Mode
+                const targetMode = document.getElementById('target-mode-select').value;
+                const overrideVal = parseFloat(document.getElementById('target-custom-value').value);
+                let scaleFactor = 1;
+
+                if (mainDataTextForScale.trim()) {
+                    const mainDataScaleParsed = parseLuyKeData(mainDataTextForScale);
+                    const totalRowScale = mainDataScaleParsed.find(row => row["Nhóm ngành hàng"] === "Tổng");
+                    if (totalRowScale) {
+                        const originalTargetTotal = totalRowScale["Target (QĐ)"];
+                        if (targetMode === 'custom' && !isNaN(overrideVal) && originalTargetTotal > 0) scaleFactor = overrideVal / originalTargetTotal;
+                        else if (targetMode === 'percent' && !isNaN(overrideVal)) scaleFactor = overrideVal / 100;
+                    }
                 }
 
-                // 2. Process Contest Data with correct daysRemaining
-                const processedContestData = processFullContestData(contestData.trim() ? parseAllContestData(contestData) : [], daysRemaining);
+                // 2. Process Contest Data with correct daysRemaining and scaleFactor
+                const processedContestData = processFullContestData(contestData.trim() ? parseAllContestData(contestData) : [], daysRemaining, 1); // IMPORTANT: Category factor always 1 per request
 
                 allContestCategories = getUniqueContestCategories(processedContestData);
                 globalProcessedContestDataForDetail = processedContestData.all; // Update global var for Drill-down
@@ -3604,18 +4900,17 @@
                 // 3. Render Table
                 renderLuyKeContestTable(processedContestData, getContestDataForComparison(document.getElementById('contest-date-previous').value), document.getElementById('contest-date-current').value, document.getElementById('contest-date-previous').value);
 
-                // 4. Get Main Data for KPIs (Needed for Summary/Infographic)
-                const mainDataText = document.getElementById('mainDataInput').value;
-                if (mainDataText.trim()) {
-                    const mainData = parseLuyKeData(mainDataText);
+                // 4. Get Main Data for KPIs
+                if (mainDataTextForScale.trim()) {
+                    const mainData = parseLuyKeData(mainDataTextForScale);
                     const totalRow = mainData.find(row => row["Nhóm ngành hàng"] === "Tổng");
                     if (totalRow) {
-                        const luyKe = totalRow["DTQĐ"], target = totalRow["Target (QĐ)"], growthRate = totalRow["+/- DTCK Tháng (QĐ)"], dtDuKien = (daysUsed > 0 ? (luyKe / daysUsed) : 0) * daysInMonth;
-                        // FIX: Recalculate chenhLech based on LuyKe and GrowthRate. DT Cùng kỳ = DT Luy Ke hiện tại / (1 + GrowthRate/100)
+                        const luyKe = totalRow["DTQĐ"], originalTarget = totalRow["Target (QĐ)"], growthRate = totalRow["+/- DTCK Tháng (QĐ)"], dtDuKien = (daysUsed > 0 ? (luyKe / daysUsed) : 0) * daysInMonth;
+                        const target = originalTarget * scaleFactor;
                         const dtCungKy = (1 + growthRate / 100) !== 0 ? luyKe / (1 + growthRate / 100) : 0;
                         const chenhLech = luyKe - dtCungKy;
 
-                        const mainKpis = { luyKe, target, htTarget: luyKe > 0 && target > 0 ? (luyKe / target * 100) : 0, growthRate, dtDuKien, htDuKien: target > 0 ? (dtDuKien / target * 100) : 0, chenhLech: chenhLech, mucTieuNgay: daysRemaining > 0 ? (target - luyKe) / daysRemaining : 0, tyTrongTraGop: totalRow["Tỷ Trọng Trả Góp"], doanhThuTraGop: totalRow["DT Trả Góp"] };
+                        const mainKpis = { luyKe, target, htTarget: luyKe > 0 && target > 0 ? (luyKe / target * 100) : 0, growthRate, dtDuKien, htDuKien: target > 0 ? (dtDuKien / target * 100) : 0, chenhLech: chenhLech, mucTieuNgay: daysRemaining > 0 ? (target - luyKe) / daysRemaining : 0, tyTrongTraGop: totalRow["Tỷ Trọng Trả Gộp"], doanhThuTraGop: totalRow["DT Trả Góp"] };
 
                         // 5. Render Summary & Infographic
                         renderLuyKeSummary(mainKpis, processedContestData, reportDate);
@@ -3684,31 +4979,228 @@
                 const isAllSelected = selected.length === allContestCategories.length;
                 document.getElementById('selectAllContestCategories').checked = isAllSelected;
                 document.getElementById('openCategorySelectModal').disabled = isAllSelected;
-
                 showToast('Đã lưu bộ lọc Ngành hàng!');
                 if (document.getElementById('dashboard-body-luyke').style.display !== 'none') document.getElementById('compareContestBtn').click();
             });
 
-            function displayLuyKeDashboard(mainData, contestData, yearlyData, dailyData, oldContestDataMap) {
+            document.querySelectorAll('input[name="contestDisplayMode"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    // Save preference
+                    try { localStorage.setItem('contestDisplayMode', e.target.value); } catch (e) { }
+                    
+                    // Re-render dashboard if visible WITHOUT saving or hiding inputs
+                    if (document.getElementById('dashboard-body-luyke').style.display !== 'none') {
+                        const mainData = document.getElementById('mainDataInput').value;
+                        const contestData = document.getElementById('contestDataInput').value;
+                        const previousDate = document.getElementById('contest-date-previous').value;
+                        let oldContestDataMap = getContestDataForComparison(previousDate);
+                        
+                        displayLuyKeDashboard(mainData, contestData, getStructuredTableData('yearlyDataTable'), getStructuredTableData('dailyComparisonTable'), oldContestDataMap);
+                    }
+                });
+            });
+
+            // Set current month as default in dropdown
+            document.getElementById('historyMonthSelect').value = (new Date().getMonth() + 1).toString();
+
+            document.getElementById('saveByMonthBtn').addEventListener('click', () => {
+                const month = document.getElementById('historyMonthSelect').value;
+                const name = `Tháng ${month}`;
+
+                const snapshot = {
+                    mainData: document.getElementById('mainDataInput').value,
+                    contestData: document.getElementById('contestDataInput').value,
+                    yearlyDataTable: localStorage.getItem('yearlyDataTable'),
+                    dailyComparisonTable: localStorage.getItem('dailyComparisonTable'),
+                    timestamp: new Date().toISOString()
+                };
+
+                try {
+                    localStorage.setItem(`snapshot_month_v2_${month}`, JSON.stringify(snapshot));
+                    showToast(`Đã lưu kết quả Tháng ${month} thành công!`);
+                } catch (e) {
+                    console.error(e);
+                    showToast('Lỗi: Bộ nhớ đầy!', true);
+                }
+            });
+
+            document.getElementById('loadByMonthBtn').addEventListener('click', () => {
+                const month = document.getElementById('historyMonthSelect').value;
+                const dataStr = localStorage.getItem(`snapshot_month_v2_${month}`);
+
+                if (!dataStr) {
+                    showToast(`Không tìm thấy bản lưu kết quả cho Tháng ${month}!`, true);
+                    return;
+                }
+
+                if (!confirm(`Tải kết quả Tháng ${month}? Dữ liệu hiện tại sẽ bị ghi đè.`)) return;
+
+                try {
+                    const data = JSON.parse(dataStr);
+                    document.getElementById('mainDataInput').value = data.mainData || '';
+                    document.getElementById('contestDataInput').value = data.contestData || '';
+
+                    if (data.yearlyDataTable) {
+                        localStorage.setItem('yearlyDataTable', data.yearlyDataTable);
+                        loadTableDataFromStorage('yearlyDataTable');
+                    }
+                    if (data.dailyComparisonTable) {
+                        localStorage.setItem('dailyComparisonTable', data.dailyComparisonTable);
+                        loadTableDataFromStorage('dailyComparisonTable');
+                    }
+
+                    showToast(`Đã tải dữ liệu Tháng ${month}!`);
+                    document.getElementById('analyzeBtn').click();
+                } catch (e) {
+                    console.error(e);
+                    showToast('Lỗi khi tải kết quả!', true);
+                }
+            });
+
+            function displayLuyKeDashboard(mainDataRaw, contestDataRaw, yearlyData, dailyData, oldContestDataMap) {
                 document.getElementById('dashboard-body-luyke').style.display = 'block';
+                const controls = document.getElementById('dynamic-target-controls');
+                if (controls) controls.style.display = 'flex';
+                
                 destroyAllChartsLuyKe();
+
+                const mainData = parseLuyKeData(mainDataRaw);
+                const contestData = contestDataRaw.trim() ? parseAllContestData(contestDataRaw) : [];
+
                 const totalRow = mainData.find(row => row["Nhóm ngành hàng"] === "Tổng");
                 if (!totalRow) throw new Error("Không tìm thấy dòng 'Tổng'.");
 
-                let today = new Date(), reportDate = new Date(today), daysUsed, daysInMonth, daysRemaining;
-                if (today.getDate() === 1) { const prev = new Date(today.getFullYear(), today.getMonth(), 0); daysInMonth = prev.getDate(); daysUsed = prev.getDate(); daysRemaining = 0; reportDate = prev; }
-                else { daysUsed = today.getDate() - 1; daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate(); daysRemaining = daysInMonth - daysUsed; }
+                let reportDate = new Date();
+                const dateMatch = mainDataRaw.match(/(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
+                if (dateMatch) {
+                    reportDate = new Date(parseInt(dateMatch[3]), parseInt(dateMatch[2]) - 1, parseInt(dateMatch[1]));
+                }
+
+                let daysUsed, daysInMonth, daysRemaining;
+                daysInMonth = new Date(reportDate.getFullYear(), reportDate.getMonth() + 1, 0).getDate();
+
+                if (reportDate.getDate() === 1) {
+                    const prevMonthDate = new Date(reportDate.getFullYear(), reportDate.getMonth(), 0);
+                    daysInMonth = prevMonthDate.getDate();
+                    daysUsed = prevMonthDate.getDate();
+                    daysRemaining = 0;
+                    reportDate = prevMonthDate;
+                } else {
+                    daysUsed = reportDate.getDate() - 1;
+                    daysRemaining = daysInMonth - daysUsed;
+                }
 
                 const categoryData = mainData.filter(row => row["Nhóm ngành hàng"] !== "Tổng");
-                const luyKe = totalRow["DTQĐ"], target = totalRow["Target (QĐ)"], growthRate = totalRow["+/- DTCK Tháng (QĐ)"], dtDuKien = (daysUsed > 0 ? (luyKe / daysUsed) : 0) * daysInMonth;
+                const luyKe = totalRow["DTQĐ"], originalTarget = totalRow["Target (QĐ)"], growthRate = totalRow["+/- DTCK Tháng (QĐ)"], dtDuKienActual = (daysUsed > 0 ? (luyKe / daysUsed) : 0) * daysInMonth;
+                
+                // FEATURED RULE vs TREND RULE SPLIT
+                const targetMode = document.getElementById('target-mode-select').value;
+                const overrideVal = parseFloat(document.getElementById('target-custom-value').value);
+                
+                let simulatedValue = dtDuKienActual;
+                if (targetMode === 'custom' && !isNaN(overrideVal)) simulatedValue = overrideVal;
+                else if (targetMode === 'percent' && !isNaN(overrideVal)) simulatedValue = originalTarget * (overrideVal / 100);
 
-                // FIX: Recalculate chenhLech based on LuyKe and GrowthRate. DT Cùng kỳ = DT Luy Ke hiện tại / (1 + GrowthRate/100)
+                // Featured Cards (gauge, cards 1-2): Custom value is the TARGET
+                const target = (targetMode !== 'original') ? simulatedValue : originalTarget;
+                // Forecast for featured is the simulated value
+                const dtDuKien = simulatedValue;
+
                 const dtCungKy = (1 + growthRate / 100) !== 0 ? luyKe / (1 + growthRate / 100) : 0;
                 const chenhLech = luyKe - dtCungKy;
 
-                const mainKpis = { luyKe, target, htTarget: luyKe > 0 && target > 0 ? (luyKe / target * 100) : 0, growthRate, dtDuKien, htDuKien: target > 0 ? (dtDuKien / target * 100) : 0, chenhLech: chenhLech, mucTieuNgay: daysRemaining > 0 ? (target - luyKe) / daysRemaining : 0, tyTrongTraGop: totalRow["Tỷ Trọng Trả Góp"], doanhThuTraGop: totalRow["DT Trả Góp"] };
+                const mucTieuNgayBase = daysRemaining > 0 ? (target - luyKe) / daysRemaining : 0;
+                const mucTieuCuoiTuanDraft = (target / daysInMonth) * 2;
+                const isWeekendActual = [0, 6].includes(reportDate.getDay());
+                const mucTieuNgayDisplay = isWeekendActual ? Math.max(mucTieuNgayBase, mucTieuCuoiTuanDraft) : mucTieuNgayBase;
 
-                const processedContestData = processFullContestData(contestData, daysRemaining);
+                const mainKpis = {
+                    luyKe, target,
+                    htTarget: luyKe > 0 && target > 0 ? (luyKe / target * 100) : 0,
+                    growthRate, dtDuKien,
+                    htDuKien: target > 0 ? (dtDuKien / target * 100) : 0,
+                    chenhLech: chenhLech,
+                    mucTieuNgay: mucTieuNgayDisplay,
+                    mucTieuNgayBase: mucTieuNgayBase,
+                    tyTrongTraGop: totalRow["Tỷ Trọng Trả Góp"],
+                    doanhThuTraGop: totalRow["DT Trả Góp"]
+                };
+
+                // CRITICAL FIX: Ensure Category Targets remain original (factor = 1)
+                const processedContestData = processFullContestData(contestData, daysRemaining, 1);
+                
+                // ALSO: Update yearlyData current month PROJECTION for consistency in yearly charts/cards
+                const targetUpdateMonth = yearlyData.find(row => parseInt(row['Tháng']) === reportDate.getMonth() + 1);
+                if (targetUpdateMonth) {
+                    targetUpdateMonth['Target tháng'] = originalTarget; // Keep target original
+                    targetUpdateMonth['Doanh thu tháng'] = dtDuKien; // Treat the custom value as the MONTHLY ACHIEVEMENT
+                }
+
+                // RENDER TOP HEALTH HEADER
+                if (document.getElementById('top-health-header')) {
+                    const healthStatus = mainKpis.htDuKien >= 100 ? 'TỐT' : (mainKpis.htDuKien >= 80 ? 'ỔN ĐỊNH' : 'CẦN CHÚ Ý');
+                    const statusColor = mainKpis.htDuKien >= 100 ? '#16A34A' : (mainKpis.htDuKien >= 80 ? '#2563EB' : '#EF4444');
+                    const statusIcon = mainKpis.htDuKien >= 100 ? 'fa-check-double' : (mainKpis.htDuKien >= 80 ? 'fa-shield-heart' : 'fa-triangle-exclamation');
+                    const bgSecondary = mainKpis.htDuKien >= 100 ? 'rgba(22, 163, 74, 0.1)' : (mainKpis.htDuKien >= 80 ? 'rgba(37, 99, 235, 0.1)' : 'rgba(239, 68, 68, 0.1)');
+                    const categoriesToDisplay = getContestCategoriesToDisplay();
+                    const filteredBehindCount = processedContestData.all.filter(item =>
+                        item.percentProjected < 100 && categoriesToDisplay.includes(item.name)
+                    ).length;
+                    const riskCount = filteredBehindCount;
+
+                    const headerEl = document.getElementById('top-health-header');
+                    headerEl.style.display = 'flex';
+                    headerEl.style.setProperty('--status-color', statusColor);
+                    headerEl.innerHTML = `
+                        <div class="health-status-badge">
+                            <div class="status-icon-wrapper" style="background: ${bgSecondary}; color: ${statusColor};">
+                                <i class="fa-solid ${statusIcon}"></i>
+                            </div>
+                            <div class="status-info">
+                                <span class="status-label">Tình trạng hệ thống</span>
+                                <span class="status-value" style="color: ${statusColor}">${healthStatus}</span>
+                            </div>
+                        </div>
+                        <div class="health-metrics-row">
+                            <div class="health-metric-item">
+                                <i class="fa-solid fa-chart-line metric-icon"></i>
+                                <div class="metric-content">
+                                    <span class="health-metric-label">Tiến độ thực tế</span>
+                                    <span class="health-metric-val">${formatNumber(mainKpis.htTarget, 1)}% <small style="color: #64748b; font-weight: 600; font-size: 0.75em;">(${mainKpis.growthRate >= 0 ? '+' : ''}${formatNumber(mainKpis.growthRate, 1)}%)</small></span>
+                                </div>
+                            </div>
+                            <div class="metric-divider"></div>
+                            <div class="health-metric-item">
+                                <i class="fa-solid fa-rocket metric-icon"></i>
+                                <div class="metric-content">
+                                    <span class="health-metric-label">Dự kiến tháng</span>
+                                    <span class="health-metric-val" style="color: var(--primary-accent);">${formatNumber(mainKpis.htDuKien, 1)}%</span>
+                                </div>
+                            </div>
+                            <div class="metric-divider"></div>
+                            <div class="health-metric-item">
+                                <i class="fa-solid fa-hourglass-half metric-icon"></i>
+                                <div class="metric-content">
+                                    <span class="health-metric-label">Số tiền còn thiếu</span>
+                                    <span class="health-metric-val" style="color: #64748b;">${formatNumber(mainKpis.target - mainKpis.luyKe, 0)}</span>
+                                </div>
+                            </div>
+                            <div class="metric-divider"></div>
+                            <div class="health-metric-item">
+                                <i class="fa-solid fa-bullseye metric-icon"></i>
+                                <div class="metric-content">
+                                    <span class="health-metric-label">MT Ngày kỳ vọng</span>
+                                    <span class="health-metric-val" style="color: #0d9488;">${formatNumber(mainKpis.mucTieuNgay, 0)}</span>
+                                </div>
+                            </div>
+                            
+                            <div class="health-badge-risk">
+                                <i class="fa-solid fa-triangle-exclamation"></i> Ngành nguy cơ: ${riskCount} nhóm
+                            </div>
+                        </div>
+                    `;
+                }
+
                 globalProcessedContestDataForDetail = processedContestData.all; // Update global var
 
                 allContestCategories = getUniqueContestCategories(processedContestData);
@@ -3718,32 +5210,41 @@
 
                 document.getElementById('reportTitleLuyKe').textContent = `Báo cáo sức khoẻ siêu thị đến ngày ${reportDate.getDate()}/${reportDate.getMonth() + 1}/${reportDate.getFullYear()}`;
 
+                // Update Top Progress Bars (Missing logic restored)
+                const htTimePercent = (daysUsed / daysInMonth) * 100;
+                document.getElementById('progress-summary-date').textContent = `${formatNumber(mainKpis.htTarget, 1)}%`;
+                document.getElementById('progress-fill-date').style.width = `${Math.min(mainKpis.htTarget, 100)}%`;
+                document.getElementById('progress-text-date').textContent = `${formatNumber(mainKpis.luyKe, 0)} / ${formatNumber(mainKpis.target, 0)} Tr`;
+
+                document.getElementById('progress-summary-target').textContent = `${formatNumber(htTimePercent, 1)}%`;
+                document.getElementById('progress-fill-target').style.width = `${Math.min(htTimePercent, 100)}%`;
+                document.getElementById('progress-text-target').textContent = `${daysUsed + 1}/${daysInMonth}`;
+
                 // 1. Render Top KPI Row (Calls renderLuyKeKPIs which creates the 5-item grid placeholders)
-                renderLuyKeKPIs(mainKpis, daysUsed, daysInMonth, yearlyData, reportDate);
+                renderLuyKeKPIs(mainKpis, daysUsed, daysInMonth, yearlyData, reportDate, processedContestData, dailyData);
 
                 // 2. Render Charts into the placeholders created by renderLuyKeKPIs
                 renderLuyKeCharts(categoryData);
 
                 // 3. Render Revenue Charts (Yearly & Daily)
-                // Use ID directly, wrappers are already in #mainChartGrid
                 const yearlyWrapper = document.getElementById('yearly-revenue-chart-wrapper');
                 const dailyWrapper = document.getElementById('daily-comparison-chart-wrapper');
 
-                // Force visibility and reset style just in case
-                if (yearlyWrapper) yearlyWrapper.style.display = 'block'; // Or flex, controlled by content
+                if (yearlyWrapper) yearlyWrapper.style.display = 'block';
                 if (dailyWrapper) dailyWrapper.style.display = 'block';
 
                 const hasYearlyData = yearlyData && yearlyData.length > 0 && yearlyData.some(d => d['Doanh thu tháng'] > 0 || d['Target tháng'] > 0);
                 const hasDailyData = dailyData && dailyData.length > 0 && dailyData.some(d => d['DT Tháng này'] > 0 || d['DT Tháng trước'] > 0);
 
+                window.lastProcessedDailyData = dailyData;
+
                 if (hasYearlyData) renderYearlyRevenueChart(yearlyData, mainKpis, reportDate); else hideYearlyRevenueChart();
                 if (hasDailyData) renderDailyComparisonChart(dailyData, yearlyData, mainKpis, reportDate, daysInMonth); else hideDailyComparisonChart();
 
-                // Ensure mainChartGrid is visible (it's a grid)
                 const mainGrid = document.getElementById('mainChartGrid');
                 if (mainGrid) {
                     mainGrid.style.display = 'grid';
-                    mainGrid.classList.add('two-cols'); // Ensure styling for 2 columns
+                    mainGrid.classList.add('two-cols');
                 }
 
                 // 4. Render Contest Table & Summary
