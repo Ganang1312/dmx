@@ -156,13 +156,27 @@
     .perf-table tr:nth-child(even) { background: #f8fafc; }
     .perf-table .text-left { text-align: left; padding-left: 2px !important; white-space: normal; line-height: 1.1; font-size: 8px !important; }
     .perf-table .highlight { color: #00a8cc; }
+
+    #part1:fullscreen {
+        width: 100vw !important;
+        height: 100vh !important;
+        border-radius: 0 !important;
+        overflow: hidden !important;
+        background: #e9ecef !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+    }
+    #part1::backdrop {
+        background: #e9ecef;
+    }
   </style>
 </head>
 <body>
 
   <!-- Modal -->
   <div id="infoModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
-      <div style="background:#fff; width: 550px; max-width:95%; max-height:90vh; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition:transform 0.3s ease;" id="infoModalContentBox">
+      <div style="background:#e9ecef; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.2); transform: translateY(-20px); transition:transform 0.3s ease;" id="infoModalContentBox">
           <div style="background:#9b59b6; color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:16px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
               <span id="infoModalTitle">Tiêu đề</span>
               <button onclick="closeModal()" style="background:none; border:none; color:white; font-size:28px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
@@ -175,6 +189,7 @@
   <div class="top-actions" data-html2canvas-ignore="true">
       <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
       <button class="btn-action" id="btnDownloadFull">📸 TOÀN TRANG</button>
+      <button class="btn-action" id="btnDownloadShort" style="border-color:#f39c12; color:#f39c12;">✂️ CHỤP RÚT GỌN</button>
       <button class="btn-action" id="btnDownloadKPI">📸 TỪNG KPI</button>
       <button class="btn-action" id="btnDownloadAllKPI">📸 TỔNG QUAN KPI</button>
       <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 SỐ LŨY KẾ</button>
@@ -184,38 +199,14 @@
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
       
-      <!-- PHẦN 1: DOANH THU -->
+      <!-- PHẦN 1: TỔNG HỢP -->
       <div id="part1" class="report-box">
         <div class="header-title">BÁO CÁO NHÂN VIÊN SAVICO</div>
         <div class="date-text">🗓️ CẬP NHẬT: <span id="current-date"></span></div>
 
-        <div class="sec-title" style="margin-top: 25px;"><span>1</span> XẾP HẠNG NHÂN VIÊN</div>
-        
-        <div class="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th width="5%">#</th>
-                  <th class="text-left" width="22%">🧑‍💻 TÊN NHÂN VIÊN</th>
-                  <th width="12%">⭐ ĐIỂM SỐ</th>
-                  <th width="12%">🏅 THI ĐUA</th>
-                  <th width="15%">📈 THỰC HIỆN</th>
-                  <th width="11%">⏳ CÒN LẠI</th>
-                  <th width="12%">🎯 TARGET</th>
-                  <th width="11%">🚀 % HT</th>
-                </tr>
-              </thead>
-              <tbody id="board-dt-nv">
-              </tbody>
-            </table>
-        </div>
-      </div>
+        <div class="sec-title" style="margin-top: 25px; margin-bottom: 20px;"><span>1</span> XẾP HẠNG & THI ĐUA CÁ NHÂN</div>
 
-      <!-- PHẦN 2: THI ĐUA -->
-      <div id="part2" class="report-box">
-        <div class="sec-title" style="margin: 0;"><span>2</span> CHI TIẾT THI ĐUA CÁ NHÂN</div>
-
-        <div id="thi-dua-tables-container" style="display:flex; flex-direction:column; gap:20px; width:100%; margin-bottom: 20px;">
+        <div id="thi-dua-tables-container" style="display:flex; flex-direction:column; gap:20px; width:100%; margin-bottom: 10px;">
             <!-- Các bảng thi đua sẽ được render tại đây -->
         </div>
       </div>
@@ -683,73 +674,33 @@
         fullPerfList.sort((a, b) => b.totalScore - a.totalScore);
         fullPerfList.forEach((p, i) => p.rank = i + 1);
 
+        window.formatShortName = function(fullName) {
+            if (!fullName) return '';
+            let realName = fullName.split('-').pop().trim();
+            let parts = realName.split(/\s+/);
+            if (parts.length <= 1) return realName;
+            let lastName = parts.pop();
+            let shortParts = parts.map(p => p.charAt(0).toUpperCase() + '.');
+            return shortParts.join('') + lastName;
+        };
+
         // LƯU TRỮ TOÀN BỘ DỮ LIỆU NHÂN VIÊN ĐỂ POPUP DÙNG CHUNG
         window.g_allEmployees = {};
         fullPerfList.forEach(p => { window.g_allEmployees[p.userId] = p; });
 
-        // Render Bảng Xếp Hạng Nhân Viên (Bảng 1)
-        let htmlDT = ""; let sttDT = 1;
+        // RENDER BẢNG TỔNG HỢP: XẾP HẠNG VÀ THI ĐUA
         let bottomThreshold = Math.floor(fullPerfList.length * 0.7);
-
-        for(let i = 0; i < fullPerfList.length; i++) {
-          let p = fullPerfList[i];
-          let cHT = getColorClass(p.u.target > 0 ? p.u.dt / p.u.target : 0);
-          let conLai = Math.max(0, p.tg - p.dt);
-          let conLaiDisplay = (p.u.dt / p.u.target >= 1) ? '<span style="font-size:26px;">🏆</span>' : formatMoney(conLai);
-          
-          let pill = 'stt-normal';
-          if (sttDT === 1) pill = 'stt-gold';
-          else if (sttDT === 2) pill = 'stt-silver';
-          else if (sttDT === 3) pill = 'stt-bronze';
-
-          // Cảnh báo 30% cuối
-          let sttStyle = i >= bottomThreshold ? 'background:#ef4444; color:white; border-color:#d63031;' : '';
-
-          htmlDT += `<tr>
-              <td><div class="stt-pill ${pill}" style="${sttStyle}">${sttDT++}</div></td>
-              <td onclick="showEmployeeModal('${p.userId}')" class="text-left" style="color:#1e272e; font-weight:900; cursor:pointer; white-space: normal !important; word-break: break-word;" onmouseover="this.style.color='#9b59b6'" onmouseout="this.style.color='#1e272e'">${p.name}</td>
-              <td style="color:#b45309; font-weight:900;">${p.totalScore.toFixed(1)}</td>
-              <td style="color:#8b5cf6; font-weight:900;">${p.countNHDuKien}/${activeCategories.length}</td>
-              <td style="padding: 0;">
-                  <div class="cell-prog-wrap">
-                      <div class="cell-prog-bg" style="width:${Math.min((p.u.dt/p.u.target)*100, 100)}%; background:${cHT};"></div>
-                      <span class="cell-val" style="color:#00A1E4; font-size: 24px;">${formatMoney(p.dt)}</span>
-                  </div>
-              </td>
-              <td style="color:#ef4444;">${conLaiDisplay}</td>
-              <td style="color:#636e72;">${formatMoney(p.tg)}</td>
-              <td style="padding: 0 4px;">
-                  <div class="td-prog-container">
-                      <span style="color:${cHT}; font-size: 24px;">${formatPercent(p.u.target > 0 ? p.u.dt / p.u.target : 0)}</span>
-                      <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min((p.u.dt/p.u.target)*100, 100)}%; background:${cHT};"></div></div>
-                  </div>
-              </td>
-          </tr>`;
-        }
         
-        let sumConLai = Math.max(0, tTG - tDT);
-        htmlDT += `<tr style="background: #fffbdf; border-top: 3px solid #1e272e;">
-            <td style="font-size: 20px;">⭐</td>
-            <td class="text-left" style="color:#d63031; font-weight: 900; font-size: 16px !important;">TỔNG CỘNG</td>
-            <td colspan="2"></td>
-            <td style="color:#d63031; font-size: 26px; font-weight: 900;">${formatMoney(tDT)}</td>
-            <td style="color:#ef4444; font-size: 26px; font-weight: 900;">${sumConLai > 0 ? formatMoney(sumConLai) : '🏆'}</td>
-            <td style="color:#636e72; font-size: 26px; font-weight: 900;">${formatMoney(tTG)}</td>
-            <td style="color:${getColorClass(totalHT)}; font-size: 26px; font-weight: 900;">${formatPercent(totalHT)}</td>
-        </tr>`;
-
-        setHTML("board-dt-nv", htmlDT);
-
-
-
         let htmlTDTable = `
         <div style="width:100%; overflow-x:auto; margin-bottom: 20px; border: 3px solid #1e272e; border-radius: 8px; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding-bottom: 5px;">
             <table style="width: max-content; min-width: 100%; border-collapse: separate; border-spacing: 0; background: #fff;">
                 <thead>
                     <tr>
-                        <th style="position: sticky; left: 0; z-index: 10; background: #f1f5f9; width: 45px; min-width: 45px; max-width: 45px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 1px solid #cbd5e1; text-align: center;">#</th>
-                        <th style="position: sticky; left: 45px; z-index: 10; background: #f1f5f9; width: 200px; min-width: 200px; max-width: 200px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 1px solid #cbd5e1; text-align: left; padding-left: 10px;">🧑‍💻 NHÂN VIÊN</th>
-                        <th style="position: sticky; left: 245px; z-index: 10; background: #f1f5f9; width: 80px; min-width: 80px; max-width: 80px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 2px solid #1e272e; text-align: center; font-size: 11px;">NH<br/>DỰ KIẾN</th>`;
+                        <th onclick="toggleTableFullscreen()" title="Nhấn để phóng to bảng" style="cursor: pointer; position: sticky; left: 0; z-index: 10; background: #f1f5f9; width: 45px; min-width: 45px; max-width: 45px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 1px solid #cbd5e1; text-align: center;">#</th>
+                        <th onclick="toggleTableFullscreen()" title="Nhấn để phóng to bảng" style="cursor: pointer; position: sticky; left: 45px; z-index: 10; background: #f1f5f9; width: 170px; min-width: 170px; max-width: 170px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 1px solid #cbd5e1; text-align: left; padding-left: 10px;">🧑‍💻 NHÂN VIÊN</th>
+                        <th onclick="toggleTableFullscreen()" title="Nhấn để phóng to bảng" style="cursor: pointer; position: sticky; left: 215px; z-index: 10; background: #f1f5f9; width: 60px; min-width: 60px; max-width: 60px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 1px solid #cbd5e1; text-align: center; font-size: 11px;">⭐<br/>ĐIỂM</th>
+                        <th onclick="toggleTableFullscreen()" title="Nhấn để phóng to bảng" style="cursor: pointer; position: sticky; left: 275px; z-index: 10; background: #f1f5f9; width: 60px; min-width: 60px; max-width: 60px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 1px solid #cbd5e1; text-align: center; font-size: 11px;">🏅<br/>T.ĐUA</th>
+                        <th onclick="toggleTableFullscreen()" title="Nhấn để phóng to bảng" style="cursor: pointer; position: sticky; left: 335px; z-index: 10; background: #f1f5f9; width: 280px; min-width: 280px; max-width: 280px; box-sizing: border-box; border-bottom: 2px solid #1e272e; border-right: 2px solid #1e272e; text-align: center;">💼 DOANH THU</th>`;
 
         let idxHeader = 1;
         for (let cat of activeCategories) {
@@ -770,43 +721,78 @@
         }
         htmlTDTable += `</tr></thead><tbody>`;
         
-        let tdEmployees = parsedDT.map(i => {
-            let u = userMap[i.userId];
-            let countNHDuKien = 0;
-            for (let cat of activeCategories) {
-                let nganhClean = String(cat.nganhHang).toLowerCase().trim();
-                let targetUser = cat.storeTarget * u.targetRatio; 
-                let actual = u.td[nganhClean] || 0;
-                let htDuKien = targetUser > 0 ? ((actual / daysPassed) * daysInMonth) / targetUser : 0;
-                if (htDuKien >= 1) countNHDuKien++;
-            }
-            return { i, u, countNHDuKien };
-        });
-        
-        tdEmployees.sort((a, b) => b.countNHDuKien - a.countNHDuKien);
+        // tdEmployees sử dụng luôn fullPerfList vì nó đã được tính đầy đủ điểm, rank, thi đua
+        let tdEmployees = fullPerfList;
         
         let sttTD = 1;
         let empIndex = 0;
         for (let emp of tdEmployees) { 
-            let i = emp.i;
             let u = emp.u;
             let countNHDuKien = emp.countNHDuKien;
-
+            
+            let dt = emp.dt;
+            let tg = emp.tg;
+            let htHT = tg > 0 ? (dt / tg) : 0;
+            let conLai = Math.max(0, tg - dt);
+            
             let pill = 'stt-normal';
             if (sttTD === 1) pill = 'stt-gold'; else if (sttTD === 2) pill = 'stt-silver'; else if (sttTD === 3) pill = 'stt-bronze';
 
             let rowBg = (sttTD % 2 === 0) ? "#f8fafc" : "#ffffff";
             let bBot = (sttTD === tdEmployees.length) ? "none" : "1px solid #cbd5e1";
+            let sttStyle = empIndex >= bottomThreshold ? 'background:#ef4444; color:white; border-color:#d63031;' : '';
+
+            // WIDGET DOANH THU CSS
+            let dash = 2 * Math.PI * 18; 
+            let offset = dash - (Math.min(htHT, 1) * dash);
+            let circleColor = htHT >= 1 ? '#10b981' : '#f59e0b';
+            
+            let widgetHTML = `
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px; display: flex; flex-direction: column; gap: 6px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); width: 100%; box-sizing: border-box;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 2px;">
+                            <span style="font-size: 9px; color: #64748b; font-weight: 800;"><span style="color:#f59e0b;">🎯</span> THỰC HIỆN / TARGET</span>
+                            <div style="font-size: 16px; font-weight: 900; color: #1e293b; line-height: 1.1;">
+                                <span style="color: #0ea5e9;">${formatMoney(dt)}</span> <span style="color:#94a3b8; font-size:14px;">/ ${formatMoney(tg)}</span>
+                            </div>
+                        </div>
+                        <div style="position: relative; width: 44px; height: 44px; display: flex; justify-content: center; align-items: center;">
+                            <svg viewBox="0 0 44 44" style="width: 100%; height: 100%; position: absolute; top:0; left:0;"><circle cx="22" cy="22" r="18" fill="none" stroke="#e2e8f0" stroke-width="4"></circle></svg>
+                            <svg viewBox="0 0 44 44" style="width: 100%; height: 100%; position: absolute; top:0; left:0; transform: rotate(-90deg); stroke:${circleColor}; stroke-dasharray:${dash}; stroke-dashoffset:${offset}; stroke-width:4; fill:none; stroke-linecap:round;"><circle cx="22" cy="22" r="18"></circle></svg>
+                            <div style="font-size: 11px; font-weight: 900; color: #1e293b; line-height: 1; text-align: center;">${Math.round(htHT * 100)}<span style="font-size:8px;">%</span></div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px;">
+                            <span style="font-size: 9px; color: #64748b; font-weight: 800;"><span style="color:#eab308;">⏳</span> CÒN LẠI</span>
+                            <div style="font-size: 16px; font-weight: 900; color: #ef4444; line-height: 1.1;">
+                                ${htHT >= 1 ? '<span style="color:#10b981; font-size:14px;">🏆 ĐẠT</span>' : formatMoney(conLai)}
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                        <span style="font-size: 9px; font-weight: 800; color: #64748b; white-space: nowrap;">KPI HÔM NAY</span>
+                        <div style="flex: 1; height: 6px; background: #e2e8f0; border-radius: 3px; display: flex; gap: 2px; overflow: hidden;">
+                            <div style="width: ${Math.min(htHT*100, 100)}%; background: #facc15; border-radius: 3px; background-image: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(0,0,0,0.1) 4px, rgba(0,0,0,0.1) 8px);"></div>
+                        </div>
+                        <span style="font-size: 9px; font-weight: 900; color: #f59e0b; white-space: nowrap;">CỐ LÊN! 💪</span>
+                    </div>
+                </div>
+            `;
 
             htmlTDTable += `<tr style="background: ${rowBg};">
                 <td style="position: sticky; left: 0; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: center; width: 45px; min-width: 45px; max-width: 45px; box-sizing: border-box; padding: 6px 2px;">
-                    <div class="stt-pill ${pill}">${sttTD++}</div>
+                    <div class="stt-pill ${pill}" style="${sttStyle}">${sttTD++}</div>
                 </td>
-                <td onclick="showEmployeeModal('${i.userId}')" style="cursor:pointer; position: sticky; left: 45px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: left; padding-left: 10px; width: 200px; min-width: 200px; max-width: 200px; box-sizing: border-box; font-weight: 900; color: #1e272e; font-size: 14px; word-break: break-word; transition: color 0.2s;" onmouseover="this.style.color='#9b59b6'" onmouseout="this.style.color='#1e272e'">
-                    ${i.name}
+                <td onclick="showEmployeeModal('${emp.userId}')" style="cursor:pointer; position: sticky; left: 45px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: left; padding-left: 10px; width: 170px; min-width: 170px; max-width: 170px; box-sizing: border-box; font-weight: 900; color: #1e272e; font-size: 14px; word-break: break-word; transition: color 0.2s;" onmouseover="this.style.color='#9b59b6'" onmouseout="this.style.color='#1e272e'">
+                    ${window.formatShortName(emp.name)}
                 </td>
-                <td style="position: sticky; left: 245px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 2px solid #1e272e; text-align: center; width: 80px; min-width: 80px; max-width: 80px; box-sizing: border-box; font-weight: 900; color: #8b5cf6; font-size: 18px;">
-                    ${countNHDuKien}
+                <td style="position: sticky; left: 215px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: center; width: 60px; min-width: 60px; max-width: 60px; box-sizing: border-box; font-weight: 900; color: #b45309; font-size: 14px;">
+                    ${emp.totalScore.toFixed(1)}
+                </td>
+                <td style="position: sticky; left: 275px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: center; width: 60px; min-width: 60px; max-width: 60px; box-sizing: border-box; font-weight: 900; color: #8b5cf6; font-size: 14px;">
+                    ${countNHDuKien}/${activeCategories.length}
+                </td>
+                <td style="position: sticky; left: 335px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 2px solid #1e272e; text-align: center; width: 280px; min-width: 280px; max-width: 280px; box-sizing: border-box; padding: 5px;">
+                    ${widgetHTML}
                 </td>
             `;
             
@@ -1030,33 +1016,118 @@
       } catch (e) { console.error(e); if (btn) btn.innerText = "❌ LỖI TẢI DỮ LIỆU"; }
     }
 
+    window.toggleTableFullscreen = function() {
+        let elem = document.getElementById('part1');
+        if (!document.fullscreenElement) {
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen().catch(err => {
+                    console.error("Lỗi fullscreen: ", err);
+                });
+            }
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    };
+
+    document.addEventListener("fullscreenchange", function() {
+        let part1 = document.getElementById('part1');
+        let container = part1.querySelector('#thi-dua-tables-container');
+        if (document.fullscreenElement) {
+            setTimeout(() => {
+                let table = container.querySelector('table');
+                let contentHeight = table ? table.offsetHeight + 180 : container.scrollHeight + 180;
+                let viewportHeight = window.innerHeight;
+                let scaleRatio = viewportHeight / contentHeight;
+                if (scaleRatio < 1) {
+                    container.style.zoom = scaleRatio * 0.90; // Thu nhỏ thêm 10% để đảm bảo lọt hết
+                }
+            }, 50);
+        } else {
+            container.style.zoom = "1";
+        }
+    });
+
     document.getElementById('btnDownloadSplit').addEventListener('click', async function() {
         this.disabled = true;
-        let c1 = await html2canvas(document.getElementById('part1'), { scale: 2.5 });
-        downloadURI(c1.toDataURL("image/png"), "1_DoanhThu_NV.png");
-
-        // Xử lý chụp Part 2 (cuộn ngang)
-        let part2 = document.getElementById('part2');
-        let tableScroll = part2.querySelector('#thi-dua-tables-container > div');
-        let originalWidth = part2.style.width;
+        // Xử lý chụp Part 1 (mở rộng ngang để bao trọn bảng)
+        let part1 = document.getElementById('part1');
+        let tableScroll = part1.querySelector('#thi-dua-tables-container > div');
+        let originalWidth = part1.style.width;
         if (tableScroll) {
             let table = tableScroll.querySelector('table');
-            part2.style.width = (table.offsetWidth + 60) + "px"; // 60px padding
+            if (table) {
+                part1.style.width = (table.offsetWidth + 60) + "px"; // 60px padding
+            }
         }
-        let c2 = await html2canvas(part2, { scale: 2.5 });
-        part2.style.width = originalWidth;
-        downloadURI(c2.toDataURL("image/png"), "2_ThiDua_NV.png");
+        let c1 = await html2canvas(part1, { scale: 2.5 });
+        part1.style.width = originalWidth;
+        downloadURI(c1.toDataURL("image/png"), "1_XepHang_ThiDua_NV.png");
 
         let c3 = await html2canvas(document.getElementById('part3'), { scale: 2.5 });
-        downloadURI(c3.toDataURL("image/png"), "3_HieuSuat_NV.png");
+        downloadURI(c3.toDataURL("image/png"), "2_HieuSuat_NV.png");
         this.disabled = false;
     });
 
     document.getElementById('btnDownloadFull').addEventListener('click', async function() {
         this.disabled = true;
-        let c = await html2canvas(document.getElementById('report-container'), { scale: 2.5, backgroundColor: "#e9ecef" });
+        
+        let reportContainer = document.getElementById('report-container');
+        let part1 = document.getElementById('part1');
+        let tableScroll = part1.querySelector('#thi-dua-tables-container > div');
+        
+        let origRcWidth = reportContainer.style.width;
+        let origPart1Width = part1.style.width;
+        
+        if (tableScroll) {
+            let table = tableScroll.querySelector('table');
+            if (table) {
+                let targetWidth = table.offsetWidth + 60;
+                part1.style.width = targetWidth + "px";
+                reportContainer.style.width = (targetWidth + 40) + "px";
+            }
+        }
+        
+        let c = await html2canvas(reportContainer, { scale: 2.5, backgroundColor: "#e9ecef" });
+        
+        reportContainer.style.width = origRcWidth;
+        part1.style.width = origPart1Width;
+        
         downloadURI(c.toDataURL("image/png"), "BaoCao_NhanVien_ToanTrang.png");
         this.disabled = false;
+    });
+
+    document.getElementById('btnDownloadShort').addEventListener('click', async function() {
+        this.disabled = true; let btnText = this.innerText; this.innerText = "⏳ Đang chụp...";
+        let part1 = document.getElementById('part1');
+        let tableScroll = part1.querySelector('#thi-dua-tables-container > div');
+        let originalWidth = part1.style.width;
+        let table = tableScroll ? tableScroll.querySelector('table') : null;
+        
+        let hiddenCells = [];
+        if (table) {
+            let rows = table.querySelectorAll('tr');
+            rows.forEach(row => {
+                let cells = row.children;
+                // Bắt đầu ẩn từ cột thứ 5 (index 5)
+                for (let i = 5; i < cells.length; i++) {
+                    hiddenCells.push({ cell: cells[i], display: cells[i].style.display });
+                    cells[i].style.display = 'none';
+                }
+            });
+            part1.style.width = (table.offsetWidth + 60) + "px";
+        }
+        
+        let c1 = await html2canvas(part1, { scale: 2.5 });
+        
+        hiddenCells.forEach(item => {
+            item.cell.style.display = item.display;
+        });
+        part1.style.width = originalWidth;
+        
+        downloadURI(c1.toDataURL("image/png"), "3_XepHang_RutGon.png");
+        this.innerText = btnText; this.disabled = false;
     });
 
     function downloadURI(uri, name) {
@@ -1088,7 +1159,22 @@
             let card = document.getElementById("perf-card-" + safeId);
             if (card) {
                 let p = window.g_allEmployees[userId];
-                document.getElementById("infoModalTitle").innerText = "THẺ KPI - " + (p ? p.name : "");
+                document.getElementById("infoModalContentBox").style.width = "400px";
+                document.getElementById("infoModalContentBox").style.maxWidth = "95vw";
+                document.getElementById("infoModalContentBox").style.height = "auto";
+                document.getElementById("infoModalContentBox").style.maxHeight = "95vh";
+
+                let mTitle = document.getElementById("infoModalTitle");
+                mTitle.innerText = "THẺ KPI - " + (p ? p.name.split('-').pop().trim().toUpperCase() : "");
+                mTitle.parentElement.style.background = "#9b59b6";
+                mTitle.parentElement.style.color = "white";
+                mTitle.parentElement.style.textTransform = "uppercase";
+                mTitle.parentElement.style.borderBottom = "none";
+                mTitle.parentElement.querySelector('button').style.color = "white";
+
+                document.getElementById("infoModalTitle").parentElement.style.padding = "15px 20px";
+                document.getElementById("infoModalBody").style.overflow = "auto";
+                document.getElementById("infoModalBody").style.zoom = "1";
                 document.getElementById("infoModalBody").innerHTML = `<div style="padding: 20px; display:flex; justify-content:center;">${card.outerHTML}</div>`;
                 let modal = document.getElementById("infoModal");
                 modal.style.display = "flex";
@@ -1098,6 +1184,102 @@
             }
         } catch (e) {
             alert("Lỗi khi mở popup: " + e);
+        }
+    };
+
+    window.showCategoryModal = function(catIndex) {
+        try {
+            let cat = window.g_activeCategories[catIndex];
+            if (!cat) return;
+            
+            let nganhClean = String(cat.nganhHang).toLowerCase().trim();
+            let html = `
+            <div style="padding: 10px; width: 100%; box-sizing: border-box; overflow: hidden; background: white;">
+                <table style="width: 100%; border-collapse: collapse; font-family: 'Nunito', sans-serif; font-size: 13px;">
+                    <thead style="background: white;">
+                        <tr>
+                            <th style="padding: 6px 4px; border-bottom: 2px solid #e2e8f0; text-align: center; font-weight: 800; color: #334155; width: 8%;">Hạng</th>
+                            <th style="padding: 6px 4px; border-bottom: 2px solid #e2e8f0; text-align: left; font-weight: 800; color: #334155; width: 32%;">Nhân viên</th>
+                            <th style="padding: 6px 4px; border-bottom: 2px solid #e2e8f0; text-align: center; font-weight: 800; color: #334155; width: 15%;">Lũy kế</th>
+                            <th style="padding: 6px 4px; border-bottom: 2px solid #e2e8f0; text-align: center; font-weight: 800; color: #334155; width: 15%;">Target</th>
+                            <th style="padding: 6px 4px; border-bottom: 2px solid #e2e8f0; text-align: center; font-weight: 800; color: #334155; width: 15%;">% HT</th>
+                            <th style="padding: 6px 4px; border-bottom: 2px solid #e2e8f0; text-align: center; font-weight: 800; color: #334155; width: 15%;">% HT Dự kiến</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            let tdList = [];
+            for (let emp of window.g_tdEmployees) {
+                let u = emp.u;
+                let actual = u.td[nganhClean] || 0;
+                let targetUser = cat.storeTarget * u.targetRatio;
+                let htHT = targetUser > 0 ? (actual / targetUser) : 0;
+                let htDuKien = targetUser > 0 ? ((actual / window.g_daysPassed) * window.g_daysInMonth) / targetUser : 0;
+                if (targetUser > 0 || actual > 0) {
+                    tdList.push({ name: emp.name, actual, targetUser, htHT, htDuKien, u });
+                }
+            }
+            tdList.sort((a, b) => b.htHT - a.htHT);
+            
+            let stt = 1;
+            for (let p of tdList) {
+                let realName = p.name.split('-').pop().trim();
+                let colorHT = p.htHT >= 1 ? '#10b981' : '#ef4444';
+                let colorDK = p.htDuKien >= 1 ? '#10b981' : '#ef4444';
+                
+                html += `
+                <tr style="background: white; border-bottom: 1px solid #f1f5f9;">
+                    <td style="padding: 6px 4px; text-align: center; font-weight: 800; color: #1e293b;">${stt++}</td>
+                    <td style="padding: 6px 4px; text-align: left; font-weight: 600; color: #475569; white-space: nowrap;">${realName}</td>
+                    <td style="padding: 6px 4px; text-align: center; color: #64748b;">${window.g_formatVal(p.actual, cat.isSL)}</td>
+                    <td style="padding: 6px 4px; text-align: center; color: #64748b;">${window.g_formatVal(p.targetUser, cat.isSL)}</td>
+                    <td style="padding: 6px 4px; text-align: center; font-weight: 800; color: ${colorHT};">${window.g_formatPercent(p.htHT)}</td>
+                    <td style="padding: 6px 4px; text-align: center; font-weight: 800; color: ${colorDK};">${window.g_formatPercent(p.htDuKien)}</td>
+                </tr>
+                `;
+            }
+            html += `</tbody></table></div>`;
+            
+            document.getElementById("infoModalContentBox").style.width = "750px";
+            document.getElementById("infoModalContentBox").style.maxWidth = "95vw";
+            document.getElementById("infoModalContentBox").style.height = "auto";
+            document.getElementById("infoModalContentBox").style.maxHeight = "95vh";
+
+            let mTitle = document.getElementById("infoModalTitle");
+            mTitle.innerText = "Xếp hạng Ngành hàng: " + cat.nganhHang;
+            mTitle.parentElement.style.background = "white";
+            mTitle.parentElement.style.color = "#0284c7";
+            mTitle.parentElement.style.textTransform = "none";
+            mTitle.parentElement.style.borderBottom = "1px solid #e2e8f0";
+            mTitle.parentElement.style.padding = "10px 15px";
+            mTitle.parentElement.querySelector('button').style.color = "#94a3b8";
+
+            let modalBody = document.getElementById("infoModalBody");
+            modalBody.innerHTML = html;
+            modalBody.style.overflow = "hidden"; // Không cho phép cuộn
+            
+            let modal = document.getElementById("infoModal");
+            modal.style.display = "flex";
+            
+            setTimeout(() => { 
+                modal.style.opacity = "1"; 
+                document.getElementById("infoModalContentBox").style.transform = "translateY(0)"; 
+                
+                // Thuật toán ép kích thước Scale cho bảng nếu quá cao
+                let table = modalBody.querySelector("table");
+                if (table) {
+                    let availableHeight = window.innerHeight * 0.95 - mTitle.parentElement.offsetHeight - 20; // 20px padding trừ hao
+                    let tblH = table.offsetHeight;
+                    if (tblH > availableHeight) {
+                        modalBody.style.zoom = (availableHeight / tblH) * 0.98; // Ép fit height
+                    } else {
+                        modalBody.style.zoom = "1";
+                    }
+                }
+            }, 50);
+        } catch (e) {
+            console.error("Lỗi showCategoryModal", e);
         }
     };
     

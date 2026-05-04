@@ -418,6 +418,7 @@
             margin-bottom: 20px;
             background: #fff;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: none;
         }
 
         .todo-header {
@@ -860,13 +861,14 @@
 
         .top-actions {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             margin: 20px auto;
             justify-content: center;
-            max-width: 1010px;
+            max-width: 1012px;
             width: 100%;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             box-sizing: border-box;
+            padding: 0;
         }
 
         .btn-action {
@@ -874,10 +876,10 @@
             border: 2px solid #cbd5e1;
             color: #475569;
             flex: 1;
-            min-width: 130px;
-            height: 60px;
-            padding: 5px;
-            font-size: 13px;
+            min-width: 85px;
+            height: 50px;
+            padding: 4px;
+            font-size: 11px;
             border-radius: 8px;
             font-weight: 800;
             cursor: pointer;
@@ -885,9 +887,9 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            gap: 5px;
+            gap: 4px;
             font-family: 'Nunito', sans-serif;
-            line-height: 1.3;
+            line-height: 1.2;
             transition: all 0.2s;
         }
 
@@ -973,6 +975,8 @@
         <button class="btn-action" id="btnDownloadFull">📸 TẢI ẢNH TOÀN TRANG</button>
         <button class="btn-action" onclick="copyComment()"
             style="background: #2563eb; color: white; border-color: #2563eb;">📋 SAO CHÉP NHẬN XÉT</button>
+        <button class="btn-action" id="btnToggleTodo" onclick="toggleTodoBoard()"
+            style="border-color:#10b981; color:#10b981;">👁️ HIỆN VIỆC CẦN LÀM</button>
         <span style="margin: 0 15px; color: #cbd5e1;">|</span>
         <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')"
             style="border-color:#00A1E4; color:#00A1E4;">📊 ĐỔ SỐ LŨY KẾ</button>
@@ -1001,6 +1005,22 @@
             <!-- THANH TIẾN ĐỘ TỔNG QUAN -->
             <div
                 style="width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 10px; padding: 0 5px; box-sizing: border-box;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div
+                        style="width: 150px; font-size: 13px; font-weight: 900; color: #475569; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                        <i style="font-size: 16px;">📅</i> DỰ KIẾN HT NĂM
+                    </div>
+                    <div
+                        style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; border: 2px solid #1e272e; overflow: hidden; position: relative;">
+                        <div id="bar-year-fill" style="height: 100%; background: #8b5cf6; width: 0%;"></div>
+                        <div id="bar-year-remaining"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e272e; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff; pointer-events: none;">
+                        </div>
+                    </div>
+                    <div id="bar-year-text"
+                        style="width: 60px; text-align: right; font-size: 16px; font-weight: 900; color: #8b5cf6;">0%
+                    </div>
+                </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
                         style="width: 150px; font-size: 13px; font-weight: 900; color: #475569; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
@@ -1237,6 +1257,22 @@
 
         window.reportMessageText = "";
 
+        window.toggleTodoBoard = function() {
+            let boards = document.querySelectorAll('.todo-board');
+            let btn = document.getElementById('btnToggleTodo');
+            let isHidden = boards[0].style.display === 'none' || boards[0].style.display === '';
+            
+            boards.forEach(b => {
+                b.style.display = isHidden ? 'block' : 'none';
+            });
+            
+            if (isHidden) {
+                btn.innerHTML = '🙈 ẨN VIỆC CẦN LÀM';
+            } else {
+                btn.innerHTML = '👁️ HIỆN VIỆC CẦN LÀM';
+            }
+        };
+
         const parseVnNumber = (val) => {
             if (val == null || val === '') return 0;
             if (typeof val === 'number') return val;
@@ -1389,14 +1425,26 @@
                 }
 
                 let configMap = {};
+                let targetNam = 0;
+                let thucHienCacThangTruoc = 0;
+
                 if (!configData.error && configData.length > 0) {
                     for (let c of configData) {
                         let ten = getKey(c, "ngành hàng", "nhóm ngành hàng");
                         let phanLoai = parseVnNumber(getKey(c, "phân loại", "loại", "mức độ"));
                         let thuTu = parseVnNumber(getKey(c, "thứ tự", "thu tu"));
                         if (ten) configMap[String(ten).toLowerCase().trim()] = { phanLoai, thuTu: thuTu > 0 ? thuTu : 999 };
+
+                        let targetT = parseVnNumber(getKey(c, "target"));
+                        let thucHienT = parseVnNumber(getKey(c, "thực hiện"));
+                        
+                        if (targetT > 0) targetNam += targetT;
+                        if (thucHienT > 0) thucHienCacThangTruoc += thucHienT;
                     }
                 }
+
+                let thucHienNamDk = thucHienCacThangTruoc + totalDKThang;
+                let tienDoNam = targetNam > 0 ? thucHienNamDk / targetNam : 0;
 
                 let parsedThiDua = [];
                 let cntDK = 0, cntVD = 0;
@@ -1509,6 +1557,16 @@
                 setText("bar-time-remaining", actualDaysRem > 0 ? `CÒN LẠI ${actualDaysRem} NGÀY` : `HẾT THÁNG`);
                 let revRem = Math.max(0, tTG - tDT);
                 setText("bar-rev-remaining", revRem > 0 ? `CÒN THIẾU ${formatMoney(revRem)} TR` : `ĐÃ VỀ ĐÍCH 🏆`);
+
+                let namConLai = Math.max(0, targetNam - thucHienNamDk);
+                setText("bar-year-text", formatPercent(tienDoNam));
+                if (document.getElementById("bar-year-fill")) {
+                    document.getElementById("bar-year-fill").style.width = Math.min(tienDoNam * 100, 100) + '%';
+                    document.getElementById("bar-year-fill").style.background = getColorClass(tienDoNam);
+                    document.getElementById("bar-year-text").style.color = getColorClass(tienDoNam);
+                }
+                let strYearVal = `${formatMoney(thucHienNamDk)} / ${formatMoney(targetNam)}`;
+                setText("bar-year-remaining", namConLai > 0 ? `${strYearVal} - CÒN THIẾU ${formatMoney(namConLai)} TR` : `${strYearVal} - ĐÃ VƯỢT MỤC TIÊU 🏆`);
 
                 let strTangTruong = totalCK >= 0 ? `+${Math.round(totalCK * 100)}` : Math.round(totalCK * 100);
                 let colorTangTruong = totalCK >= 0 ? "#10b981" : "#ef4444";
@@ -1925,7 +1983,10 @@
                     msg += todoList.map((item, idx) => {
                         let conLai = Math.max(0, item.tg - item.dt);
                         let doanhThuUocTinh = (item.htTarget >= 1) ? (item.dt / daysPassed) : (conLai / daysRemaining);
-                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ~${formatMoney(doanhThuUocTinh)} TR/ngày`;
+                        let avgPrice = (item.sl > 0 && item.dt > 0) ? (item.dt / item.sl) : 0;
+                        let slCanBan = avgPrice > 0 ? Math.ceil(doanhThuUocTinh / avgPrice) : 0;
+                        let textSL = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} SP (~${formatMoney(doanhThuUocTinh)} TR)` : `~${formatMoney(doanhThuUocTinh)} TR`;
+                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ${textSL}/ngày`;
                     }).join('\n') + `\n`;
                 }
 
@@ -1934,9 +1995,15 @@
                     msg += `✅ Tuyệt vời, tất cả ngành hàng thi đua đã về đích!`;
                 } else {
                     msg += todoThiDuaList.map((item, idx) => {
-                        let unit = item.isSL ? "SP" : "TR";
-                        let mtValue = item.isSL ? Math.ceil(item.mtNgay) : formatMoney(item.mtNgay);
-                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ${mtValue} ${unit}/ngày`;
+                        let mtValue = "";
+                        if (item.isSL) {
+                            mtValue = `${Math.ceil(item.mtNgay).toLocaleString('vi-VN')} SP`;
+                        } else {
+                            let giaTriTB = item.thucHien / daysPassed;
+                            let slCanBan = giaTriTB > 0 ? Math.ceil(item.mtNgay / giaTriTB) : 0;
+                            mtValue = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} SP (~${formatMoney(item.mtNgay)} TR)` : `~${formatMoney(item.mtNgay)} TR`;
+                        }
+                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ${mtValue}/ngày`;
                     }).join('\n');
                 }
 
