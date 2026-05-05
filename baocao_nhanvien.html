@@ -382,6 +382,7 @@
         let luykeDT = u.dt;
         let conlaiDT = targetDT - luykeDT;
         let dailyTarget = targetDT / daysInMonth;
+        let revHT = targetDT > 0 ? (luykeDT / targetDT * 100) : 0;
 
         let tableRows = "";
         let pCats = [...activeCategories].map(cat => {
@@ -434,9 +435,9 @@
                         <div class="perf-progress-label">
                             <span>Tiến độ Doanh thu</span>
                             <span>${luykeDT.toLocaleString('vi-VN', {maximumFractionDigits:0})} / ${targetDT.toLocaleString('vi-VN', {maximumFractionDigits:0})}</span>
-                            <span style="color: #00a8cc;">${revScore.toFixed(1)}%</span>
+                            <span style="color: #00a8cc;">${revHT.toFixed(1)}%</span>
                         </div>
-                        <div class="perf-progress-bar-bg"><div class="perf-progress-bar-fill" style="width: ${Math.min(revScore, 100)}%; background: #00a8cc;"></div></div>
+                        <div class="perf-progress-bar-bg"><div class="perf-progress-bar-fill" style="width: ${Math.min(revHT, 100)}%; background: #00a8cc;"></div></div>
                     </div>
                     <div class="perf-progress-item">
                         <div class="perf-progress-label">
@@ -860,6 +861,8 @@
             let conlaiDT = targetDT - luykeDT;
             let daysLeft = daysInMonth - daysPassed;
             let dailyTarget = daysLeft > 0 ? (conlaiDT > 0 ? conlaiDT / daysLeft : 0) : conlaiDT;
+            
+            let revHTPercent = targetDT > 0 ? (luykeDT / targetDT * 100).toFixed(1) : "0.0";
 
             let tableRows = "";
             let pCats = [...activeCategories].map(cat => {
@@ -927,10 +930,10 @@
                             <div class="perf-progress-label">
                                 <span>Tiến độ Doanh thu</span>
                                 <span>${formatValLocal(luykeDT, false)} / ${formatValLocal(targetDT, false)}</span>
-                                <span style="color: #00a8cc;">${revPercent}%</span>
+                                <span style="color: #00a8cc;">${revHTPercent}%</span>
                             </div>
                             <div class="perf-progress-bar-bg">
-                                <div class="perf-progress-bar-fill" style="width: ${Math.min(revPercent, 100)}%; background: #00a8cc;"></div>
+                                <div class="perf-progress-bar-fill" style="width: ${Math.min(parseFloat(revHTPercent), 100)}%; background: #00a8cc;"></div>
                             </div>
                         </div>
                         <div class="perf-progress-item">
