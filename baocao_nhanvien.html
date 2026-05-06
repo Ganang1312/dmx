@@ -107,11 +107,11 @@
     .top-actions { display: flex; gap: 10px; margin: 20px auto; justify-content: center; max-width: 1010px; width: 100%; flex-wrap: wrap; box-sizing: border-box;}
     .btn-action {
       background: white; border: 2px solid #cbd5e1; color: #475569; 
-      flex: 1; min-width: 130px; height: 60px; 
-      padding: 5px; font-size: 13px; border-radius: 8px; font-weight: 800;
+      flex: 1; min-width: 90px; height: 40px; 
+      padding: 2px 5px; font-size: 11px; border-radius: 8px; font-weight: 800;
       cursor: pointer; display: flex; align-items: center; justify-content: center; 
-      text-align: center; gap: 5px; font-family: 'Nunito', sans-serif;
-      line-height: 1.3; transition: all 0.2s;
+      text-align: center; gap: 4px; font-family: 'Nunito', sans-serif;
+      line-height: 1.2; transition: all 0.2s;
     }
     .btn-action:hover { background: #f8fafc; border-color: #94a3b8; transform: translateY(-1px); }
 
@@ -170,7 +170,17 @@
     #part1::backdrop {
         background: #e9ecef;
     }
-  </style>
+  
+        .delta-badge {
+            font-size: 11px; font-weight: 900; padding: 2px 4px; border-radius: 4px; margin-left: 6px; display: inline-block; white-space: nowrap;
+        }
+        .delta-badge.pos { background: #dcfce7; color: #16a34a; }
+        .delta-badge.neg { background: #fee2e2; color: #dc2626; }
+        
+        body.hide-delta .delta-badge { display: none !important; }
+
+
+    </style>
 </head>
 <body>
 
@@ -186,18 +196,26 @@
       </div>
   </div>
 
-  <div class="top-actions" data-html2canvas-ignore="true">
-      <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
-      <button class="btn-action" id="btnDownloadFull">📸 TOÀN TRANG</button>
-      <button class="btn-action" id="btnDownloadShort" style="border-color:#f39c12; color:#f39c12;">✂️ CHỤP RÚT GỌN</button>
-      <button class="btn-action" id="btnDownloadKPI">📸 TỪNG KPI</button>
-      <button class="btn-action" id="btnDownloadAllKPI">📸 TỔNG QUAN KPI</button>
-      <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 SỐ LŨY KẾ</button>
-      <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')" style="border-color:#f39c12; color:#f39c12;">📈 SỐ REALTIME</button>
-      <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 SỐ NHÂN VIÊN</button>
-  </div>
-
-  <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
+      <div class="top-actions" data-html2canvas-ignore="true" style="display:flex; justify-content:center; align-items:center; margin: 20px auto 10px auto; max-width: 950px; width: 100%; box-sizing: border-box; flex-wrap: nowrap; gap: 5px;">
+        <button class="btn-action" id="btnDownloadSplit">📸 TÁCH</button>
+        <button class="btn-action" id="btnDownloadFull">📸 TOÀN</button>
+        <button class="btn-action" id="btnDownloadShort" style="border-color:#f39c12; color:#f39c12;">✂️ RÚT GỌN</button>
+        <button class="btn-action" id="btnDownloadKPI">📸 TỪNG KPI</button>
+        <button class="btn-action" id="btnDownloadAllKPI">📸 T.QUAN KPI</button>
+        <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 LŨY KẾ</button>
+        <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 NHÂN VIÊN</button>
+        <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')" style="border-color:#f39c12; color:#f39c12;">📈 REALTIME</button>
+    </div>
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 0 auto 20px auto; max-width: 950px; width: 100%; box-sizing: border-box; font-size: 13px;" data-html2canvas-ignore="true">
+        <div style="background:#fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 12px; display:flex; align-items:center; gap:8px; font-weight:800; color:#475569;">
+            <span style="color:#64748b;">📅 GỐC:</span>
+            <select id="baseDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
+            <span style="color:#64748b;">VS:</span>
+            <select id="compDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
+        </div>
+        <button onclick="window.toggleDelta()" id="btnToggleDelta" style="background:#8b5cf6; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);">👀 ẨN/HIỆN</button>
+    </div>
+    <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
       
       <!-- PHẦN 1: TỔNG HỢP -->
       <div id="part1" class="report-box">
@@ -299,206 +317,219 @@
         setTimeout(() => { m.style.display = 'none'; }, 300);
     }
 
-    window.showCategoryModal = function(catIndex) {
-        let cat = window.g_activeCategories[catIndex];
-        if (!cat) return;
-        let html = `<table style="width:100%; border-collapse: collapse; text-align:center; border: 2px solid #1e272e; table-layout: auto;">
-            <thead style="position: sticky; top: 0; z-index: 2;">
-                <tr style="background:#f1f5f9;">
-                    <th style="padding:10px 8px; border-bottom:2px solid #1e272e; border-right:1px solid #cbd5e1; font-size:12px; color:#1e272e; width:5%;">#</th>
-                    <th style="padding:10px 8px; border-bottom:2px solid #1e272e; border-right:1px solid #cbd5e1; font-size:12px; color:#1e272e; text-align:left; width:30%;">NHÂN VIÊN</th>
-                    <th style="padding:10px 8px; border-bottom:2px solid #1e272e; border-right:1px solid #cbd5e1; font-size:12px; color:#1e272e; width:15%;">THỰC HIỆN</th>
-                    <th style="padding:10px 8px; border-bottom:2px solid #1e272e; border-right:1px solid #cbd5e1; font-size:12px; color:#1e272e; width:20%;">% THỰC HIỆN</th>
-                    <th style="padding:10px 8px; border-bottom:2px solid #1e272e; border-right:1px solid #cbd5e1; font-size:12px; color:#1e272e; width:15%;">TARGET</th>
-                    <th style="padding:10px 8px; border-bottom:2px solid #1e272e; border-right:none; font-size:12px; color:#1e272e; width:15%;">% HT (DỰ KIẾN)</th>
-                </tr>
-            </thead>
-            <tbody>`;
-        
-        let emps = [...window.g_tdEmployees].map(emp => {
-            let u = emp.u;
-            let nganhClean = String(cat.nganhHang).toLowerCase().trim();
-            let targetUser = cat.storeTarget * u.targetRatio; 
-            let actual = u.td[nganhClean] || 0;
-            let htDuKien = targetUser > 0 ? ((actual / window.g_daysPassed) * window.g_daysInMonth) / targetUser : 0;
-            let htHienTai = targetUser > 0 ? actual / targetUser : 0;
-            return { name: emp.i.name, actual, targetUser, htDuKien, htHienTai };
-        }).sort((a,b) => b.htDuKien - a.htDuKien);
+    
+    // --- HISTORY & COMPARISON LOGIC ---
+    window.availableDates = [];
+    window.historyDataCache = {};
+    window.showDelta = true;
 
-        let stt = 1;
-        for(let e of emps) {
-            if(e.targetUser <= 0 && e.actual === 0) continue;
-            let colorHienTai = window.g_getColorClass(e.htHienTai);
-            let colorDuKien = window.g_getColorClass(e.htDuKien);
-            let pWidth = Math.min(e.htHienTai * 100, 100);
-            
-            html += `<tr style="border-bottom: 1px solid #cbd5e1;">
-                <td style="padding:10px 8px; border-right:1px solid #cbd5e1; font-weight:900; font-size:14px; color:#1e272e;">${stt++}</td>
-                <td style="padding:10px 8px; border-right:1px solid #cbd5e1; text-align:left; font-weight:900; font-size:14px; color:#1e272e; white-space:nowrap;">${e.name}</td>
-                <td style="padding:10px 8px; border-right:1px solid #cbd5e1; font-weight:900; font-size:15px; color:#2563eb;">${window.g_formatVal(e.actual, cat.isSL)}</td>
-                <td style="padding:10px 8px; border-right:1px solid #cbd5e1;">
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
-                        <span style="color:${colorHienTai}; font-weight:900; font-size:15px;">${window.g_formatPercent(e.htHienTai)}</span>
-                        <div style="width:90%; height:6px; background:#f1f5f9; border-radius:3px; overflow:hidden; border:1px solid #cbd5e1;"><div style="height:100%; background:${colorHienTai}; width:${pWidth}%;"></div></div>
-                    </div>
-                </td>
-                <td style="padding:10px 8px; border-right:1px solid #cbd5e1; font-weight:900; font-size:15px; color:#636e72;">${window.g_formatVal(e.targetUser, cat.isSL)}</td>
-                <td style="padding:10px 8px; border-right:none; color:${colorDuKien}; font-weight:900; font-size:15px;">${window.g_formatPercent(e.htDuKien)}</td>
-            </tr>`;
-        }
-        html += `</tbody></table>`;
-        openModal(`${getEmoji(cat.nganhHang)} ${cat.nganhHang}`, html);
+    window.toggleDelta = function() {
+        window.showDelta = !window.showDelta;
+        const btn = document.getElementById('btnToggleDelta');
+        if (btn) btn.innerHTML = window.showDelta ? "👀 ẨN CHÊNH LỆCH" : "👀 HIỆN CHÊNH LỆCH";
+        document.body.classList.toggle('hide-delta', !window.showDelta);
     };
 
-    window.showEmployeeModal = function(userId) {
-        let p = window.g_allEmployees[userId];
-        if (!p) return;
-        
-        let u = p.u;
-        let daysPassed = window.g_daysPassed;
-        let daysInMonth = window.g_daysInMonth;
-        let activeCategories = window.g_activeCategories;
-
-        // TÍNH TOÁN ĐIỂM
-        let revScore = daysPassed === 1 ? (u.dt / u.target * 100) : (((u.dt / daysPassed) * daysInMonth) / u.target * 100);
-        if (u.target <= 0) revScore = 0;
-        let contestScore = (p.countNHDuKien / activeCategories.length) * 100;
-        let totalScore = revScore + contestScore;
-
-        let headerBg = "#f1f5f9"; 
-        let rankIcon = "🥈";
-        let statusMsg = "Phong độ ổn định, giữ vững nhé!";
-        
-        let rank = empIndex + 1; 
-        let totalEmployees = window.g_tdEmployees.length;
-        let isBottom30 = rank > totalEmployees * 0.7;
-
-        if (rank === 1) { headerBg = "#ffc107"; rankIcon = "🥇"; statusMsg = "Dẫn đầu cuộc đua, tuyệt vời!"; }
-        else if (rank === 2) { headerBg = "#94a3b8"; rankIcon = "🥈"; statusMsg = "Rất tốt, hãy bám sát mục tiêu!"; }
-        else if (rank === 3) { headerBg = "#cd7f32"; rankIcon = "🥉"; statusMsg = "Cố gắng lên, top 1 không còn xa!"; }
-        else if (isBottom30) { headerBg = "#fecaca"; rankIcon = "📉"; statusMsg = "⚠️ Cần nỗ lực hơn để cải thiện hạng!"; }
-
-        let targetDT = u.target;
-        let luykeDT = u.dt;
-        let conlaiDT = targetDT - luykeDT;
-        let dailyTarget = targetDT / daysInMonth;
-        let revHT = targetDT > 0 ? (luykeDT / targetDT * 100) : 0;
-
-        let tableRows = "";
-        let pCats = [...activeCategories].map(cat => {
-            let nganhClean = String(cat.nganhHang).toLowerCase().trim();
-            let tUser = cat.storeTarget * u.targetRatio; 
-            let actual = u.td[nganhClean] || 0;
-            let htHT = tUser > 0 ? actual / tUser : 0;
-            let htDK = tUser > 0 ? ((actual / daysPassed) * daysInMonth) / tUser : 0;
-            return { cat, tUser, actual, htHT, htDK };
-        }).sort((a,b) => b.htDK - a.htDK);
-
-        let rowIdx = 1;
-        for (let item of pCats) {
-            if (item.tUser <= 0 && item.actual === 0) continue;
-            let conlai = item.tUser - item.actual;
-            let colorHT = window.g_getColorClass(item.htHT);
-            let colorDK = window.g_getColorClass(item.htDK);
-            let catNameColor = item.cat.phanLoai === 2 ? '#ef4444' : '#1e3a8a';
-            
-            tableRows += `
-                <tr>
-                    <td>${rowIdx++}</td>
-                    <td class="text-left" style="color:${catNameColor} !important;">${getEmoji(item.cat.nganhHang)} ${item.cat.nganhHang}</td>
-                    <td>${item.htDK >= 1 ? '🏆' : (item.tUser / daysInMonth).toLocaleString('vi-VN', {maximumFractionDigits:1})}</td>
-                    <td>${item.tUser.toLocaleString('vi-VN', {maximumFractionDigits:0})}</td>
-                    <td style="color:#00a8cc;">${item.actual.toLocaleString('vi-VN', {maximumFractionDigits:0})}</td>
-                    <td>${conlai <= 0 ? '🏆' : conlai.toLocaleString('vi-VN', {maximumFractionDigits:0})}</td>
-                    <td style="color:${colorHT}">${(item.htHT * 100).toFixed(1)}%</td>
-                    <td style="color:${colorDK}">${(item.htDK * 100).toFixed(1)}%</td>
-                </tr>
-            `;
-        }
-
-        let html = `
-            <div class="perf-card" style="margin-bottom:0; box-shadow:none; border:none;">
-                <div class="perf-header" style="background: ${headerBg}; border-radius: 10px 10px 0 0;">
-                    <div class="perf-avatar" style="color: ${headerBg === "#f1f5f9" ? "#64748b" : headerBg}">${rank}</div>
-                    <div class="perf-header-info">
-                        <h2 class="perf-name">${p.i.name}</h2>
-                        <div class="perf-status-msg">${statusMsg}</div>
-                    </div>
-                    <div class="perf-rank-box">
-                        <span class="perf-rank-text">${rankIcon} HẠNG ${rank}</span>
-                        <span class="perf-score-text">Điểm: ${totalScore.toFixed(1)}</span>
-                    </div>
-                </div>
-
-                <div class="perf-progress-sec">
-                    <div class="perf-progress-item">
-                        <div class="perf-progress-label">
-                            <span>Tiến độ Doanh thu</span>
-                            <span>${luykeDT.toLocaleString('vi-VN', {maximumFractionDigits:0})} / ${targetDT.toLocaleString('vi-VN', {maximumFractionDigits:0})}</span>
-                            <span style="color: #00a8cc;">${revHT.toFixed(1)}%</span>
-                        </div>
-                        <div class="perf-progress-bar-bg"><div class="perf-progress-bar-fill" style="width: ${Math.min(revHT, 100)}%; background: #00a8cc;"></div></div>
-                    </div>
-                    <div class="perf-progress-item">
-                        <div class="perf-progress-label">
-                            <span>Tiến độ Thi đua</span>
-                            <span>${p.countNHDuKien} / ${activeCategories.length} Nhóm</span>
-                            <span style="color: #f43f5e;">${contestScore.toFixed(1)}%</span>
-                        </div>
-                        <div class="perf-progress-bar-bg"><div class="perf-progress-bar-fill" style="width: ${Math.min(contestScore, 100)}%; background: #f43f5e;"></div></div>
-                    </div>
-                </div>
-
-                <div class="perf-chips-grid">
-                    <div class="perf-chip" style="background: #0ea5e9;"><span class="perf-chip-label">TARGET DT</span><span class="perf-chip-val">${targetDT.toLocaleString('vi-VN', {maximumFractionDigits:0})}</span></div>
-                    <div class="perf-chip" style="background: #f59e0b;"><span class="perf-chip-label">LŨY KẾ DT</span><span class="perf-chip-val">${luykeDT.toLocaleString('vi-VN', {maximumFractionDigits:0})}</span></div>
-                    <div class="perf-chip" style="background: #ef4444;"><span class="perf-chip-label">DT CÒN LẠI</span><span class="perf-chip-val">${conlaiDT <= 0 ? '🏆' : conlaiDT.toLocaleString('vi-VN', {maximumFractionDigits:0})}</span></div>
-                    <div class="perf-chip" style="background: #10b981;"><span class="perf-chip-label">DỰ KIẾN %</span><span class="perf-chip-val">${revScore.toFixed(1)}%</span></div>
-                    <div class="perf-chip" style="background: #636e72;"><span class="perf-chip-label">M.TIÊU NGÀY</span><span class="perf-chip-val">${dailyTarget.toLocaleString('vi-VN', {maximumFractionDigits:1})}</span></div>
-                </div>
-
-                <div class="perf-table-sec">
-                    <table class="perf-table" style="font-size: 11px !important;">
-                        <thead>
-                            <tr>
-                                <th width="6%">#</th>
-                                <th class="text-left" width="22%">NGÀNH HÀNG</th>
-                                <th width="10%">M.TIÊU</th>
-                                <th width="11%">TARGET</th>
-                                <th width="11%">LŨY KẾ</th>
-                                <th width="11%">CÒN LẠI</th>
-                                <th width="14%">% HT</th>
-                                <th width="15%">DỰ KIẾN</th>
-                            </tr>
-                        </thead>
-                        <tbody>${tableRows}</tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-        openModal(`🧑‍💻 THẺ KPI NHÂN VIÊN`, html);
+    window.formatDelta = function(val, isSL) {
+        if (val === 0 || !val) return "";
+        let absVal = Math.abs(val);
+        let strVal = isSL ? Math.round(absVal).toLocaleString('vi-VN') : (absVal >= 1000000 ? (absVal/1000000).toLocaleString('vi-VN', {maximumFractionDigits:1}) + 'M' : formatMoney(absVal));
+        if (val > 0) return `<span class="delta-badge pos" style="font-size:9px;">▲ +${strVal}</span>`;
+        return `<span class="delta-badge neg" style="font-size:9px;">▼ -${strVal}</span>`;
     };
+
+    window.formatScoreDelta = function(val, isSL) {
+        if (val === 0 || !val) return "";
+        let strVal = Math.abs(val).toFixed(1);
+        if(isSL) strVal = Math.abs(val); 
+        if (val > 0) return `<span class="delta-badge pos" style="font-size:9px; margin-top:2px;">▲ +${strVal}</span>`;
+        return `<span class="delta-badge neg" style="font-size:9px; margin-top:2px;">▼ -${strVal}</span>`;
+    };
+
+
+    async function getHistoryForDate(dateVal) {
+        if (!dateVal || dateVal === 'auto' || dateVal === 'current') return null;
+        if (!window.historyDataCache[dateVal]) {
+            try {
+                const res = await fetch(GAS_URL + "?action=getHistoryData&date=" + encodeURIComponent(dateVal));
+                window.historyDataCache[dateVal] = await res.json();
+            } catch (e) {
+                console.error("Lỗi lấy data lịch sử:", e);
+                return null;
+            }
+        }
+        return window.historyDataCache[dateVal];
+    }
+
+    async function initHistory() {
+        if (window.availableDates.length > 0) return; 
+        try {
+            const res = await fetch(GAS_URL + "?action=getHistoryDates");
+            const rawDates = await res.json();
+            
+            function toYMD(d) {
+                if (!d) return null;
+                let dt = new Date(d);
+                if (isNaN(dt.getTime())) return String(d);
+                let y = dt.getFullYear();
+                let m = String(dt.getMonth() + 1).padStart(2, '0');
+                let day = String(dt.getDate()).padStart(2, '0');
+                return y + '-' + m + '-' + day;
+            }
+
+            let validDates = [];
+            let seenYMD = new Set();
+            if (Array.isArray(rawDates)) {
+                let sortedDates = rawDates.slice().sort((a, b) => {
+                    let da = new Date(a); let db = new Date(b);
+                    if (isNaN(da) || isNaN(db)) return String(b).localeCompare(String(a));
+                    return db - da;
+                });
+                sortedDates.forEach(d => {
+                    let ymd = String(d).length > 10 ? toYMD(d) : d;
+                    if (ymd && !seenYMD.has(ymd)) {
+                        seenYMD.add(ymd);
+                        validDates.push({ orig: d, ymd: ymd });
+                    }
+                });
+            }
+            
+            window.availableDates = validDates.map(item => item.orig);
+            window.dateMapYMD = {};
+            validDates.forEach(item => window.dateMapYMD[item.orig] = item.ymd);
+            console.log("[NV] Available dates:", window.availableDates);
+
+            let baseSel = document.getElementById('baseDateSel');
+            let compSel = document.getElementById('compDateSel');
+            if(!baseSel || !compSel) return;
+
+            let htmlBase = '<option value="auto">Tự động (Hôm trước)</option>';
+            let htmlComp = '<option value="current">Hiện tại (Mới nhất)</option>';
+            
+            window.availableDates.forEach(function(d) {
+                let ymd = window.dateMapYMD[d] || d;
+                let parts = ymd.split('-');
+                let display = parts.length === 3 ? parts[2]+'/'+parts[1]+'/'+parts[0] : ymd;
+                htmlBase += `<option value="${d}">${display}</option>`;
+                htmlComp += `<option value="${d}">${display}</option>`;
+            });
+            
+            baseSel.innerHTML = htmlBase;
+            compSel.innerHTML = htmlComp;
+        } catch(e) { 
+            console.error("Lỗi initHistory:", e); 
+        }
+    }
+
+
+
+
+
 
     async function loadData() {
+    try {
       const btn = document.getElementById('btnSend');
       if (btn) btn.innerText = "⏳ Đang tổng hợp Big Data NV...";
 
       const formatValLocal = (val, isSL) => isSL ? Math.round(val).toLocaleString('vi-VN') : formatMoney(val);
 
-      try {
-        const [resNV_BI, resNV_ThiDua, resStore_BI, resStore_ThiDua, resConfig] = await Promise.all([
-            fetch(GAS_URL + "?sheet=Data_NV_BI"), 
-            fetch(GAS_URL + "?sheet=Data_NV_ThiDua"),
-            fetch(GAS_URL + "?sheet=Data_BI"),
-            fetch(GAS_URL + "?sheet=Data_ThiDua"),
-            fetch(GAS_URL + "?sheet=Config_ThiDua")
-        ]);
 
-        const dataNV_BI = await resNV_BI.json();
-        const dataThiDua = await resNV_ThiDua.json();
-        const dataStore_BI = await resStore_BI.json();
-        const dataStore_ThiDua = await resStore_ThiDua.json();
-        const dataConfig = await resConfig.json();
+      // await initHistory(); // Đã init ở window.onload
+
+        
+        let baseVal = document.getElementById('baseDateSel') ? document.getElementById('baseDateSel').value : 'auto';
+        let compVal = document.getElementById('compDateSel') ? document.getElementById('compDateSel').value : 'current';
+
+        let dataNV_BI, dataThiDua, dataStore_BI, dataStore_ThiDua, dataConfig;
+
+        const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
+        dataConfig = await resConfig.json();
+
+        if (compVal === 'current') {
+            const [resNV_BI, resNV_ThiDua, resStore_BI, resStore_ThiDua] = await Promise.all([
+                fetch(GAS_URL + "?sheet=Data_NV_BI").then(r => r.json()), 
+                fetch(GAS_URL + "?sheet=Data_NV_ThiDua").then(r => r.json()),
+                fetch(GAS_URL + "?sheet=Data_BI").then(r => r.json()),
+                fetch(GAS_URL + "?sheet=Data_ThiDua").then(r => r.json())
+            ]);
+            dataNV_BI = resNV_BI;
+            dataThiDua = resNV_ThiDua;
+            dataStore_BI = resStore_BI;
+            dataStore_ThiDua = resStore_ThiDua;
+        } else {
+            let hData = await getHistoryForDate(compVal);
+            dataNV_BI = hData["Data_NV_BI"] || [];
+            dataThiDua = hData["Data_NV_ThiDua"] || [];
+            dataStore_BI = hData["Data_BI"] || [];
+            dataStore_ThiDua = hData["Data_ThiDua"] || [];
+        }
+
+        let actualBaseDate = baseVal;
+        if (baseVal === 'auto') {
+            let dates = window.availableDates;
+            if (dates.length > 0) {
+                // Lấy ngày hôm nay theo định dạng yyyy-MM-dd
+                let now = new Date();
+                let todayYMD = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                
+                if (compVal === 'current') {
+                    // Nếu ngày mới nhất là hôm nay, bỏ qua và lấy ngày trước đó
+                    let d0_ymd = window.dateMapYMD && window.dateMapYMD[dates[0]] ? window.dateMapYMD[dates[0]] : dates[0];
+                    if (d0_ymd === todayYMD) {
+                        actualBaseDate = dates.length > 1 ? dates[1] : null;
+                    } else {
+                        actualBaseDate = dates[0];
+                    }
+                } else {
+                    let idx = dates.indexOf(compVal);
+                    if (idx >= 0 && idx < dates.length - 1) {
+                        actualBaseDate = dates[idx + 1];
+                    } else {
+                        actualBaseDate = null;
+                    }
+                }
+            } else {
+                actualBaseDate = null;
+            }
+        }
+        console.log("[NV] Final actualBaseDate:", actualBaseDate);
+
+
+        console.log("[NV] availableDates:", window.availableDates);
+        console.log("[NV] baseVal:", baseVal, "compVal:", compVal, "actualBaseDate:", actualBaseDate);
+        
+        let baseUserMap = {};
+        if (actualBaseDate) {
+            console.log("[NV] Fetching history for:", actualBaseDate);
+            let hBase = await getHistoryForDate(actualBaseDate);
+            console.log("[NV] hBase result keys:", Object.keys(hBase || {}));
+            
+            let b_dataNV_BI = hBase ? (hBase["Data_NV_BI"] || []) : [];
+            let b_dataThiDua = hBase ? (hBase["Data_NV_ThiDua"] || []) : [];
+            console.log("[NV] b_dataNV_BI length:", b_dataNV_BI.length, "b_dataThiDua length:", b_dataThiDua.length);
+
+            
+            for (let row of b_dataNV_BI) {
+                let userId = String(getKey(row, "mã nv", "mã nhân viên", "employeeid", "user", "staffuser")).trim();
+                if (!userId) continue;
+                let dtQD = parseVnNumber(getKey(row, "doanh thu quy đổi", "revenue_kfactor", "dt quy đổi", "revenue_kfactor_ave3m")); 
+                if(!baseUserMap[userId]) baseUserMap[userId] = { dt: 0, td: {} };
+                baseUserMap[userId].dt += dtQD;
+            }
+            
+            for (let row of b_dataThiDua) {
+                let userId = String(getKey(row, "staffuser", "mã nv", "employeeid", "user", "mã nhân viên")).trim();
+                let nganhHang = getKey(row, "programname", "nhóm ngành hàng", "nhóm ngành hàng chính");
+                if (!userId || !nganhHang) continue;
+                let nganhClean = String(nganhHang).toLowerCase().trim();
+                let actual = parseVnNumber(getKey(row, "value_compe", "thực hiện", "đã bán"));
+                
+                if(!baseUserMap[userId]) baseUserMap[userId] = { dt: 0, td: {} };
+                baseUserMap[userId].td[nganhClean] = (baseUserMap[userId].td[nganhClean] || 0) + actual;
+            }
+        }
+        window.g_baseUserMap = baseUserMap;
+
 
         const currentDay = today.getDate();
         let reportMonth = today.getMonth(); let reportYear = today.getFullYear();
@@ -665,10 +696,43 @@
                 let htDK = tUser > 0 ? ((actual / daysPassed) * daysInMonth) / tUser : 0;
                 if (htDK >= 1) countNHDuKien++;
             }
-            let contestScore = (countNHDuKien / activeCategories.length) * 100;
+            let contestScore = activeCategories.length > 0 ? (countNHDuKien / activeCategories.length) * 100 : 0;
             let totalScore = revScore + contestScore;
 
-            fullPerfList.push({ userId, name: u.name, dt: u.dt, tg: u.target, htTarget: u.htTarget, revScore, contestScore, totalScore, countNHDuKien, u });
+            // Tính chênh lệch (Nếu không có lịch sử thì mặc định coi như từ 0 để hiện UI thiết kế)
+            let deltaDT = u.dt; 
+            let deltaTotalScore = totalScore;
+            let deltaNHDuKien = countNHDuKien;
+            let deltaTD = {};
+            for (let cat of activeCategories) {
+                let nganhClean = String(cat.nganhHang).toLowerCase().trim();
+                deltaTD[nganhClean] = u.td[nganhClean] || 0;
+            }
+
+            if (baseUserMap && baseUserMap[userId]) {
+                deltaDT = u.dt - (baseUserMap[userId].dt || 0);
+                
+                let b_revScore = u.target > 0 ? (((baseUserMap[userId].dt / daysPassed) * daysInMonth) / u.target * 100) : 0;
+                let b_countNH = 0;
+                for (let cat of activeCategories) {
+                    let nganhClean = String(cat.nganhHang).toLowerCase().trim();
+                    let tUser = cat.storeTarget * u.targetRatio; 
+                    let b_actual = baseUserMap[userId].td[nganhClean] || 0;
+                    let b_htDK = tUser > 0 ? ((b_actual / daysPassed) * daysInMonth) / tUser : 0;
+                    if (b_htDK >= 1) b_countNH++;
+                }
+                let b_contestScore = activeCategories.length > 0 ? (b_countNH / activeCategories.length) * 100 : 0;
+                
+                deltaTotalScore = totalScore - (b_revScore + b_contestScore);
+                deltaNHDuKien = countNHDuKien - b_countNH;
+                
+                for (let cat of activeCategories) {
+                    let nganhClean = String(cat.nganhHang).toLowerCase().trim();
+                    deltaTD[nganhClean] = (u.td[nganhClean] || 0) - (baseUserMap[userId].td[nganhClean] || 0);
+                }
+            }
+
+            fullPerfList.push({ userId, name: u.name, dt: u.dt, tg: u.target, htTarget: u.htTarget, revScore, contestScore, totalScore, countNHDuKien, u, deltaDT, deltaTotalScore, deltaNHDuKien, deltaTD });
         }
 
         // XẾP HẠNG THEO TỔNG ĐIỂM
@@ -784,13 +848,20 @@
                     <div class="stt-pill ${pill}" style="${sttStyle}">${sttTD++}</div>
                 </td>
                 <td onclick="showEmployeeModal('${emp.userId}')" style="cursor:pointer; position: sticky; left: 45px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: left; padding-left: 10px; width: 170px; min-width: 170px; max-width: 170px; box-sizing: border-box; font-weight: 900; color: #1e272e; font-size: 14px; word-break: break-word; transition: color 0.2s;" onmouseover="this.style.color='#9b59b6'" onmouseout="this.style.color='#1e272e'">
-                    ${window.formatShortName(emp.name)}
+                    ${window.formatShortName(emp.name)} ${window.formatDelta(emp.deltaDT, false)}
                 </td>
+
                 <td style="position: sticky; left: 215px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: center; width: 60px; min-width: 60px; max-width: 60px; box-sizing: border-box; font-weight: 900; color: #b45309; font-size: 14px;">
-                    ${emp.totalScore.toFixed(1)}
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <span>${emp.totalScore.toFixed(1)}</span>
+                        ${window.formatScoreDelta(emp.deltaTotalScore, false)}
+                    </div>
                 </td>
                 <td style="position: sticky; left: 275px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 1px solid #cbd5e1; text-align: center; width: 60px; min-width: 60px; max-width: 60px; box-sizing: border-box; font-weight: 900; color: #8b5cf6; font-size: 14px;">
-                    ${countNHDuKien}/${activeCategories.length}
+                    <div style="display:flex; flex-direction:column; align-items:center;">
+                        <span>${countNHDuKien}/${activeCategories.length}</span>
+                        ${window.formatScoreDelta(emp.deltaNHDuKien, true)}
+                    </div>
                 </td>
                 <td style="position: sticky; left: 335px; z-index: 5; background: ${rowBg}; border-bottom: ${bBot}; border-right: 2px solid #1e272e; text-align: center; width: 280px; min-width: 280px; max-width: 280px; box-sizing: border-box; padding: 5px;">
                     ${widgetHTML}
@@ -814,6 +885,7 @@
                                 <div style="font-size:22px; font-weight:900; line-height: 1;">
                                     <span style="color:#2563eb;">${formatValLocal(actual, cat.isSL)}</span><span style="font-size:14px; color:#64748b; font-weight:normal;">/${formatValLocal(targetUser, cat.isSL)}</span>
                                 </div>
+                                ${window.formatDelta(emp.deltaTD ? (emp.deltaTD[nganhClean] || 0) : 0, cat.isSL)}
                                 <div style="font-size:13px; font-weight:900; color:${dkColor}; line-height:1; margin-top: 6px;">
                                     ${formatPercent(htDuKien)}
                                 </div>
@@ -871,7 +943,8 @@
                 let actual = p.u.td[nganhClean] || 0;
                 let htHienTai = targetUser > 0 ? actual / targetUser : 0;
                 let htDuKien = targetUser > 0 ? ((actual / daysPassed) * daysInMonth) / targetUser : 0;
-                return { cat, targetUser, actual, htHienTai, htDuKien };
+                let deltaActual = p.deltaTD ? (p.deltaTD[nganhClean] || 0) : 0;
+                return { cat, targetUser, actual, htHienTai, htDuKien, deltaActual };
             }).sort((a,b) => b.htDuKien - a.htDuKien);
 
             let rowIdx = 1;
@@ -900,7 +973,7 @@
                 tableRows += `
                     <tr>
                         <td>${rowIdx++}</td>
-                        <td class="text-left" style="color:${catNameColor} !important;">${getEmoji(item.cat.nganhHang)} ${item.cat.nganhHang} <span style="font-size: 7px; color:#64748b; font-weight: normal;">${typeLabel}</span></td>
+                        <td class="text-left" style="color:${catNameColor} !important;">${getEmoji(item.cat.nganhHang)} ${item.cat.nganhHang} ${window.formatDelta(item.deltaActual, item.cat.isSL)} <span style="font-size: 7px; color:#64748b; font-weight: normal;">${typeLabel}</span></td>
                         <td>${targetDayDisplay}</td>
                         <td>${formatValLocal(item.targetUser, item.cat.isSL)}</td>
                         <td class="highlight">${formatValLocal(item.actual, item.cat.isSL)}</td>
@@ -928,7 +1001,7 @@
                     <div class="perf-progress-sec">
                         <div class="perf-progress-item">
                             <div class="perf-progress-label">
-                                <span>Tiến độ Doanh thu</span>
+                                <span>Tiến độ Doanh thu ${window.formatDelta(p.deltaDT, false)}</span>
                                 <span>${formatValLocal(luykeDT, false)} / ${formatValLocal(targetDT, false)}</span>
                                 <span style="color: #00a8cc;">${revHTPercent}%</span>
                             </div>
@@ -1016,7 +1089,11 @@
         }
 
         if (btn) btn.innerText = "🚀 CHỤP TÁCH & GỬI TELEGRAM";
-      } catch (e) { console.error(e); if (btn) btn.innerText = "❌ LỖI TẢI DỮ LIỆU"; }
+      } catch (e) { 
+        console.error("Lỗi loadData:", e); 
+        if (btn) btn.innerText = "❌ LỖI TẢI DỮ LIỆU"; 
+        alert("Có lỗi xảy ra trong loadData: " + e.message);
+      }
     }
 
     window.toggleTableFullscreen = function() {
@@ -1190,6 +1267,15 @@
         }
     };
 
+    
+
+
+
+        
+
+        
+
+
     window.showCategoryModal = function(catIndex) {
         try {
             let cat = window.g_activeCategories[catIndex];
@@ -1298,7 +1384,9 @@
     };
 
     window.onload = async () => {
+        await initHistory();
         await loadData();
+
         
         // AUTO DOWNLOAD NẾU CÓ THAM SỐ ?auto=true
         const urlParams = new URLSearchParams(window.location.search);

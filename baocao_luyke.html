@@ -167,8 +167,8 @@
             gap: 12px;
             row-gap: 16px;
         }
-
         .card {
+
             background: #ffffff;
             padding: 12px 6px;
             text-align: center;
@@ -178,6 +178,24 @@
             flex-direction: column;
             justify-content: space-between;
         }
+
+        .delta-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 800;
+            margin-left: 4px;
+            vertical-align: middle;
+            font-size: 10px;
+            line-height: 1;
+        }
+        .delta-badge.pos { background: #dcfce7; color: #16a34a; }
+        .delta-badge.neg { background: #fee2e2; color: #dc2626; }
+        
+        body.hide-delta .delta-badge { display: none !important; }
+
+
 
         .card-title {
             font-size: 13px;
@@ -965,27 +983,36 @@
             outline: none;
             box-sizing: border-box;
         }
+    
+        .delta-badge {
+            font-size: 11px; font-weight: 900; padding: 2px 4px; border-radius: 4px; margin-left: 6px; display: inline-block; white-space: nowrap;
+        }
+        .delta-badge.pos { background: #dcfce7; color: #16a34a; }
+        .delta-badge.neg { background: #fee2e2; color: #dc2626; }
+
     </style>
 </head>
 
 <body>
 
-    <div class="top-actions" data-html2canvas-ignore="true">
-        <button class="btn-action" id="btnDownloadSplit">📸 TẢI ẢNH TÁCH (LƯU MÁY)</button>
-        <button class="btn-action" id="btnDownloadFull">📸 TẢI ẢNH TOÀN TRANG</button>
-        <button class="btn-action" onclick="copyComment()"
-            style="background: #2563eb; color: white; border-color: #2563eb;">📋 SAO CHÉP NHẬN XÉT</button>
-        <button class="btn-action" id="btnToggleTodo" onclick="toggleTodoBoard()"
-            style="border-color:#10b981; color:#10b981;">👁️ HIỆN VIỆC CẦN LÀM</button>
-        <span style="margin: 0 15px; color: #cbd5e1;">|</span>
-        <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')"
-            style="border-color:#00A1E4; color:#00A1E4;">📊 ĐỔ SỐ LŨY KẾ</button>
-        <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')"
-            style="border-color:#f39c12; color:#f39c12;">📈 ĐỔ SỐ REALTIME</button>
-        <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')"
-            style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
+            <div class="top-actions" data-html2canvas-ignore="true" style="display:flex; justify-content:center; align-items:center; margin: 20px auto 15px auto; max-width: 950px; width: 100%; box-sizing: border-box; flex-wrap: wrap; gap: 8px;">
+        <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
+        <button class="btn-action" id="btnDownloadFull">📸 CHỤP FULL</button>
+        <button class="btn-action" id="btnCopyComment" style="background:#2563eb; color:white; border:none;">📋 NHẬN XÉT</button>
+        <button class="btn-action" id="btnToggleTodo" style="border-color:#10b981; color:#10b981;">🎯 VIỆC CẦN LÀM</button>
+        <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 LŨY KẾ</button>
+        <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 NHÂN VIÊN</button>
+        <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')" style="border-color:#f39c12; color:#f39c12;">📈 REALTIME</button>
     </div>
-
+    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 0 auto 20px auto; max-width: 950px; width: 100%; box-sizing: border-box; font-size: 13px;" data-html2canvas-ignore="true">
+        <div style="background:#fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 12px; display:flex; align-items:center; gap:8px; font-weight:800; color:#475569;">
+            <span style="color:#64748b;">📅 GỐC:</span>
+            <select id="baseDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
+            <span style="color:#64748b;">VS:</span>
+            <select id="compDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
+        </div>
+        <button onclick="window.toggleDelta()" id="btnToggleDelta" style="background:#8b5cf6; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);">👀 ẨN/HIỆN</button>
+    </div>
     <div id="report-container"
         style="display:flex; flex-direction:column; align-items:center; background: transparent;">
 
@@ -1062,6 +1089,7 @@
                 <div class="card">
                     <div class="card-title">💰 DOANH THU LŨY KẾ</div>
                     <div class="card-val" id="c-dt" style="color: #d63031;">0</div>
+                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-dt-delta"></div>
                     <div class="card-sub">
                         <div class="highlight-target" id="c-dt-sub">CÒN LẠI: 0 TR</div>
                     </div>
@@ -1079,6 +1107,7 @@
                 <div class="card">
                     <div class="card-title">📈 DỰ KIẾN THÁNG</div>
                     <div class="card-val" id="c-dk" style="color: #00A1E4;">0</div>
+                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-dk-delta"></div>
                     <div class="card-sub">
                         <div class="highlight-target" id="c-dk-sub">%HT D.KIẾN: 0%</div>
                     </div>
@@ -1099,6 +1128,7 @@
                 <div class="card">
                     <div class="card-title">💳 % TRẢ CHẬM</div>
                     <div class="card-val" id="c-tc" style="color: #f59e0b;">0%</div>
+                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-tc-delta"></div>
                     <div class="card-sub">
                         <div class="highlight-target" id="c-tc-sub">0 TR</div>
                     </div>
@@ -1106,6 +1136,7 @@
                 <div class="card">
                     <div class="card-title">⭐ NH DỰ KIẾN ĐẠT</div>
                     <div class="card-val" id="c-nh-dk" style="color: #00A1E4;">0</div>
+                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-nh-dk-delta"></div>
                     <div class="card-sub">
                         <div class="highlight-target" id="c-nh-vd-sub">ĐÃ VỀ ĐÍCH: 0</div>
                     </div>
@@ -1255,6 +1286,90 @@
         const todoPrefixes = ["ĐẨY MẠNH", "TẬP TRUNG", "BỨT PHÁ", "GIA TĂNG", "ĐẨY SỐ", "CHẠY NƯỚC RÚT"];
         const todoColors = ['#e53935', '#f57c00', '#fbc02d', '#1e88e5', '#8e24aa', '#00897b'];
 
+        
+        window.availableDates = [];
+        window.historyDataCache = {};
+        window.showDelta = true;
+        
+        window.toggleDelta = function() {
+            window.showDelta = !window.showDelta;
+            const btn = document.getElementById('btnToggleDelta');
+            if (btn) btn.innerHTML = window.showDelta ? "👀 ẨN CHÊNH LỆCH" : "👀 HIỆN CHÊNH LỆCH";
+            document.body.classList.toggle('hide-delta', !window.showDelta);
+        };
+        
+        window.formatDelta = function(val, isSL) {
+            if (val === 0 || !val) return "";
+            let absVal = Math.abs(val);
+            let strVal = isSL ? Math.round(absVal).toLocaleString('vi-VN') : (absVal >= 1000000 ? (absVal/1000000).toLocaleString('vi-VN', {maximumFractionDigits:1}) + 'M' : formatMoney(absVal));
+            if (val > 0) return `<span class="delta-badge pos">▲ +${strVal}</span>`;
+            return `<span class="delta-badge neg">▼ -${strVal}</span>`;
+        };
+
+
+        async function getHistoryForDate(dateVal) {
+            if (!window.historyDataCache[dateVal]) {
+                const res = await fetch(GAS_URL + "?action=getHistoryData&date=" + encodeURIComponent(dateVal));
+                window.historyDataCache[dateVal] = await res.json();
+            }
+            return window.historyDataCache[dateVal];
+        }
+
+        async function initHistory() {
+            try {
+                if (window.availableDates && window.availableDates.length > 0) return;
+                const res = await fetch(GAS_URL + "?action=getHistoryDates");
+                const rawDates = await res.json();
+                
+                let validDates = [];
+                let seenYMD = new Set();
+                if (Array.isArray(rawDates)) {
+                    let sortedDates = rawDates.slice().sort((a, b) => {
+                        let da = new Date(a); let db = new Date(b);
+                        if (isNaN(da) || isNaN(db)) return String(b).localeCompare(String(a));
+                        return db - da;
+                    });
+                    
+                    function toYMD(d) {
+                        let dt = new Date(d);
+                        if (isNaN(dt.getTime())) return String(d);
+                        let y = dt.getFullYear();
+                        let m = String(dt.getMonth() + 1).padStart(2, '0');
+                        let day = String(dt.getDate()).padStart(2, '0');
+                        return y + '-' + m + '-' + day;
+                    }
+
+                    sortedDates.forEach(d => {
+                        let ymd = String(d).length > 10 ? toYMD(d) : d;
+                        if (ymd && !seenYMD.has(ymd)) {
+                            seenYMD.add(ymd);
+                            validDates.push({ orig: d, ymd: ymd });
+                        }
+                    });
+                }
+                
+                window.availableDates = validDates.map(item => item.orig);
+                window.dateMapYMD = {};
+                validDates.forEach(item => window.dateMapYMD[item.orig] = item.ymd);
+
+                console.log("[LK] dates normalized:", window.availableDates);
+                let baseSel = document.getElementById('baseDateSel');
+                let compSel = document.getElementById('compDateSel');
+                if(!baseSel || !compSel) return;
+                let htmlBase = '<option value="auto">T\u1ef1 \u0111\u1ed9ng (H\u00f4m tr\u01b0\u1edbc)</option>';
+                let htmlComp = '<option value="current">Hi\u1ec7n t\u1ea1i (M\u1edbi nh\u1ea5t)</option>';
+                window.availableDates.forEach(function(d) {
+                    let ymd = window.dateMapYMD[d] || d;
+                    let parts = ymd.split('-');
+                    let display = parts.length === 3 ? parts[2]+'/'+parts[1]+'/'+parts[0] : ymd;
+                    htmlBase += '<option value="' + d + '">' + display + '</option>';
+                    htmlComp += '<option value="' + d + '">' + display + '</option>';
+                });
+                baseSel.innerHTML = htmlBase;
+                compSel.innerHTML = htmlComp;
+            } catch(e) { console.error("Loi lay ngay:", e); }
+        }
+
         window.reportMessageText = "";
 
         window.toggleTodoBoard = function() {
@@ -1348,15 +1463,133 @@
             if (btn) btn.innerText = "⏳ Đang tổng hợp Big Data từ 3 luồng...";
 
             try {
-                const [resBI, resThiDua, resConfig] = await Promise.all([
-                    fetch(GAS_URL + "?sheet=Data_BI"),
-                    fetch(GAS_URL + "?sheet=Data_ThiDua"),
-                    fetch(GAS_URL + "?sheet=Config_ThiDua")
-                ]);
+                await initHistory();
+                
+                let baseVal = document.getElementById('baseDateSel') ? document.getElementById('baseDateSel').value : 'auto';
+                let compVal = document.getElementById('compDateSel') ? document.getElementById('compDateSel').value : 'current';
 
-                const dataBI = await resBI.json();
-                const dataThiDua = await resThiDua.json();
-                const configData = await resConfig.json();
+                let dataBI, dataThiDua, configData;
+
+                const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
+                configData = await resConfig.json();
+
+                if (compVal === 'current') {
+                    const [resBI, resThiDua] = await Promise.all([
+                        fetch(GAS_URL + "?sheet=Data_BI"),
+                        fetch(GAS_URL + "?sheet=Data_ThiDua")
+                    ]);
+                    dataBI = await resBI.json();
+                    dataThiDua = await resThiDua.json();
+                } else {
+                    let hData = await getHistoryForDate(compVal);
+                    dataBI = hData["Data_BI"] || [];
+                    dataThiDua = hData["Data_ThiDua"] || [];
+                }
+
+                let actualBaseDate = baseVal;
+                if (baseVal === 'auto') {
+                    let dates = window.availableDates;
+                    if (dates.length > 0) {
+                        let now = new Date();
+                        let todayYMD = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+                        
+                        if (compVal === 'current') {
+                            let d0_ymd = window.dateMapYMD && window.dateMapYMD[dates[0]] ? window.dateMapYMD[dates[0]] : dates[0];
+                            if (d0_ymd === todayYMD) {
+                                actualBaseDate = dates.length > 1 ? dates[1] : null;
+                            } else {
+                                actualBaseDate = dates[0];
+                            }
+                        } else {
+                            let idx = dates.indexOf(compVal);
+                            if (idx >= 0 && idx < dates.length - 1) {
+                                actualBaseDate = dates[idx + 1];
+                            } else {
+                                actualBaseDate = null;
+                            }
+                        }
+                    } else {
+                        actualBaseDate = null;
+                    }
+                }
+
+
+                let baseDataBI = [], baseDataThiDua = [];
+                if (actualBaseDate) {
+                    let hBase = await getHistoryForDate(actualBaseDate);
+                    baseDataBI = hBase["Data_BI"] || [];
+                    baseDataThiDua = hBase["Data_ThiDua"] || [];
+                }
+                
+                let configMapTemp = {};
+                if (configData && !configData.error) {
+                    for (let c of configData) {
+                        let ten = getKey(c, "ngành hàng", "nhóm ngành hàng");
+                        let phanLoai = parseVnNumber(getKey(c, "phân loại", "loại", "mức độ"));
+                        if (ten) configMapTemp[String(ten).toLowerCase().trim()] = { phanLoai };
+                    }
+                }
+                const base_currentDay = today.getDate();
+                let base_reportMonth = today.getMonth(); let base_reportYear = today.getFullYear();
+                if (base_currentDay === 1) { base_reportMonth -= 1; if (base_reportMonth < 0) { base_reportMonth = 11; base_reportYear--; } }
+                const base_daysInMonth = new Date(base_reportYear, base_reportMonth + 1, 0).getDate();
+                let base_daysPassed = base_currentDay === 1 ? base_daysInMonth : base_currentDay - 1;
+                
+                if (actualBaseDate) {
+                    let bDate = new Date(actualBaseDate);
+                    if (!isNaN(bDate.getTime())) {
+                        let bDay = bDate.getDate();
+                        let bMonth = bDate.getMonth();
+                        let bYear = bDate.getFullYear();
+                        if (bDay === 1) { bMonth -= 1; if(bMonth < 0) { bMonth = 11; bYear--; } }
+                        const bDaysInMonth = new Date(bYear, bMonth + 1, 0).getDate();
+                        base_daysPassed = bDay === 1 ? bDaysInMonth : bDay - 1;
+                    }
+                }
+                if (base_daysPassed <= 0) base_daysPassed = 1;
+
+                let baseBIMap = {};
+                let base_tDT = 0, base_tTG = 0, base_tTC = 0, base_tDTGoc = 0;
+                for(let r of baseDataBI) {
+                    let nh = String(getKey(r, "nhóm ngành hàng", "ngành hàng", "salegroupmastername")).toLowerCase().trim();
+                    let dt = parseVnNumber(getKey(r, "doanh thu quy đổi"));
+                    let dtGoc = parseVnNumber(getKey(r, "doanh thu"));
+                    let tg = parseVnNumber(getKey(r, "target"));
+                    let dtTC = parseVnNumber(getKey(r, "revenue_installment", "doanh thu trả chậm"));
+                    
+                    if(nh) baseBIMap[nh] = { dt: dt, sl: parseVnNumber(getKey(r, "số lượng", "quantity")) };
+                    base_tDT += dt;
+                    base_tTG += tg;
+                    base_tDTGoc += dtGoc;
+                    base_tTC += dtTC;
+                }
+                
+                let base_totalDKThang = (base_tDT / base_daysPassed) * base_daysInMonth;
+                let base_totalTyLeTC = base_tDTGoc > 0 ? base_tTC / base_tDTGoc : 0;
+                let base_htDK_percent = base_tTG > 0 ? (base_totalDKThang / base_tTG) : 0;
+                
+                let baseTDMap = {};
+                let base_cntDK = 0;
+                for(let r of baseDataThiDua) {
+                    let nh = String(getKey(r, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính")).toLowerCase().trim();
+                    if(nh && nh !== "n/a") {
+                        let cObj = configMapTemp[nh] || {};
+                        if (Object.keys(configMapTemp).length > 0 && (!cObj.phanLoai || cObj.phanLoai === 0)) continue;
+
+                        let target = parseVnNumber(getKey(r, "target", "mục tiêu"));
+                        let sl = parseVnNumber(getKey(r, "số lượng", "quantity"));
+                        let dt = parseVnNumber(getKey(r, "doanh thu"));
+                        let thucHien = sl;
+                        if (dt > 0 && (sl === 0 || Math.abs((dt/target)-1) < Math.abs((sl/target)-1))) { thucHien = dt; }
+                        baseTDMap[nh] = thucHien;
+                        
+                        if (target > 0) {
+                            let htDuKien = ((thucHien / base_daysPassed) * base_daysInMonth) / target;
+                            if (htDuKien >= 1) base_cntDK++;
+                        }
+                    }
+                }
+
 
                 const currentDay = today.getDate();
                 let reportMonth = today.getMonth(); let reportYear = today.getFullYear();
@@ -1389,7 +1622,13 @@
                     // RULE ẨN/HIỆN: Chỉ hiện ngành hàng có phát sinh số liệu (theo đúng bản gốc)
                     if (sl > 0 || dt > 0) {
                         let htTarget = tg > 0 ? dt / tg : 0;
-                        parsedBI.push({ nganhHang, sl, dt, tg, htTarget, tangGiamCK, dtTC, tyTrongTC });
+                        
+                        let nganhClean = String(nganhHang).toLowerCase().trim();
+                        let baseInfo = baseBIMap[nganhClean];
+                        let deltaDT = baseInfo ? dt - baseInfo.dt : dt; // Nếu ko có lịch sử thì coi như tăng từ 0
+                        let deltaSL = baseInfo ? sl - baseInfo.sl : sl;
+                        parsedBI.push({ nganhHang, sl, dt, tg, htTarget, tangGiamCK, dtTC, tyTrongTC, deltaDT, deltaSL });
+
                     }
                 }
 
@@ -1486,7 +1725,10 @@
                     let mtNgay = (target - thucHien) / daysRemaining;
                     if (mtNgay < 0) mtNgay = 0;
 
-                    let item = { nganhHang, thucHien, target, htTarget, htDuKien, mtNgay, thuTu: cObj.thuTu || 999, isTrongDiem: cObj.phanLoai === 2, isSL, dt: dt, sl: sl };
+                    
+                    let baseThucHien = baseTDMap[nganhClean] || 0;
+                    let deltaThucHien = thucHien - baseThucHien;
+                    let item = { nganhHang, thucHien, target, htTarget, htDuKien, mtNgay, thuTu: cObj.thuTu || 999, isTrongDiem: cObj.phanLoai === 2, isSL, dt: dt, sl: sl, deltaThucHien };
                     parsedThiDua.push(item);
 
                     if (item.htDuKien >= 1) cntDK++;
@@ -1580,6 +1822,7 @@
                 setText("sb-nguy-co", `${nguyCoCount} nhóm`);
 
                 setText("c-dt", formatMoney(tDT));
+                setHTML("c-dt-delta", window.formatDelta(tDT - base_tDT, false));
                 setText("c-tg", formatMoney(tTG));
                 setText("c-ht", formatPercent(totalHT));
                 setColor("c-ht", getColorClass(totalHT));
@@ -1589,8 +1832,16 @@
                 let colorTyTrongTC = totalTyLeTC > 0.15 ? "#ef4444" : "#f59e0b";
 
                 setHTML("c-dt-sub", `CÒN LẠI: <span style="color:${colorConLai}; font-weight:900;">${formatMoney(Math.max(0, tTG - tDT))} TR</span>`);
+                setHTML("c-dk-delta", window.formatDelta(totalDKThang - base_totalDKThang, false));
                 setText("c-dk", formatMoney(totalDKThang));
-                setHTML("c-dk-sub", `%HT D.KIẾN: <span style="color:${colorDKThang}; font-weight:900;">${formatPercent(totalDKThang / tTG)}</span>`);
+                let diffPercentDK = (totalDKThang / tTG)*100 - base_htDK_percent*100;
+                if(isNaN(diffPercentDK)) diffPercentDK = 0;
+                let dkPercentHTML = ` <span style="font-size: 11px; padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,0.05); color: ${diffPercentDK >= 0 ? '#10b981' : '#ef4444'}; font-weight: 800;">${diffPercentDK >= 0 ? '▲ +' : '▼ '}${Math.round(diffPercentDK)}%</span>`;
+                setHTML("c-dk-sub", `%HT D.KIẾN: <span style="color:${colorDKThang}; font-weight:900;">${formatPercent(totalDKThang / tTG)}</span>${dkPercentHTML}`);
+                
+                let diffTC = totalTyLeTC*100 - base_totalTyLeTC*100;
+                if(isNaN(diffTC)) diffTC = 0;
+                setHTML("c-tc-delta", `<span style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.05); color: ${diffTC >= 0 ? '#ef4444' : '#10b981'}; font-weight: 900;">${diffTC >= 0 ? '▲ +' : '▼ '}${diffTC.toFixed(1)}%</span>`);
                 setText("c-tc", formatPercent(totalTyLeTC));
                 setHTML("c-tc-sub", `<span style="color:${colorTyTrongTC}; font-weight:900;">${formatMoney(tTC)} TR</span>`);
 
@@ -1603,6 +1854,7 @@
                 let colorDiffCK = diffCK >= 0 ? '#10b981' : '#ef4444';
                 setHTML("c-ck-sub", `<span style="color:${colorDiffCK}; font-weight:900; font-size:14px;">${strDiffCK}</span>`);
 
+                setHTML("c-nh-dk-delta", window.formatDelta(cntDK - base_cntDK, true));
                 setHTML("c-nh-dk", `${cntDK} <span style="font-size: 20px; color: #64748b; font-weight: 800;">/ ${totalThiDua}</span>`);
                 setHTML("c-nh-vd-sub", `🏆 ĐÃ VỀ ĐÍCH: <span style="color:#10b981; font-weight:900; font-size:14px;">${cntVD}</span>`);
 
@@ -1633,7 +1885,7 @@
                     htmlBI += `
           <tr>
               <td><div class="stt-pill ${sttPillClassBI}">${sttBI++}</div></td>
-              <td class="text-left"><span style="margin-right:8px;">${industryEmoji}</span> ${name}</td>
+              <td class="text-left"><span style="margin-right:8px;">${industryEmoji}</span> ${name} ${window.formatDelta(item.deltaDT, false)}</td>
               <td style="padding: 0;">
                   <div class="cell-prog-wrap">
                       <div class="cell-prog-bg" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT};"></div>
@@ -1780,7 +2032,7 @@
                 <td><div class="stt-pill ${sttPillClass}">${sttTD++}</div></td>
                 
                 <td class="text-left" style="${nameStyle}">
-                    <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span>
+                    <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}
                 </td>
                 
                 <td style="color: #475569; font-size: 21px;">${mtNgayDisplay}</td>
@@ -1813,7 +2065,7 @@
                         mtNgayFormat = formatMoney(item.mtNgay);
                     }
 
-                    let nameHtml = `<span style="${nameStyle}">${shortName(item.nganhHang)}</span> <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span>`;
+                    let nameHtml = `<span style="${nameStyle}">${shortName(item.nganhHang)}</span> <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}`;
                     let conLaiDisplayCard = item.htTarget >= 1 ? '<span style="font-size:16px;">🏆 Đã đạt</span>' : formatMoney(conLai);
                     let dash = 2 * Math.PI * 38;
                     let offset = dash - (Math.min(item.htDuKien, 1) * dash);
