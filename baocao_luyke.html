@@ -6,6 +6,7 @@
     <title>Lũy Kế Dashboard - Cụm Savico</title>
     <script src="shared_config.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
 
@@ -1012,6 +1013,7 @@
             <select id="compDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
         </div>
         <button onclick="window.toggleDelta()" id="btnToggleDelta" style="background:#8b5cf6; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);">👀 ẨN/HIỆN</button>
+        <button onclick="window.toggleCharts()" id="btnToggleCharts" style="background:#0ea5e9; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);">📊 HIỆN BIỂU ĐỒ</button>
     </div>
     <div id="report-container"
         style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -1140,6 +1142,21 @@
                     <div class="card-sub">
                         <div class="highlight-target" id="c-nh-vd-sub">ĐÃ VỀ ĐÍCH: 0</div>
                     </div>
+                </div>
+            </div>
+
+            <div id="trend-chart-container" style="display:none; width:100%; margin-top:25px; margin-bottom: 25px;">
+                <div class="sec-title" style="margin: 0 0 15px 0;"><span>📈</span> TĂNG TRƯỞNG DOANH THU THÁNG</div>
+                <div style="background: white; border: 2px solid #1e272e; border-radius: 12px; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <div id="trendChart"></div>
+                </div>
+            </div>
+
+            <div id="year-chart-container" style="display:none; width:100%; margin-bottom: 25px;">
+                <div class="sec-title" style="margin: 0 0 15px 0;"><span>📅</span> DOANH THU NĂM</div>
+                <div style="background: white; border: 2px solid #1e272e; border-radius: 12px; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: relative;">
+                    <div id="yearChartStats" style="position: absolute; top: 10px; right: 15px; font-size: 13px; font-weight: 900; font-family: Nunito, sans-serif; z-index: 10;"></div>
+                    <div id="yearChart"></div>
                 </div>
             </div>
 
@@ -1290,12 +1307,27 @@
         window.availableDates = [];
         window.historyDataCache = {};
         window.showDelta = true;
+        window.showCharts = false;
         
         window.toggleDelta = function() {
             window.showDelta = !window.showDelta;
             const btn = document.getElementById('btnToggleDelta');
             if (btn) btn.innerHTML = window.showDelta ? "👀 ẨN CHÊNH LỆCH" : "👀 HIỆN CHÊNH LỆCH";
             document.body.classList.toggle('hide-delta', !window.showDelta);
+        };
+        
+        window.toggleCharts = function() {
+            window.showCharts = !window.showCharts;
+            const btn = document.getElementById('btnToggleCharts');
+            if (btn) btn.innerHTML = window.showCharts ? "📊 ẨN BIỂU ĐỒ" : "📊 HIỆN BIỂU ĐỒ";
+            
+            if (window.hasConfigData) {
+                document.getElementById('trend-chart-container').style.display = window.showCharts ? 'block' : 'none';
+                document.getElementById('year-chart-container').style.display = window.showCharts ? 'block' : 'none';
+                if (window.showCharts) {
+                    setTimeout(() => window.dispatchEvent(new Event('resize')), 100);
+                }
+            }
         };
         
         window.formatDelta = function(val, isSL) {
@@ -1674,11 +1706,22 @@
                         let thuTu = parseVnNumber(getKey(c, "thứ tự", "thu tu"));
                         if (ten) configMap[String(ten).toLowerCase().trim()] = { phanLoai, thuTu: thuTu > 0 ? thuTu : 999 };
 
-                        let targetT = parseVnNumber(getKey(c, "target"));
-                        let thucHienT = parseVnNumber(getKey(c, "thực hiện"));
+                        let targetT = parseVnNumber(getKey(c, "target", "target tháng", "mục tiêu tháng", "kế hoạch"));
+                        let thucHienT = parseVnNumber(getKey(c, "thực hiện", "dt thực hiện", "doanh thu thực hiện"));
+                        let thangValue = parseVnNumber(getKey(c, "Tháng", "tháng", "thang"));
                         
                         if (targetT > 0) targetNam += targetT;
-                        if (thucHienT > 0) thucHienCacThangTruoc += thucHienT;
+                        
+                        // Nếu có định danh tháng, chỉ cộng dồn thực hiện của các tháng trước (vì tháng hiện tại đã có totalDKThang)
+                        // Nếu không có cột tháng, cứ cộng dồn bình thường như cũ
+                        if (thangValue > 0) {
+                            let currentMonth = today.getMonth() + 1;
+                            if (thangValue < currentMonth && thucHienT > 0) {
+                                thucHienCacThangTruoc += thucHienT;
+                            }
+                        } else {
+                            if (thucHienT > 0) thucHienCacThangTruoc += thucHienT;
+                        }
                     }
                 }
 
@@ -2261,6 +2304,371 @@
 
                 window.reportMessageText = msg.trim();
                 document.getElementById('commentBox').innerText = window.reportMessageText;
+
+                // ==========================================
+                // VẼ BIỂU ĐỒ TĂNG TRƯỞNG DOANH THU 31 NGÀY
+                // ==========================================
+                window.hasConfigData = (configData && configData.length > 0);
+                if (window.hasConfigData) {
+                    document.getElementById('trend-chart-container').style.display = window.showCharts ? 'block' : 'none';
+                    let chartDays = [];
+                    let chartCurrent = [];
+                    let chartLastMonth = [];
+                    let chartTarget = [];
+
+                    let targetThang = 0;
+                    let currentMonth = today.getMonth() + 1;
+                    for(let r of configData) {
+                        let m = getKey(r, "Tháng", "tháng");
+                        if (m == currentMonth) {
+                            targetThang = parseVnNumber(getKey(r, "Target Tháng"));
+                            break;
+                        }
+                    }
+                    
+                    let targetDayValue = (targetThang / daysInMonth) || mucTieuNgayAll || 0; 
+                    if(targetDayValue > 10000) targetDayValue = targetDayValue / 1000000; 
+
+                    for(let i=1; i<=daysInMonth; i++) {
+                        chartDays.push(`Ngày ${i}`);
+                        
+                        let rowData = configData.find(r => {
+                            let isMatchDay = (r["Ngày"] == i || r["ngày"] == i || r["Ngày "] == i || r[" Ngày"] == i || getKey(r, "Ngày", "ngày") == i);
+                            let hasData = (r["DT tháng này"] !== undefined || r["DT tháng trước"] !== undefined);
+                            return isMatchDay && hasData;
+                        });
+                        let currentVal = null;
+                        let lastMonthVal = null;
+                        
+                        if (rowData) {
+                            let dtThisMonth = rowData["DT tháng này"] !== undefined ? rowData["DT tháng này"] : getKey(rowData, "DT tháng này");
+                            let dtLastMonth = rowData["DT tháng trước"] !== undefined ? rowData["DT tháng trước"] : getKey(rowData, "DT tháng trước");
+                            
+                            if(dtThisMonth !== undefined && dtThisMonth !== "" && dtThisMonth !== null) currentVal = parseVnNumber(dtThisMonth);
+                            if(dtLastMonth !== undefined && dtLastMonth !== "" && dtLastMonth !== null) lastMonthVal = parseVnNumber(dtLastMonth);
+                        }
+                        
+                        if (i <= daysPassed) chartCurrent.push(currentVal);
+                        else chartCurrent.push(null);
+                        
+                        chartLastMonth.push(lastMonthVal);
+                        chartTarget.push(targetDayValue);
+                    }
+                    
+                    let xaxisColors = [];
+                    let xaxisFontWeights = [];
+                    for(let i=1; i<=daysInMonth; i++) {
+                        let d = new Date(today.getFullYear(), today.getMonth(), i);
+                        let dayOfWeek = d.getDay();
+                        if(dayOfWeek === 0 || dayOfWeek === 6) { 
+                            xaxisColors.push('#d63031'); 
+                            xaxisFontWeights.push(900);
+                        } else {
+                            xaxisColors.push('#64748b'); 
+                            xaxisFontWeights.push(600);
+                        }
+                    }
+
+                    var options = {
+                      series: [{
+                        name: 'Hiện tại',
+                        data: chartCurrent
+                      }, {
+                        name: 'Target',
+                        data: chartTarget
+                      }, {
+                        name: 'Tháng trước',
+                        data: chartLastMonth
+                      }],
+                      chart: {
+                        height: 400,
+                        type: 'line',
+                        toolbar: { show: false },
+                        fontFamily: 'Nunito, sans-serif',
+                        animations: { enabled: false } 
+                      },
+                      colors: ['#38bdf8', '#fcd34d', '#64748b'], 
+                      stroke: {
+                        width: [4, 3, 3],
+                        curve: 'straight',
+                        dashArray: [0, 5, 5] 
+                      },
+                      dataLabels: {
+                        enabled: true,
+                        offsetY: -10,
+                        style: {
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            colors: [function({ seriesIndex, dataPointIndex, w }) {
+                                let d = new Date(today.getFullYear(), today.getMonth(), dataPointIndex + 1);
+                                let isWeekend = (d.getDay() === 0 || d.getDay() === 6);
+                                if (seriesIndex === 0 && isWeekend) return '#ef4444'; 
+                                return seriesIndex === 0 ? '#38bdf8' : '#64748b';
+                            }]
+                        },
+                        formatter: function(val, opts) {
+                            if (val === null || val === 0) return '';
+                            let res = Math.round(val);
+                            if (opts.seriesIndex === 1) {
+                                let totalPoints = opts.w.config.series[1].data.length;
+                                if (opts.dataPointIndex === totalPoints - 1) return res;
+                                return '';
+                            }
+                            return res;
+                        },
+                        background: { enabled: false }
+                      },
+                      markers: {
+                        size: [5, 0, 4],
+                        colors: ['#38bdf8', '#fcd34d', '#64748b'],
+                        strokeWidth: 2,
+                        strokeColors: '#fff',
+                        hover: { size: 7 }
+                      },
+                      xaxis: {
+                        categories: chartDays,
+                        labels: {
+                          style: {
+                            colors: xaxisColors,
+                            fontSize: '11px',
+                            fontWeight: 700
+                          }
+                        },
+                        tooltip: { enabled: false }
+                      },
+                      yaxis: {
+                        labels: {
+                          formatter: function (val) {
+                            if (val === null) return "";
+                            return Math.round(val);
+                          },
+                          style: { fontSize: '12px', fontWeight: 700, colors: ['#64748b'] }
+                        }
+                      },
+                      legend: {
+                        position: 'top',
+                        horizontalAlign: 'center',
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        markers: { radius: 12, width: 14, height: 14 }
+                      },
+                      tooltip: {
+                        y: {
+                          formatter: function (val) {
+                            if (val === null) return "Chưa có";
+                            return formatMoney(val) + " Tr";
+                          }
+                        }
+                      },
+                      grid: {
+                        borderColor: '#f1f5f9',
+                        strokeDashArray: 0,
+                      }
+                    };
+
+                    if(window.apexTrendChart) window.apexTrendChart.destroy();
+                    window.apexTrendChart = new ApexCharts(document.querySelector("#trendChart"), options);
+                    window.apexTrendChart.render();
+                    
+                    // ==========================================
+                    // VẼ BIỂU ĐỒ DOANH THU NĂM (12 THÁNG)
+                    // ==========================================
+                    document.getElementById('year-chart-container').style.display = window.showCharts ? 'block' : 'none';
+                    let yearMonths = [];
+                    let dataLastYear = [];
+                    let dataTarget = [];
+                    let dataActual = [];
+                    
+                    for(let m=1; m<=12; m++) {
+                        yearMonths.push(`Th ${m}`);
+                        let rowM = configData.find(r => parseVnNumber(getKey(r, "Tháng", "tháng", "thang")) === m);
+                        
+                        let dtLastYear = 0;
+                        let targetM = 0;
+                        let actualM = 0;
+                        
+                        if(rowM) {
+                            let r1 = parseVnNumber(getKey(rowM, "DT Năm ngoái", "doanh thu năm ngoái", "dt năm ngoái", "năm ngoái", "nam ngoai", "doanh thu nam ngoai", "dt nam ngoai", "doanh thu năm ngoái (cùng kỳ)", "doanh thu nam ngoai (cung ky)", "cùng kỳ", "cung ky"));
+                            let r2 = parseVnNumber(getKey(rowM, "Target Tháng", "mục tiêu tháng", "target", "kế hoạch", "target thang", "muc tieu thang"));
+                            let r3 = parseVnNumber(getKey(rowM, "DT thực hiện", "dt tháng này", "doanh thu thực hiện", "thực hiện", "doanh thu", "thuc hien"));
+                            
+                            dtLastYear = r1 > 100000 ? r1 / 1000000 : r1;
+                            targetM = r2 > 100000 ? r2 / 1000000 : r2;
+                            actualM = r3 > 100000 ? r3 / 1000000 : r3;
+                            
+                            // Lấy doanh thu dự kiến cho tháng hiện tại
+                            let currentMonthNum = today.getMonth() + 1;
+                            if (m === currentMonthNum && typeof totalDKThang !== 'undefined') {
+                                actualM = totalDKThang > 100000 ? totalDKThang / 1000000 : totalDKThang;
+                            }
+                        }
+                        
+                        dataLastYear.push(dtLastYear > 0 ? Math.round(dtLastYear) : 0);
+                        dataTarget.push(targetM > 0 ? Math.round(targetM) : 0);
+                        dataActual.push(actualM > 0 ? Math.round(actualM) : 0);
+                    }
+                    
+                    // LỌC BỎ CÁC THÁNG TƯƠNG LAI CHƯA CÓ DỮ LIỆU
+                    let finalMonths = [];
+                    let finalActual = [];
+                    let finalLastYear = [];
+                    let finalTarget = [];
+
+                    for (let i = 0; i < 12; i++) {
+                        let monthIdx = i + 1;
+                        if (monthIdx <= (today.getMonth() + 1) || dataActual[i] > 0 || dataLastYear[i] > 0) {
+                            finalMonths.push(yearMonths[i]);
+                            finalActual.push(dataActual[i] || 0);
+                            finalLastYear.push(dataLastYear[i] || 0);
+                            finalTarget.push(dataTarget[i] || 0);
+                        }
+                    }
+                    
+                    let maxVal = Math.max(...finalActual, ...finalLastYear, ...finalTarget, 0);
+
+                    let yearPointAnnotations = [];
+                    for (let i = 0; i < finalMonths.length; i++) {
+                        let tgt = finalTarget[i];
+                        let act = finalActual[i];
+                        let ly = finalLastYear[i];
+                        let allMax = Math.max(tgt || 0, act || 0, ly || 0);
+
+                        if (act > 0) {
+                            let txt = formatMoney(act);
+                            if (tgt > 0) txt += ' (' + Math.round(act / tgt * 100) + '%)';
+                            yearPointAnnotations.push({
+                                x: finalMonths[i], y: allMax,
+                                marker: { size: 0 },
+                                label: {
+                                    text: txt,
+                                    offsetY: -50,
+                                    style: { color: '#0284c7', fontSize: '12px', fontWeight: 900, background: '#fff', padding: { left: 4, right: 4, top: 2, bottom: 2 } },
+                                    borderColor: '#ffffff', borderWidth: 1.5, borderRadius: 4
+                                }
+                            });
+                        }
+
+                        if (tgt > 0) {
+                            yearPointAnnotations.push({
+                                x: finalMonths[i], y: allMax,
+                                marker: { size: 0 },
+                                label: {
+                                    text: formatMoney(tgt),
+                                    offsetY: -28,
+                                    style: { color: '#f59e0b', fontSize: '12px', fontWeight: 900, background: '#fff', padding: { left: 4, right: 4, top: 2, bottom: 2 } },
+                                    borderColor: '#ffffff', borderWidth: 1.5, borderRadius: 4
+                                }
+                            });
+                        }
+
+                        if (ly > 0) {
+                            yearPointAnnotations.push({
+                                x: finalMonths[i], y: allMax,
+                                marker: { size: 0 },
+                                label: {
+                                    text: formatMoney(ly),
+                                    offsetY: -8,
+                                    style: { color: '#64748b', fontSize: '11px', fontWeight: 900, background: '#ffffff', padding: { left: 4, right: 4, top: 2, bottom: 2 } },
+                                    borderColor: '#ffffff', borderWidth: 2, borderRadius: 4
+                                }
+                            });
+                        }
+                    }
+
+                    let curMonthIdx2 = today.getMonth();
+                    let cumAct = 0, cumTgt = 0;
+                    for (let i = 0; i <= curMonthIdx2 && i < dataActual.length; i++) {
+                        cumAct += (dataActual[i] || 0);
+                        cumTgt += (dataTarget[i] || 0);
+                    }
+                    let pctYr = cumTgt > 0 ? Math.round(cumAct / cumTgt * 100) : 0;
+                    let subtitleText = `Lũy kế: ${formatMoney(cumAct)} / ${formatMoney(cumTgt)} (${pctYr}%)`;
+
+                    var optionsYear = {
+                        series: [{
+                            name: 'Target tháng',
+                            type: 'column',
+                            data: finalTarget
+                        }, {
+                            name: 'Doanh thu thực hiện',
+                            type: 'column',
+                            data: finalActual
+                        }, {
+                            name: 'Năm ngoái',
+                            type: 'line',
+                            data: finalLastYear
+                        }],
+                        chart: {
+                            height: 400,
+                            type: 'line',
+                            fontFamily: 'Nunito, sans-serif',
+                            animations: { enabled: false },
+                            toolbar: { show: false }
+                        },
+                        stroke: {
+                            width: [0, 0, 4],
+                            curve: 'smooth'
+                        },
+                        plotOptions: {
+                            bar: {
+                                horizontal: false,
+                                columnWidth: '65%',
+                                borderRadius: 4
+                            },
+                        },
+                        dataLabels: { enabled: false },
+                        annotations: { points: yearPointAnnotations },
+                        colors: ['#fcd34d', '#0284c7', '#b0bec5'],
+                        xaxis: {
+                            categories: finalMonths,
+                            labels: {
+                                style: { fontWeight: 800, fontSize: '12px' }
+                            }
+                        },
+                        yaxis: {
+                            forceNiceScale: true,
+                            tickAmount: 5,
+                            labels: {
+                                formatter: function (val) {
+                                    return formatMoney(Math.round(val));
+                                },
+                                style: { fontWeight: 800, colors: ['#64748b'] }
+                            }
+                        },
+                        markers: {
+                            size: [0, 0, 5],
+                            colors: ['#b0bec5'],
+                            strokeColors: '#fff',
+                            strokeWidth: 2,
+                            hover: { size: 7 }
+                        },
+                        legend: {
+                            position: 'top',
+                            horizontalAlign: 'left',
+                            fontSize: '13px',
+                            fontWeight: 800,
+                            offsetY: 0,
+                            markers: { radius: 12 }
+                        },
+                        grid: {
+                            borderColor: '#f1f5f9',
+                            strokeDashArray: 0,
+                        }
+                    };
+
+                    if(window.apexYearChart) window.apexYearChart.destroy();
+                    window.apexYearChart = new ApexCharts(document.querySelector("#yearChart"), optionsYear);
+                    window.apexYearChart.render();
+
+                    let statsEl = document.getElementById('yearChartStats');
+                    if (statsEl) {
+                        statsEl.innerHTML = `Lũy kế: <span style="color:#0284c7">${formatMoney(cumAct)}</span> / <span style="color:#f59e0b">${formatMoney(cumTgt)}</span> (<span style="color:${pctYr >= 100 ? '#10b981' : '#ef4444'}; font-weight:900">${pctYr}%</span>)`;
+                    }
+
+                } else {
+                    document.getElementById('trend-chart-container').style.display = 'none';
+                    document.getElementById('year-chart-container').style.display = 'none';
+                }
 
                 const btnSend = document.getElementById('btnSend');
                 const urlParams = new URLSearchParams(window.location.search);
