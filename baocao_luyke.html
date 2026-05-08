@@ -995,6 +995,25 @@
 </head>
 
 <body>
+    <!-- Modal Biểu đồ số bán Ngành Hàng -->
+    <div id="catChartModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
+        <div style="background:#fff; width: 850px; max-width:95%; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.3); transform: translateY(-20px); transition:transform 0.3s ease;" id="catChartModalBox">
+            <div style="background:#0ea5e9; color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:18px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+                <span>📈 Biểu đồ số bán: <span id="ccm-title" style="color: #fef08a;"></span></span>
+                <button onclick="closeCatChartModal()" style="background:none; border:none; color:white; font-size:32px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
+            </div>
+            <div style="padding:20px;">
+                <div class="grid-5" style="margin-bottom: 20px;">
+                    <div class="card"><div class="card-title">MỤC TIÊU</div><div class="card-val" id="ccm-target" style="color: #475569; font-size: 26px;">0</div></div>
+                    <div class="card"><div class="card-title">LŨY KẾ</div><div class="card-val" id="ccm-thuchien" style="color: #2563eb; font-size: 26px;">0</div></div>
+                    <div class="card"><div class="card-title">% THỰC HIỆN</div><div class="card-val" id="ccm-ht" style="font-size: 26px;">0%</div></div>
+                    <div class="card"><div class="card-title">% DỰ KIẾN</div><div class="card-val" id="ccm-dk" style="font-size: 26px;">0%</div></div>
+                    <div class="card"><div class="card-title">MT HÔM NAY</div><div class="card-val" id="ccm-mtngay" style="color: #ef4444; font-size: 26px;">0</div></div>
+                </div>
+                <div id="ccm-chart" style="height: 350px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
 
             <div class="top-actions" data-html2canvas-ignore="true" style="display:flex; justify-content:center; align-items:center; margin: 20px auto 15px auto; max-width: 950px; width: 100%; box-sizing: border-box; flex-wrap: wrap; gap: 8px;">
         <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
@@ -1007,10 +1026,10 @@
     </div>
     <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 0 auto 20px auto; max-width: 950px; width: 100%; box-sizing: border-box; font-size: 13px;" data-html2canvas-ignore="true">
         <div style="background:#fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 12px; display:flex; align-items:center; gap:8px; font-weight:800; color:#475569;">
-            <span style="color:#64748b;">📅 GỐC:</span>
-            <select id="baseDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
-            <span style="color:#64748b;">VS:</span>
+            <span style="color:#64748b;">📅 XEM NGÀY:</span>
             <select id="compDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
+            <span style="color:#64748b;">SO VỚI:</span>
+            <select id="baseDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
         </div>
         <button onclick="window.toggleDelta()" id="btnToggleDelta" style="background:#8b5cf6; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);">👀 ẨN/HIỆN</button>
         <button onclick="window.toggleCharts()" id="btnToggleCharts" style="background:#0ea5e9; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);">📊 HIỆN BIỂU ĐỒ</button>
@@ -1339,9 +1358,188 @@
         };
 
 
+        window.monthHistoryCache = {};
+        async function getMonthHistory(targetDate) {
+            targetDate = targetDate || new Date();
+            let monthStr = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0');
+            if (!window.monthHistoryCache[monthStr]) {
+                try {
+                    let res = await fetch(GAS_URL + "?action=getHistoryMonthData&month=" + monthStr);
+                    window.monthHistoryCache[monthStr] = await res.json();
+                } catch(e) {
+                    console.error("Lỗi lấy lịch sử tháng", e);
+                    return {};
+                }
+            }
+            return window.monthHistoryCache[monthStr];
+        }
+
+        window.closeCatChartModal = function() {
+            const m = document.getElementById('catChartModal');
+            const b = document.getElementById('catChartModalBox');
+            m.style.opacity = '0';
+            b.style.transform = 'translateY(-20px)';
+            setTimeout(() => { m.style.display = 'none'; }, 300);
+        };
+
+        window.catApexChart = null;
+
+        window.showCategoryDailyChart = async function(nganhHang, thucHien, target, htTarget, htDuKien, mtNgay, isSL) {
+            document.getElementById('ccm-title').innerText = nganhHang;
+            document.getElementById('ccm-target').innerText = isSL ? target : formatMoney(target);
+            document.getElementById('ccm-thuchien').innerText = isSL ? thucHien : formatMoney(thucHien);
+            document.getElementById('ccm-ht').innerText = formatPercent(htTarget);
+            document.getElementById('ccm-ht').style.color = getColorClass(htTarget);
+            document.getElementById('ccm-dk').innerText = formatPercent(htDuKien);
+            document.getElementById('ccm-dk').style.color = getColorClass(htDuKien);
+            document.getElementById('ccm-mtngay').innerText = mtNgay < 1 ? (isSL ? "1" : Math.round(mtNgay*1000)+"k") : formatMoney(mtNgay);
+            
+            const m = document.getElementById('catChartModal');
+            const b = document.getElementById('catChartModalBox');
+            m.style.display = 'flex';
+            setTimeout(() => { m.style.opacity = '1'; b.style.transform = 'translateY(0)'; }, 10);
+            
+            document.getElementById('ccm-chart').innerHTML = "<div style='text-align:center; padding: 100px; font-size:20px; font-weight:900; color:#94a3b8;'>⏳ Đang tải dữ liệu biểu đồ...</div>";
+
+            let selectedDateStr = document.getElementById('filterDate') ? document.getElementById('filterDate').value : 'current';
+            let today = new Date();
+            let isCurrentDay = true;
+            if (selectedDateStr && selectedDateStr !== 'current' && selectedDateStr !== 'auto') {
+                let parts = selectedDateStr.split('/');
+                if (parts.length >= 2) {
+                    let parsedDate = new Date(parts.length===3 ? parts[2] : today.getFullYear(), parseInt(parts[1])-1, parts[0]);
+                    if (parsedDate.toDateString() !== today.toDateString()) {
+                        today = parsedDate;
+                        isCurrentDay = false;
+                    }
+                }
+            }
+
+            let isFirstDay = today.getDate() === 1;
+            let targetDate = isFirstDay ? new Date(today.getFullYear(), today.getMonth(), 0) : today;
+            let currentMonth = targetDate.getMonth() + 1;
+            let currentYear = targetDate.getFullYear();
+            let daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+            
+            let limitDay;
+            if (isFirstDay) {
+                limitDay = daysInMonth;
+            } else {
+                limitDay = isCurrentDay ? today.getDate() - 1 : today.getDate();
+            }
+
+            let hist = await getMonthHistory(targetDate);
+            let dates = Object.keys(hist).sort();
+            
+            let cumulativeArr = [];
+            for(let d of dates) {
+                let dData = hist[d]["Data_ThiDua"];
+                if(dData) {
+                    let row = dData.find(x => String(getKey(x, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính")).toLowerCase().trim() === nganhHang.toLowerCase().trim());
+                    if(row) {
+                        let val = isSL ? parseVnNumber(getKey(row, "số lượng", "quantity")) : parseVnNumber(getKey(row, "doanh thu"));
+                        cumulativeArr.push({date: d, val: val});
+                    } else {
+                        cumulativeArr.push({date: d, val: cumulativeArr.length > 0 ? cumulativeArr[cumulativeArr.length-1].val : 0});
+                    }
+                }
+            }
+            
+            if (!isFirstDay && !isCurrentDay) {
+                let viewDateStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+                if (!cumulativeArr.find(x => x.date === viewDateStr)) {
+                    cumulativeArr.push({date: viewDateStr, val: thucHien});
+                } else {
+                    cumulativeArr.find(x => x.date === viewDateStr).val = thucHien;
+                }
+            }
+            
+            let dailyMap = {};
+            for(let i=0; i<cumulativeArr.length; i++) {
+                let dayNum = parseInt(cumulativeArr[i].date.split('-')[2]);
+                let val = 0;
+                if (i === 0) {
+                    val = (dayNum === 1) ? cumulativeArr[i].val : 0;
+                } else {
+                    val = Math.max(0, cumulativeArr[i].val - cumulativeArr[i-1].val);
+                }
+                dailyMap[dayNum] = val;
+            }
+
+            let fullLabels = [];
+            let fullDailyData = [];
+
+            for (let i = 1; i <= limitDay; i++) {
+                fullLabels.push(i + '/' + currentMonth);
+                fullDailyData.push(dailyMap[i] !== undefined ? dailyMap[i] : 0);
+            }
+
+            document.getElementById('ccm-chart').innerHTML = "";
+            
+            let options = {
+                series: [{
+                    name: isSL ? 'Số lượng bán' : 'Doanh thu (TR)',
+                    data: fullDailyData
+                }],
+                chart: {
+                    type: 'line',
+                    height: 330,
+                    fontFamily: 'Nunito, sans-serif',
+                    toolbar: { show: false }
+                },
+                stroke: {
+                    width: 3,
+                    curve: 'straight',
+                    dashArray: 4
+                },
+                markers: {
+                    size: 5,
+                    colors: ['#0ea5e9'],
+                    strokeWidth: 2,
+                    strokeColors: '#fff',
+                    hover: { size: 7 }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (val) {
+                        return val > 0 ? (isSL ? val : formatMoney(val)) : "";
+                    },
+                    offsetY: -20,
+                    style: { fontSize: '11px', colors: ["#1e293b"], fontWeight: 900 }
+                },
+                xaxis: {
+                    categories: fullLabels,
+                    position: 'bottom',
+                    axisBorder: { show: false },
+                    axisTicks: { show: false },
+                    labels: { 
+                        style: { colors: '#64748b', fontSize: '10px', fontWeight: 800 },
+                        rotate: -45,
+                        rotateAlways: false
+                    }
+                },
+                yaxis: { show: false },
+                grid: { show: false },
+                colors: ['#0ea5e9'],
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return isSL ? val + " SP" : formatMoney(val) + " TR";
+                        }
+                    }
+                }
+            };
+            
+            if (window.catApexChart) { window.catApexChart.destroy(); }
+            window.catApexChart = new ApexCharts(document.querySelector("#ccm-chart"), options);
+            window.catApexChart.render();
+        };
+
         async function getHistoryForDate(dateVal) {
+            if (!dateVal || dateVal === 'auto' || dateVal === 'current') return null;
+            let queryDate = window.dateMapYMD && window.dateMapYMD[dateVal] ? window.dateMapYMD[dateVal] : dateVal;
             if (!window.historyDataCache[dateVal]) {
-                const res = await fetch(GAS_URL + "?action=getHistoryData&date=" + encodeURIComponent(dateVal));
+                const res = await fetch(GAS_URL + "?action=getHistoryData&date=" + encodeURIComponent(queryDate));
                 window.historyDataCache[dateVal] = await res.json();
             }
             return window.historyDataCache[dateVal];
@@ -1573,6 +1771,7 @@
                         let bDay = bDate.getDate();
                         let bMonth = bDate.getMonth();
                         let bYear = bDate.getFullYear();
+                        
                         if (bDay === 1) { bMonth -= 1; if(bMonth < 0) { bMonth = 11; bYear--; } }
                         const bDaysInMonth = new Date(bYear, bMonth + 1, 0).getDate();
                         base_daysPassed = bDay === 1 ? bDaysInMonth : bDay - 1;
@@ -1623,11 +1822,27 @@
                 }
 
 
-                const currentDay = today.getDate();
-                let reportMonth = today.getMonth(); let reportYear = today.getFullYear();
+                let targetDateForDays = new Date();
+                let isCurrentTarget = true;
+                if (compVal && compVal !== 'current') {
+                    let ymd = window.dateMapYMD[compVal] || compVal;
+                    let parts = ymd.split('-');
+                    if (parts.length >= 2) {
+                        let pd = new Date(parts.length===3 ? parts[0] : targetDateForDays.getFullYear(), parseInt(parts[1])-1, parts.length===3 ? parts[2] : parts[0]);
+                        if (pd.toDateString() !== targetDateForDays.toDateString()) {
+                            targetDateForDays = pd;
+                            isCurrentTarget = false;
+                        }
+                    }
+                }
+
+                const currentDay = targetDateForDays.getDate();
+                let reportMonth = targetDateForDays.getMonth(); let reportYear = targetDateForDays.getFullYear();
                 if (currentDay === 1) { reportMonth -= 1; if (reportMonth < 0) { reportMonth = 11; reportYear--; } }
                 const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
-                const daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
+                
+                let daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
+                
                 let daysRemaining = daysInMonth - daysPassed; if (daysRemaining <= 0) daysRemaining = 1;
                 const isWeekend = today.getDay() === 0 || today.getDay() === 6;
 
@@ -1879,12 +2094,12 @@
                 setText("c-dk", formatMoney(totalDKThang));
                 let diffPercentDK = (totalDKThang / tTG)*100 - base_htDK_percent*100;
                 if(isNaN(diffPercentDK)) diffPercentDK = 0;
-                let dkPercentHTML = ` <span style="font-size: 11px; padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,0.05); color: ${diffPercentDK >= 0 ? '#10b981' : '#ef4444'}; font-weight: 800;">${diffPercentDK >= 0 ? '▲ +' : '▼ '}${Math.round(diffPercentDK)}%</span>`;
+                let dkPercentHTML = ` <span class="delta-badge ${diffPercentDK >= 0 ? 'pos' : 'neg'}">${diffPercentDK >= 0 ? '▲ +' : '▼ '}${Math.round(diffPercentDK)}%</span>`;
                 setHTML("c-dk-sub", `%HT D.KIẾN: <span style="color:${colorDKThang}; font-weight:900;">${formatPercent(totalDKThang / tTG)}</span>${dkPercentHTML}`);
                 
                 let diffTC = totalTyLeTC*100 - base_totalTyLeTC*100;
                 if(isNaN(diffTC)) diffTC = 0;
-                setHTML("c-tc-delta", `<span style="font-size: 12px; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.05); color: ${diffTC >= 0 ? '#ef4444' : '#10b981'}; font-weight: 900;">${diffTC >= 0 ? '▲ +' : '▼ '}${diffTC.toFixed(1)}%</span>`);
+                setHTML("c-tc-delta", `<span class="delta-badge ${diffTC >= 0 ? 'neg' : 'pos'}">${diffTC >= 0 ? '▲ +' : '▼ '}${diffTC.toFixed(1)}%</span>`);
                 setText("c-tc", formatPercent(totalTyLeTC));
                 setHTML("c-tc-sub", `<span style="color:${colorTyTrongTC}; font-weight:900;">${formatMoney(tTC)} TR</span>`);
 
@@ -2074,7 +2289,7 @@
               <tr>
                 <td><div class="stt-pill ${sttPillClass}">${sttTD++}</div></td>
                 
-                <td class="text-left" style="${nameStyle}">
+                <td class="text-left" style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL})">
                     <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}
                 </td>
                 
@@ -2108,7 +2323,7 @@
                         mtNgayFormat = formatMoney(item.mtNgay);
                     }
 
-                    let nameHtml = `<span style="${nameStyle}">${shortName(item.nganhHang)}</span> <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}`;
+                    let nameHtml = `<span style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL})">${shortName(item.nganhHang)}</span> <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}`;
                     let conLaiDisplayCard = item.htTarget >= 1 ? '<span style="font-size:16px;">🏆 Đã đạt</span>' : formatMoney(conLai);
                     let dash = 2 * Math.PI * 38;
                     let offset = dash - (Math.min(item.htDuKien, 1) * dash);

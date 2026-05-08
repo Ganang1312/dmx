@@ -5,6 +5,7 @@
   <title>Báo Cáo Nhân Viên - Cụm Savico</title>
   <script src="shared_config.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
     
@@ -183,6 +184,18 @@
     </style>
 </head>
 <body>
+    <!-- Modal Biểu đồ số bán Nhân viên -->
+    <div id="catChartModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
+        <div style="background:#fff; width: 850px; max-width:95%; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.3); transform: translateY(-20px); transition:transform 0.3s ease;" id="catChartModalBox">
+            <div style="background:#0ea5e9; color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:18px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+                <span>📈 Biểu đồ số bán: <span id="ccm-title" style="color: #fef08a;"></span></span>
+                <button onclick="closeCatChartModal()" style="background:none; border:none; color:white; font-size:32px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
+            </div>
+            <div style="padding:20px;">
+                <div id="ccm-chart" style="height: 350px; width: 100%;"></div>
+            </div>
+        </div>
+    </div>
 
   <!-- Modal -->
   <div id="infoModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
@@ -208,10 +221,10 @@
     </div>
     <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 0 auto 20px auto; max-width: 950px; width: 100%; box-sizing: border-box; font-size: 13px;" data-html2canvas-ignore="true">
         <div style="background:#fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 12px; display:flex; align-items:center; gap:8px; font-weight:800; color:#475569;">
-            <span style="color:#64748b;">📅 GỐC:</span>
-            <select id="baseDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
-            <span style="color:#64748b;">VS:</span>
+            <span style="color:#64748b;">📅 XEM NGÀY:</span>
             <select id="compDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
+            <span style="color:#64748b;">SO VỚI:</span>
+            <select id="baseDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
         </div>
         <button onclick="window.toggleDelta()" id="btnToggleDelta" style="background:#8b5cf6; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);">👀 ẨN/HIỆN</button>
     </div>
@@ -349,9 +362,10 @@
 
     async function getHistoryForDate(dateVal) {
         if (!dateVal || dateVal === 'auto' || dateVal === 'current') return null;
+        let queryDate = window.dateMapYMD && window.dateMapYMD[dateVal] ? window.dateMapYMD[dateVal] : dateVal;
         if (!window.historyDataCache[dateVal]) {
             try {
-                const res = await fetch(GAS_URL + "?action=getHistoryData&date=" + encodeURIComponent(dateVal));
+                const res = await fetch(GAS_URL + "?action=getHistoryData&date=" + encodeURIComponent(queryDate));
                 window.historyDataCache[dateVal] = await res.json();
             } catch (e) {
                 console.error("Lỗi lấy data lịch sử:", e);
@@ -531,11 +545,29 @@
         window.g_baseUserMap = baseUserMap;
 
 
-        const currentDay = today.getDate();
-        let reportMonth = today.getMonth(); let reportYear = today.getFullYear();
+        let targetDateForDays = new Date();
+        let isCurrentTarget = true;
+        if (compVal && compVal !== 'current') {
+            let ymd = window.dateMapYMD[compVal] || compVal;
+            let parts = ymd.split('-');
+            if (parts.length >= 2) {
+                let pd = new Date(parts.length===3 ? parts[0] : targetDateForDays.getFullYear(), parseInt(parts[1])-1, parts.length===3 ? parts[2] : parts[0]);
+                if (pd.toDateString() !== targetDateForDays.toDateString()) {
+                    targetDateForDays = pd;
+                    isCurrentTarget = false;
+                }
+            }
+        }
+
+        const currentDay = targetDateForDays.getDate();
+        let reportMonth = targetDateForDays.getMonth(); let reportYear = targetDateForDays.getFullYear();
         if (currentDay === 1) { reportMonth -= 1; if (reportMonth < 0) { reportMonth = 11; reportYear--; } }
         const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
-        const daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
+        
+        let daysPassed = currentDay === 1 ? daysInMonth : currentDay - 1;
+
+        window.g_daysPassed = daysPassed;
+        window.g_daysInMonth = daysInMonth;
 
         // TÍNH TARGET TỔNG CỦA SIÊU THỊ
         let tTG_Store = 0;
@@ -1276,7 +1308,105 @@
         
 
 
-    window.showCategoryModal = function(catIndex) {
+    window.monthHistoryCache = {};
+    async function getMonthHistory(targetDate) {
+        targetDate = targetDate || new Date();
+        let monthStr = targetDate.getFullYear() + '-' + String(targetDate.getMonth()+1).padStart(2,'0');
+        if (!window.monthHistoryCache[monthStr]) {
+            try {
+                let res = await fetch(GAS_URL + "?action=getHistoryMonthData&month=" + monthStr);
+                window.monthHistoryCache[monthStr] = await res.json();
+            } catch(e) {
+                console.error("Lỗi lấy lịch sử tháng", e);
+                return {};
+            }
+        }
+        return window.monthHistoryCache[monthStr];
+    }
+
+    window.closeCatChartModal = function() {
+        const m = document.getElementById('catChartModal');
+        const b = document.getElementById('catChartModalBox');
+        m.style.opacity = '0';
+        b.style.transform = 'translateY(-20px)';
+        setTimeout(() => { m.style.display = 'none'; }, 300);
+    };
+
+    window.catApexChart = null;
+
+    window.showEmpChart = function(index, isSL) {
+        let p = window.currentTdList[index];
+        if(!p) return;
+        
+        document.getElementById('ccm-title').innerText = window.formatShortName(p.name);
+        
+        const m = document.getElementById('catChartModal');
+        const b = document.getElementById('catChartModalBox');
+        m.style.display = 'flex';
+        setTimeout(() => { m.style.opacity = '1'; b.style.transform = 'translateY(0)'; }, 10);
+        
+        document.getElementById('ccm-chart').innerHTML = "";
+        
+        let options = {
+            series: [{
+                name: isSL ? 'Số lượng bán' : 'Doanh thu (TR)',
+                data: p.fullDailyData
+            }],
+            chart: {
+                type: 'line',
+                height: 330,
+                fontFamily: 'Nunito, sans-serif',
+                toolbar: { show: false }
+            },
+            stroke: {
+                width: 3,
+                curve: 'straight',
+                dashArray: 4
+            },
+            markers: {
+                size: 5,
+                colors: ['#0ea5e9'],
+                strokeWidth: 2,
+                strokeColors: '#fff',
+                hover: { size: 7 }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    return val > 0 ? (isSL ? val : window.g_formatVal(val, isSL)) : "";
+                },
+                offsetY: -20,
+                style: { fontSize: '11px', colors: ["#1e293b"], fontWeight: 900 }
+            },
+            xaxis: {
+                categories: p.fullLabels,
+                position: 'bottom',
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: { 
+                    style: { colors: '#64748b', fontSize: '10px', fontWeight: 800 },
+                    rotate: -45,
+                    rotateAlways: false
+                }
+            },
+            yaxis: { show: false },
+            grid: { show: false },
+            colors: ['#0ea5e9'],
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return isSL ? val + " SP" : window.g_formatVal(val, isSL) + " TR";
+                    }
+                }
+            }
+        };
+        
+        if (window.catApexChart) { window.catApexChart.destroy(); }
+        window.catApexChart = new ApexCharts(document.querySelector("#ccm-chart"), options);
+        window.catApexChart.render();
+    };
+
+    window.showCategoryModal = async function(catIndex) {
         try {
             let cat = window.g_activeCategories[catIndex];
             if (!cat) return;
@@ -1306,21 +1436,111 @@
                 let htHT = targetUser > 0 ? (actual / targetUser) : 0;
                 let htDuKien = targetUser > 0 ? ((actual / window.g_daysPassed) * window.g_daysInMonth) / targetUser : 0;
                 if (targetUser > 0 || actual > 0) {
-                    tdList.push({ name: emp.name, actual, targetUser, htHT, htDuKien, u });
+                    tdList.push({ name: emp.name, actual, targetUser, htHT, htDuKien, u, userId: emp.userId });
                 }
             }
+            let selectedDateStr = document.getElementById('filterDate') ? document.getElementById('filterDate').value : 'current';
+            let today = new Date();
+            let isCurrentDay = true;
+            if (selectedDateStr && selectedDateStr !== 'current' && selectedDateStr !== 'auto') {
+                let parts = selectedDateStr.split('/');
+                if (parts.length >= 2) {
+                    let parsedDate = new Date(parts.length===3 ? parts[2] : today.getFullYear(), parseInt(parts[1])-1, parts[0]);
+                    if (parsedDate.toDateString() !== today.toDateString()) {
+                        today = parsedDate;
+                        isCurrentDay = false;
+                    }
+                }
+            }
+
+            let isFirstDay = today.getDate() === 1;
+            let targetDate = isFirstDay ? new Date(today.getFullYear(), today.getMonth(), 0) : today;
+            let currentMonth = targetDate.getMonth() + 1;
+            let currentYear = targetDate.getFullYear();
+            let daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+            
+            let limitDay;
+            if (isFirstDay) {
+                limitDay = daysInMonth;
+            } else {
+                limitDay = isCurrentDay ? today.getDate() - 1 : today.getDate();
+            }
+
+            let hist = await getMonthHistory(targetDate);
+            let dates = Object.keys(hist).sort();
+
+            for (let p of tdList) {
+                let uId = String(p.userId).trim();
+                let cumulativeArr = [];
+                for(let d of dates) {
+                    let dData = hist[d]["Data_NV_ThiDua"];
+                    if(dData) {
+                        let row = dData.find(x => String(getKey(x, "staffuser", "mã nv", "employeeid", "user", "mã nhân viên")).trim() == uId && String(getKey(x, "programname", "nhóm ngành hàng", "nhóm ngành hàng chính")).toLowerCase().trim() == nganhClean);
+                        let val = row ? parseVnNumber(getKey(row, "value_compe", "thực hiện", "đã bán")) : (cumulativeArr.length > 0 ? cumulativeArr[cumulativeArr.length-1].val : 0);
+                        cumulativeArr.push({date: d, val: val});
+                    }
+                }
+                
+                if (!isFirstDay && !isCurrentDay) {
+                    let viewDateStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+                    if (!cumulativeArr.find(x => x.date === viewDateStr)) {
+                        cumulativeArr.push({date: viewDateStr, val: p.actual});
+                    } else {
+                        cumulativeArr.find(x => x.date === viewDateStr).val = p.actual;
+                    }
+                }
+                
+                let dailyMap = {};
+                for(let i=0; i<cumulativeArr.length; i++) {
+                    let dayNum = parseInt(cumulativeArr[i].date.split('-')[2]);
+                    let val = 0;
+                    if (i === 0) {
+                        val = (dayNum === 1) ? cumulativeArr[i].val : 0;
+                    } else {
+                        val = Math.max(0, cumulativeArr[i].val - cumulativeArr[i-1].val);
+                    }
+                    dailyMap[dayNum] = val;
+                }
+                
+                let fullLabels = [];
+                let fullDailyData = [];
+    
+                for (let i = 1; i <= limitDay; i++) {
+                    fullLabels.push(i + '/' + currentMonth);
+                    fullDailyData.push(dailyMap[i] !== undefined ? dailyMap[i] : 0);
+                }
+                
+                p.fullDailyData = fullDailyData;
+                p.fullLabels = fullLabels;
+
+                let zeroCount = 0;
+                for(let i = fullDailyData.length - 1; i >= 0; i--) {
+                    if (fullDailyData[i] <= 0) zeroCount++;
+                    else break;
+                }
+                p.zeroCount = zeroCount;
+            }
+
             tdList.sort((a, b) => b.htHT - a.htHT);
+            window.currentTdList = tdList;
             
             let stt = 1;
             for (let p of tdList) {
-                let realName = p.name.split('-').pop().trim();
+                let realName = window.formatShortName(p.name);
                 let colorHT = p.htHT >= 1 ? '#10b981' : '#ef4444';
                 let colorDK = p.htDuKien >= 1 ? '#10b981' : '#ef4444';
                 
+                let warnHtml = "";
+                if (p.zeroCount >= 7) {
+                    warnHtml = `<span style="background: #fee2e2; color: #ef4444; font-size: 10px; padding: 2px 4px; border-radius: 4px; margin-left: 4px; font-weight: 900;" title="Số ngày liên tiếp chưa bán">⏳ ${p.zeroCount}</span>`;
+                } else if (p.zeroCount >= 3) {
+                    warnHtml = `<span style="background: #fef08a; color: #ca8a04; font-size: 10px; padding: 2px 4px; border-radius: 4px; margin-left: 4px; font-weight: 900;" title="Số ngày liên tiếp chưa bán">⏳ ${p.zeroCount}</span>`;
+                }
+
                 html += `
                 <tr style="background: white; border-bottom: 1px solid #f1f5f9;">
                     <td style="padding: 6px 4px; text-align: center; font-weight: 800; color: #1e293b;">${stt++}</td>
-                    <td style="padding: 6px 4px; text-align: left; font-weight: 600; color: #475569; white-space: nowrap;">${realName}</td>
+                    <td style="padding: 6px 4px; text-align: left; font-weight: 600; color: #475569; white-space: nowrap; cursor:pointer;" onclick="showEmpChart(${stt-2}, ${cat.isSL})">${realName}${warnHtml}</td>
                     <td style="padding: 6px 4px; text-align: center; color: #64748b;">${window.g_formatVal(p.actual, cat.isSL)}</td>
                     <td style="padding: 6px 4px; text-align: center; color: #64748b;">${window.g_formatVal(p.targetUser, cat.isSL)}</td>
                     <td style="padding: 6px 4px; text-align: center; font-weight: 800; color: ${colorHT};">${window.g_formatPercent(p.htHT)}</td>
