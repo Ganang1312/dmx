@@ -295,10 +295,28 @@
       if (val == null || val === '') return 0;
       if (typeof val === 'number') return val; 
       let str = String(val).trim().replace(/\s/g, ''); 
+      // Xử lý dấu phân cách hàng nghìn/thập phân kiểu VN
       if (str.includes(',') && str.includes('.')) {
           str = (str.lastIndexOf(',') > str.lastIndexOf('.')) ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
-      } else if (str.includes(',')) { str = str.replace(',', '.'); }
-      let num = parseFloat(str); return isNaN(num) ? 0 : num;
+      } else if (str.includes(',')) {
+          // Nếu chỉ có phẩy, kiểm tra xem có phải hàng nghìn không (ví dụ 1.000,000 hoặc 1,000)
+          let parts = str.split(',');
+          if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && parseInt(parts[0]) > 0)) {
+              str = str.replace(/,/g, '');
+          } else {
+              str = str.replace(',', '.');
+          }
+      } else if (str.includes('.')) {
+          // Nếu có nhiều dấu chấm thì là ngăn cách hàng nghìn
+          if ((str.match(/\./g) || []).length > 1) str = str.replace(/\./g, '');
+      }
+      let num = parseFloat(str); 
+      if (isNaN(num)) return 0;
+      // Chuẩn hóa: Nếu số > 1,000,000 thì khả năng cao là đơn vị ĐỒNG, chia cho 1 triệu để ra TRIỆU
+      if (num >= 1000000) return num / 1000000;
+      // Nếu số > 10,000 và < 1,000,000 thì có thể là đơn vị ĐỒNG (nhưng nhỏ) hoặc đã là triệu nhưng bị sai dấu?
+      // Trong BI Realtime, các con số DT thường > 100tr. Nếu là triệu thì nó sẽ là 100.0
+      return num;
     };
     const formatMoney = (val) => Math.round(val).toLocaleString('vi-VN'); 
     const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
@@ -493,6 +511,13 @@
         }
         parsedRTBI.sort((a, b) => b.dtqd - a.dtqd);
 
+        // Tạo bản đồ doanh thu quy đổi từ BI để đồng bộ sang Thi Đua
+        let biMap = {};
+        for(let i of parsedRTBI) {
+            let key = i.nganhHang.replace("NNH ", "").trim().toLowerCase();
+            biMap[key] = i.dtqd;
+        }
+
         let parsedRTThiDua = []; let rt_cntVD = 0, rt_cntCB = 0;
         for(let row of dataRTThiDua) {
           let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng");
@@ -503,7 +528,14 @@
           if (Object.keys(configMap).length > 0 && (!cObj.phanLoai || cObj.phanLoai === 0)) continue;
 
           let lkInfo = thiDuaLuyKeMap[nganhClean] || { mtNgay: 0, isDT: false, targetThang: 0, lk_thucHien: 0 };
-          let thucHien = lkInfo.isDT ? parseVnNumber(getKey(row, "revenue_RT")) : parseVnNumber(getKey(row, "quantity_RT"));
+          
+          // Ưu tiên lấy doanh thu quy đổi từ bản đồ BI nếu là thi đua Doanh thu
+          let thucHien = 0;
+          if (lkInfo.isDT) {
+              thucHien = biMap[nganhClean] || parseVnNumber(getKey(row, "revenue_KFactor_RT", "revenue_RT"));
+          } else {
+              thucHien = parseVnNumber(getKey(row, "quantity_RT"));
+          }
           let ht = lkInfo.mtNgay > 0 ? thucHien / lkInfo.mtNgay : (thucHien > 0 ? 1 : 0);
           if(ht >= 1) rt_cntVD++; else rt_cntCB++;
           
