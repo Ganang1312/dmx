@@ -1003,12 +1003,27 @@
                 <button onclick="closeCatChartModal()" style="background:none; border:none; color:white; font-size:32px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
             </div>
             <div style="padding:20px;">
-                <div class="grid-5" style="margin-bottom: 20px;">
-                    <div class="card"><div class="card-title">MỤC TIÊU</div><div class="card-val" id="ccm-target" style="color: #475569; font-size: 26px;">0</div></div>
-                    <div class="card"><div class="card-title">LŨY KẾ</div><div class="card-val" id="ccm-thuchien" style="color: #2563eb; font-size: 26px;">0</div></div>
-                    <div class="card"><div class="card-title">% THỰC HIỆN</div><div class="card-val" id="ccm-ht" style="font-size: 26px;">0%</div></div>
-                    <div class="card"><div class="card-title">% DỰ KIẾN</div><div class="card-val" id="ccm-dk" style="font-size: 26px;">0%</div></div>
-                    <div class="card"><div class="card-title">MT HÔM NAY</div><div class="card-val" id="ccm-mtngay" style="color: #ef4444; font-size: 26px;">0</div></div>
+                <div style="display:flex; flex-direction:row; gap:8px; margin-bottom:14px;">
+                    <div style="flex:1; background:#f8fafc; border:2px solid #1e272e; border-radius:10px; padding:8px 4px; text-align:center;">
+                        <div style="font-size:11px; font-weight:900; color:#475569; text-transform:uppercase; margin-bottom:4px;">🎯 MỤC TIÊU</div>
+                        <div id="ccm-target" style="color:#475569; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0</div>
+                    </div>
+                    <div style="flex:1; background:#eff6ff; border:2px solid #2563eb; border-radius:10px; padding:8px 4px; text-align:center;">
+                        <div style="font-size:11px; font-weight:900; color:#2563eb; text-transform:uppercase; margin-bottom:4px;">📈 LŨY KẾ</div>
+                        <div id="ccm-thuchien" style="color:#2563eb; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0</div>
+                    </div>
+                    <div style="flex:1; background:#f0fdf4; border:2px solid #10b981; border-radius:10px; padding:8px 4px; text-align:center;">
+                        <div style="font-size:11px; font-weight:900; color:#10b981; text-transform:uppercase; margin-bottom:4px;">⚡ % HT</div>
+                        <div id="ccm-ht" style="font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0%</div>
+                    </div>
+                    <div style="flex:1; background:#fefce8; border:2px solid #f59e0b; border-radius:10px; padding:8px 4px; text-align:center;">
+                        <div style="font-size:11px; font-weight:900; color:#d97706; text-transform:uppercase; margin-bottom:4px;">🚀 % DỰ KIẾN</div>
+                        <div id="ccm-dk" style="font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0%</div>
+                    </div>
+                    <div style="flex:1; background:#fff1f2; border:2px solid #ef4444; border-radius:10px; padding:8px 4px; text-align:center;">
+                        <div style="font-size:11px; font-weight:900; color:#ef4444; text-transform:uppercase; margin-bottom:4px;">📅 MT NGÀY</div>
+                        <div id="ccm-mtngay" style="color:#ef4444; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0</div>
+                    </div>
                 </div>
                 <div id="ccm-chart" style="height: 350px; width: 100%;"></div>
             </div>
@@ -1384,7 +1399,7 @@
 
         window.catApexChart = null;
 
-        window.showCategoryDailyChart = async function(nganhHang, thucHien, target, htTarget, htDuKien, mtNgay, isSL) {
+        window.showCategoryDailyChart = async function(nganhHang, thucHien, target, htTarget, htDuKien, mtNgay, isSL, deltaThucHien) {
             document.getElementById('ccm-title').innerText = nganhHang;
             document.getElementById('ccm-target').innerText = isSL ? target : formatMoney(target);
             document.getElementById('ccm-thuchien').innerText = isSL ? thucHien : formatMoney(thucHien);
@@ -1401,14 +1416,18 @@
             
             document.getElementById('ccm-chart').innerHTML = "<div style='text-align:center; padding: 100px; font-size:20px; font-weight:900; color:#94a3b8;'>⏳ Đang tải dữ liệu biểu đồ...</div>";
 
-            let selectedDateStr = document.getElementById('filterDate') ? document.getElementById('filterDate').value : 'current';
+            // Lấy ngày đang xem từ compDateSel (thay vì filterDate không tồn tại)
+            let compSelEl = document.getElementById('compDateSel');
+            let compSelVal = compSelEl ? compSelEl.value : 'current';
             let today = new Date();
             let isCurrentDay = true;
-            if (selectedDateStr && selectedDateStr !== 'current' && selectedDateStr !== 'auto') {
-                let parts = selectedDateStr.split('/');
-                if (parts.length >= 2) {
-                    let parsedDate = new Date(parts.length===3 ? parts[2] : today.getFullYear(), parseInt(parts[1])-1, parts[0]);
-                    if (parsedDate.toDateString() !== today.toDateString()) {
+            if (compSelVal && compSelVal !== 'current' && compSelVal !== 'auto') {
+                // Dùng dateMapYMD để chuyển về yyyy-MM-dd
+                let ymd = (window.dateMapYMD && window.dateMapYMD[compSelVal]) ? window.dateMapYMD[compSelVal] : compSelVal;
+                let parts = ymd.split('-');
+                if (parts.length === 3) {
+                    let parsedDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                    if (!isNaN(parsedDate.getTime()) && parsedDate.toDateString() !== new Date().toDateString()) {
                         today = parsedDate;
                         isCurrentDay = false;
                     }
@@ -1445,13 +1464,23 @@
                 }
             }
             
-            if (!isFirstDay && !isCurrentDay) {
-                let viewDateStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
-                if (!cumulativeArr.find(x => x.date === viewDateStr)) {
-                    cumulativeArr.push({date: viewDateStr, val: thucHien});
+            // LUÔN inject thucHien (live) vào ngày báo cáo để khớp với badge tăng giảm
+            if (!isFirstDay) {
+                // Khi current: ngày báo cáo = hôm qua (limitDay). Khi historical: ngày báo cáo = ngày đang xem
+                let reportDay = isCurrentDay ? (today.getDate() - 1) : today.getDate();
+                let reportYear = isCurrentDay ? today.getFullYear() : today.getFullYear();
+                let reportMonth = isCurrentDay ? (today.getMonth() + 1) : (today.getMonth() + 1);
+                // Xử lý edge case ngày 1 của tháng
+                if (isCurrentDay && today.getDate() === 1) { reportDay = new Date(today.getFullYear(), today.getMonth(), 0).getDate(); reportMonth = today.getMonth() === 0 ? 12 : today.getMonth(); reportYear = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear(); }
+                let reportDateStr = reportYear + '-' + String(reportMonth).padStart(2,'0') + '-' + String(reportDay).padStart(2,'0');
+                let existing = cumulativeArr.find(x => x.date === reportDateStr);
+                if (!existing) {
+                    cumulativeArr.push({date: reportDateStr, val: thucHien});
                 } else {
-                    cumulativeArr.find(x => x.date === viewDateStr).val = thucHien;
+                    existing.val = thucHien;
                 }
+                // Sort lại theo ngày sau khi inject
+                cumulativeArr.sort((a, b) => a.date.localeCompare(b.date));
             }
             
             let dailyMap = {};
@@ -1464,6 +1493,12 @@
                     val = Math.max(0, cumulativeArr[i].val - cumulativeArr[i-1].val);
                 }
                 dailyMap[dayNum] = val;
+            }
+
+            // OVERRIDE cột limitDay bằng deltaThucHien (đã tính đúng ở badge tăng giảm)
+            // Đây là cách duy nhất đảm bảo chart và badge dùng CÙNG con số (cùng nguồn data)
+            if (typeof deltaThucHien === 'number' && !isNaN(deltaThucHien) && deltaThucHien !== 0) {
+                dailyMap[limitDay] = Math.max(0, deltaThucHien);
             }
 
             let fullLabels = [];
@@ -2289,7 +2324,7 @@
               <tr>
                 <td><div class="stt-pill ${sttPillClass}">${sttTD++}</div></td>
                 
-                <td class="text-left" style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL})">
+                <td class="text-left" style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">
                     <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}
                 </td>
                 
@@ -2323,7 +2358,7 @@
                         mtNgayFormat = formatMoney(item.mtNgay);
                     }
 
-                    let nameHtml = `<span style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL})">${shortName(item.nganhHang)}</span> <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}`;
+                    let nameHtml = `<span style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">${shortName(item.nganhHang)}</span> <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}`;
                     let conLaiDisplayCard = item.htTarget >= 1 ? '<span style="font-size:16px;">🏆 Đã đạt</span>' : formatMoney(conLai);
                     let dash = 2 * Math.PI * 38;
                     let offset = dash - (Math.min(item.htDuKien, 1) * dash);
