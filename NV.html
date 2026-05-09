@@ -3172,7 +3172,7 @@
                     <div style="display: flex; gap: 10px; margin-top: 10px; justify-content: space-between;">
                         <!-- ĐÃ SỬA LỖI: Thêm sự kiện click cho nút Xuất -->
                         <button id="exportContestBtn" class="btn btn-small"
-                            style="background-color: var(--text-muted); width: 30%;">Sao chép (Xuất)</button>
+                            style="background-color: #f1f2f6; color: #000; width: 30%;">Sao chép (Xuất)</button>
                         <!-- ĐÃ SỬA LỖI: Thêm sự kiện click cho nút Nhập -->
                         <button id="importContestBtn" class="btn btn-small"
                             style="background-color: var(--success-color); width: 30%;">Áp dụng (Nhập)</button>
@@ -3185,9 +3185,7 @@
             <!-- END NEW: Nhập/Xuất Panel -->
 
             <div style="margin-bottom: 15px;">
-                <!-- ĐÃ SỬA LỖI: Chỉ gán sự kiện cho hàng item con, loại bỏ sự kiện toggleCheckboxInModal khỏi đây -->
-                <div class="contest-item">
-                    <!-- ĐÃ SỬA LỖI: Thêm sự kiện onclick và stopPropagation để chỉ checkbox hoạt động khi click vào nó -->
+                <div class="contest-item" onclick="const cb = document.getElementById('modalSelectAllContests'); cb.checked = !cb.checked; toggleAllModalContests(cb.checked);">
                     <input type="checkbox" id="modalSelectAllContests"
                         onclick="event.stopPropagation(); toggleAllModalContests(this.checked);">
                     <label for="modalSelectAllContests" style="font-weight: bold; color: var(--primary-accent);">**Chọn
@@ -3550,16 +3548,26 @@
 
                     const lines = el.value.split('\n');
                     lines.forEach(line => {
-                        if (line.includes('-') || line.includes('–')) {
-                            const parts = line.split(/[\t]/);
+                        // Thêm dấu gạch ngang dài và chấp nhận nhiều loại khoảng trắng
+                        if (line.includes('-') || line.includes('–') || line.includes('—')) {
+                            // Split bằng tab hoặc ít nhất 2 khoảng trắng liên tiếp
+                            const parts = line.split(/\t| {2,}/);
                             parts.forEach(cell => {
                                 const cleanCell = cell.trim();
-                                if (cleanCell.length > 5 && /[a-zA-Z]/.test(cleanCell) && /\d+$/.test(cleanCell)) {
-                                    if (!cleanCell.startsWith('TỔNG') &&
-                                        !cleanCell.startsWith('BP') &&
-                                        !cleanCell.includes('Nhân viên') &&
-                                        !cleanCell.includes('Siêu thị')) {
-                                        employeeSet.add(cleanCell);
+                                // Regex linh hoạt: Tên (có dấu) - ID (số)
+                                // Ví dụ: "Nguyễn Văn A - 12345" hoặc "1. Nguyễn Văn A - 12345"
+                                const employeeMatch = cleanCell.match(/(.+?)\s*[-–—]\s*(\d{4,10})/);
+                                
+                                if (employeeMatch && employeeMatch[0].length > 5) {
+                                    const candidate = employeeMatch[0].trim();
+                                    const upperCandidate = candidate.toUpperCase();
+                                    
+                                    if (!upperCandidate.startsWith('TỔNG') &&
+                                        !upperCandidate.startsWith('BP') &&
+                                        !upperCandidate.includes('NHÂN VIÊN') &&
+                                        !upperCandidate.includes('SIÊU THỊ')) {
+                                        employeeSet.add(candidate);
+                                        console.log("Đã tìm thấy nhân viên:", candidate);
                                     }
                                 }
                             });
@@ -3567,10 +3575,12 @@
                     });
                 });
 
-                // 2. QUÉT NGÀNH HÀNG (Bảng 7)
+                // 2. QUÉT NGÀNH HÀNG (Bảng 7 và Bảng 2)
                 const data7 = document.getElementById('dataInput7').value;
-                let foundHeaders = [];
+                const data2 = document.getElementById('dataInput2').value;
+                let foundHeadersSet = new Set();
 
+                // Quét từ Bảng 7 (Dữ liệu thực tế)
                 if (data7.trim()) {
                     const lines7 = data7.split('\n').filter(l => l.trim());
                     const stopIndex = lines7.findIndex(line => line.includes('DTQĐ') || (line.includes('SLLK') && line.includes('DTLK')));
@@ -3581,15 +3591,37 @@
                             const cols = row.split('\t');
                             cols.forEach(c => {
                                 const val = c.trim();
-                                if (val && isNaN(val) && val !== 'Phòng ban' && !val.startsWith('BP ')) {
-                                    foundHeaders.push(val);
+                                if (val && isNaN(val) && val !== 'Phòng ban' && !val.startsWith('BP ') && 
+                                    !val.includes('SLLK') && !val.includes('DTLK') && !val.includes('Tổng')) {
+                                    foundHeadersSet.add(val);
                                 }
                             });
                         });
-                        if (foundHeaders.length > 0) {
-                            allContestHeadersGlobal = [...new Set(foundHeaders)];
+                    }
+                }
+
+                // Quét thêm từ Bảng 2 (Bảng Target - Rất quan trọng để không sót ngành hàng)
+                if (data2.trim()) {
+                    const lines2 = data2.split('\n').filter(l => l.trim());
+                    if (lines2.length > 1) {
+                        const headers2 = lines2[0].split('\t').map(h => h.trim());
+                        const nameIndex2 = headers2.findIndex(h => h.toLowerCase().includes('ngành hàng'));
+                        if (nameIndex2 !== -1) {
+                            lines2.slice(1).forEach(row => {
+                                const cells = row.split('\t');
+                                const categoryName = (cells[nameIndex2] || '').trim();
+                                if (categoryName && !categoryName.toUpperCase().includes('TỔNG') && 
+                                    !categoryName.toUpperCase().startsWith('BP ') &&
+                                    categoryName !== 'Phòng ban') {
+                                    foundHeadersSet.add(categoryName);
+                                }
+                            });
                         }
                     }
+                }
+
+                if (foundHeadersSet.size > 0) {
+                    allContestHeadersGlobal = Array.from(foundHeadersSet);
                 }
                 // 3. Xử lý logic hiển thị
                 // (Logic kiểm tra hasRealTimeData đã được chuyển xuống processData để tránh lỗi)
@@ -4490,9 +4522,9 @@
                 const text = await navigator.clipboard.readText();
                 // Logic lọc dữ liệu cũ (giữ nguyên)
                 const markers = {
-                    table2: /^Ngành hàng\s+DTQĐ\s+Target/,
-                    table6: /^Nhân viên\s+DTLK\s+DTQĐ/,
-                    table7: /^Phòng ban/
+                    table2: /Ngành hàng.*DTQĐ.*Target/i,
+                    table6: /Nhân viên.*DTLK.*DTQĐ/i,
+                    table7: /Phòng ban/i
                 };
                 const endMarker = "Hỗ trợ BI";
                 const lines = text.split('\n');
@@ -5194,33 +5226,51 @@
 
                 // 1. Load Equal Distribution Flags (Đã load ở initDashboard)
 
-                // 2. Phân tích dữ liệu để lấy ALL contest headers (CHỈ LÀM LẦN ĐẦU hoặc khi có dữ liệu mới)
-                // SỬA LỖI: Luôn chạy logic này để đảm bảo allContestHeadersGlobal được cập nhật
-                // Nếu có data7 thì lấy từ data7, nếu không thì lấy từ dataInput7 (dù trống thì thôi)
+                let foundHeadersSet = new Set();
+                
+                // 2a. Quét từ Bảng 7
                 let lines7 = [];
+                let subHeaderIndex7 = -1;
                 if (inputs.data7) {
                     lines7 = inputs.data7.split('\n').filter(line => line.trim());
-                } else {
-                    // Nếu không có Data 7 thực tế, thử lấy từ T-1 nếu cần thiết (nhưng contest header thường lấy từ Data 7 hiện tại để chuẩn)
-                    // Tuy nhiên, logic hiện tại yêu cầu Data 7 để biết tháng này có ngành hàng gì.
-                    // Nếu chưa có Data 7, tạm thời hiển thị thông báo hoặc dùng headers cũ nếu có.
-                    if (allContestHeadersGlobal.length === 0) {
-                        // Nếu chưa có headers nào (lần đầu), và không có Data 7, thì không thể chia Target TĐ chi tiết được.
-                        // Nhưng vẫn có thể chia Target DT.
+                    subHeaderIndex7 = lines7.findIndex(line => line.includes('DTQĐ') || (line.includes('SLLK') && line.includes('DTLK')));
+                    if (subHeaderIndex7 > 0) {
+                        const potentialHeaders = lines7.slice(0, subHeaderIndex7);
+                        potentialHeaders.forEach(row => {
+                            const cols = row.split('\t');
+                            cols.forEach(c => {
+                                const val = c.trim();
+                                if (val && isNaN(val) && val !== 'Phòng ban' && !val.startsWith('BP ') && 
+                                    !val.includes('SLLK') && !val.includes('DTLK') && !val.includes('Tổng')) {
+                                    foundHeadersSet.add(val);
+                                }
+                            });
+                        });
                     }
                 }
 
-                let subHeaderIndex7 = -1;
-                if (lines7.length > 0) {
-                    subHeaderIndex7 = lines7.findIndex(line => line.trim().startsWith('SLLK'));
-                    if (subHeaderIndex7 > 0) {
-                        let allHeaders = lines7.slice(1, subHeaderIndex7).map(h => h.trim()).filter(Boolean);
-
-                        const invalidHeaderKeywords = ['DTLK', 'SLLK', 'Tổng', 'BP All In One', 'Nguyễn', 'Bùi', 'Dương', 'Đỗ', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Phan', 'Vũ', 'Đặng', 'Thị'];
-                        allContestHeadersGlobal = allHeaders.filter(header => {
-                            return !invalidHeaderKeywords.some(keyword => header.includes(keyword));
-                        });
+                // 2b. Quét từ Bảng 2 (Để bổ sung ngành hàng có target nhưng chưa có số thực tế)
+                if (inputs.data2) {
+                    const lines2 = inputs.data2.split('\n').filter(l => l.trim());
+                    if (lines2.length > 1) {
+                        const headers2 = lines2[0].split('\t').map(h => h.trim());
+                        const nameIndex2 = headers2.findIndex(h => h.toLowerCase().includes('ngành hàng'));
+                        if (nameIndex2 !== -1) {
+                            lines2.slice(1).forEach(row => {
+                                const cells = row.split('\t');
+                                const categoryName = (cells[nameIndex2] || '').trim();
+                                if (categoryName && !categoryName.toUpperCase().includes('TỔNG') && 
+                                    !categoryName.toUpperCase().startsWith('BP ') &&
+                                    categoryName !== 'Phòng ban') {
+                                    foundHeadersSet.add(categoryName);
+                                }
+                            });
+                        }
                     }
+                }
+
+                if (foundHeadersSet.size > 0) {
+                    allContestHeadersGlobal = Array.from(foundHeadersSet);
                 }
 
 
