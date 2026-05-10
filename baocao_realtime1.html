@@ -398,165 +398,6 @@
         openBILink('bcdtnh', 1, 'realtime_manual');
     }
 
-    function getFullGroup(str) {
-        if (!str) return "Ngành";
-        let name = String(str).replace(/NNH |Nhóm /gi, "").trim();
-        let upper = name.toUpperCase();
-        if (upper.includes("ĐTDĐ") || upper.includes("ĐIỆN THOẠI") || upper.includes("PHONE") || upper.includes("SMARTPHONE")) return "Điện thoại";
-        if (upper.includes("LẠNH") || upper.includes("MÁT") || upper.includes("ĐIỀU HÒA")) return "Điện lạnh";
-        if (upper.includes("TIVI") || upper.includes("ĐIỆN TỬ")) return "Điện tử";
-        if (upper.includes("GIA DỤNG") || upper.includes("BẾP")) return "Gia dụng";
-        if (upper.includes("PHỤ KIỆN")) return "Phụ kiện";
-        if (upper.includes("LAPTOP") || upper.includes("MTXT") || upper.includes("MÁY TÍNH")) return "Laptop";
-        if (upper.includes("ĐỒNG HỒ") || upper.includes("WATCH")) return "Đồng hồ";
-        if (upper.includes("MÁY BƠM") || upper.includes("NƯỚC")) return "Máy bơm";
-        return name;
-    }
-
-    function analyzeTopIndustriesManager(parsedRTBI) {
-        if (!parsedRTBI || parsedRTBI.length === 0) return "🧠 Đang đợi các ngành hàng lên số";
-        let main = [...parsedRTBI].filter(x => x.targetDay > 0).sort((a,b) => b.targetDay - a.targetDay).slice(0, 3);
-        if (main.length === 0) return "🧠 Mọi ngành hàng đều đang đợi mở bát";
-        
-        let texts = main.map(x => {
-            let name = getFullGroup(x.nganhHang);
-            let gap = Math.max(0, x.targetDay - x.dtqd);
-            let gapTr = Math.round(gap);
-            let pct = (x.dtqd / x.targetDay) * 100;
-            
-            let status = "";
-            if (pct >= 100) status = "về đích";
-            else if (pct >= 85) status = "gánh team";
-            else if (pct >= 50) status = "đang ổn";
-            else status = "cần đánh thức";
-            
-            if (gap <= 0) return `${name} ${status}`;
-            return `${name} ${status} (-${gapTr}TR)`;
-        });
-        
-        return `🧠 ${texts.join(' | ')}`;
-    }
-
-    function detectCompetitionTargetsManager(parsedRTThiDua) {
-        if (!parsedRTThiDua || parsedRTThiDua.length === 0) return "🏆 Thi đua chưa có số liệu";
-        let pending = parsedRTThiDua.filter(x => x.htTarget < 1).sort((a,b) => b.htTarget - a.htTarget);
-        if (pending.length === 0) return "🏆 Tuyệt vời, toàn bộ thi đua đã xong KPI!";
-        
-        let groups = {};
-        for (let x of pending.slice(0, 3)) {
-            let name = getFullGroup(x.nganhHang);
-            let gap = Math.max(0, x.mtNgay - x.thucHien);
-            let gapFormat = x.isSL ? Math.ceil(gap) : Math.round(gap);
-            let unit = x.isSL ? "SP" : "TR";
-            let val = `${gapFormat}${unit}`;
-            if (!groups[val]) groups[val] = [];
-            groups[val].push(name);
-        }
-        
-        let texts = Object.keys(groups).map(val => {
-            let names = groups[val].join(' & ');
-            if (val === "1SP") return `${names} chỉ còn 1SP`;
-            return `${names} còn ${val}`;
-        });
-        
-        return `🏆 ${texts.join(' | ')} hoàn toàn lật kèo`;
-    }
-
-    function generateStoreCommandComment(stats, employeeSales) {
-        let now = new Date();
-        let timeFloat = now.getHours() + now.getMinutes() / 60;
-        let { rt_tDT, rt_tTC, htChung, target, parsedRTBI, parsedRTThiDua } = stats;
-        
-        let targetPercent = Math.round(htChung * 100);
-        let dtTr = Math.round(rt_tDT);
-        let gapTr = Math.round(Math.max(0, target - rt_tDT));
-        
-        // 1. Tình hình ngày
-        let mood = "team đang làm nóng máy";
-        if (timeFloat < 11) mood = "team đang làm nóng máy";
-        else if (targetPercent >= 100) mood = "mùi chiến thắng thoang thoảng đâu đây";
-        else if (targetPercent > ((timeFloat - 9)/13)*100) mood = "nhịp bán đang lên rất êm";
-        else mood = "khách thưa, ae xách giỏ đi tìm cơ hội nhé";
-        let d1 = `⚔️ ${dtTr}TR (${targetPercent}%) | còn ${gapTr}TR – ${mood}`;
-        
-        // 2. Nhịp tiến độ
-        let expected = Math.round(Math.max(0, ((timeFloat - 9)/13)) * 100);
-        if (expected > 100) expected = 100;
-        if (timeFloat < 10) expected = 0;
-        let diff = targetPercent - expected;
-        let d2 = "";
-        if (targetPercent >= 100) d2 = `⏱️ Đã chốt xong KPI, giờ là lúc vét sạch khách vãng lai!`;
-        else if (diff >= 5) d2 = `⏱️ Đang chạy nhanh hơn tiến độ, anh em giữ chặt vô lăng nhé!`;
-        else if (diff >= -5) d2 = `⏱️ Nhịp bán đang bám rất sát, rướn xíu nữa là đẹp!`;
-        else d2 = `⏱️ Nhịp hôm nay hơi chậm, giờ vàng phải tăng tốc mạnh`;
-        
-        // 3. Trả góp
-        let d3 = "💳 Trả góp: Chưa lên số";
-        if (rt_tDT > 0) {
-            let pct = (rt_tTC / rt_tDT) * 100;
-            let formatTTC = Math.round(rt_tTC);
-            if (pct < 30) d3 = `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – rụng hơi nhiều, gặp khách là phải dí ngay!`;
-            else if (pct <= 45) d3 = `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – làm ổn nhưng vẫn còn khách bỏ sót`;
-            else d3 = `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – ae vắt kiệt sức mua thế này là quá tuyệt!`;
-        }
-        
-        // 4-7. Nhận xét toàn bộ nhân viên
-        let sortedNV = [...employeeSales].sort((a,b) => b.dt - a.dt);
-        let chunkSize = Math.ceil(sortedNV.length / 5);
-        if (chunkSize > 3) chunkSize = 3; 
-        if (chunkSize < 2) chunkSize = 2;
-        
-        let chunks = [];
-        let temp = [];
-        for (let i = 0; i < sortedNV.length; i++) {
-            temp.push(sortedNV[i]);
-            if (temp.length === chunkSize || i === sortedNV.length - 1) {
-                chunks.push([...temp]);
-                temp = [];
-            }
-        }
-        
-        let nvLines = [];
-        let templatesSold = [
-            names => `👑 ${names} tiếp tục kéo nhịp toàn đội rất lực`,
-            names => `🔥 ${names} bám sát phía sau, cuộc đua top bắt đầu nóng`,
-            names => `💪 ${names} giữ nhịp ổn định cho shop`,
-            names => `😄 ${names} đang vào form, chỉ cần thêm đơn là bùng nổ`,
-            names => `🚀 ${names} đang tăng tốc đuổi theo, cố lên xíu nữa nhé`
-        ];
-        let templatesZero = [
-            names => `👀 ${names} chờ khách đẹp mở hàng, cơ hội còn rất rộng`,
-            names => `🌱 ${names} nạp năng lượng xong chưa, chốt đơn thôi`,
-            names => `✨ ${names} thắp nhang gọi khách vô mở bát nào`
-        ];
-        
-        let soldIdx = 0, zeroIdx = 0;
-        for (let chunk of chunks) {
-            let names = chunk.map(x => x.tenNV.split(/[\s.]+/).filter(Boolean).pop()).join(', ');
-            if (chunk[0].dt > 0) {
-                let tmpl = templatesSold[soldIdx % templatesSold.length];
-                nvLines.push(tmpl(names));
-                soldIdx++;
-            } else {
-                let tmpl = templatesZero[zeroIdx % templatesZero.length];
-                nvLines.push(tmpl(names));
-                zeroIdx++;
-            }
-        }
-        
-        // 8. Ngành hàng
-        let d8 = analyzeTopIndustriesManager(parsedRTBI);
-        
-        // 9. Thi đua
-        let d9 = detectCompetitionTargetsManager(parsedRTThiDua);
-        
-        // 10. Hành động
-        let d10 = "🎯 Lệnh: gặp khách tư vấn combo + trả góp, không cho về tay không 😄";
-        
-        let out = [d1, d2, d3, ...nvLines, d8, d9, d10];
-        return out.join('\n');
-    }
-
     async function loadData() {
       setText('btnSend', "⏳ Đang kết nối Big Data...");
       try {
@@ -904,9 +745,9 @@
         };
 
         // RENDER BIỂU ĐỒ DOANH THU NHÂN VIÊN
-        let parsedNV = [];
         if (dataRTNV && !dataRTNV.error && dataRTNV.length > 0) {
             document.getElementById('nv-chart-container').style.display = 'block';
+            let parsedNV = [];
             for (let row of dataRTNV) {
                 let maNV = String(getKey(row, "mã nv")).trim();
                 let tenNV = getKey(row, "tên nv");
@@ -986,18 +827,52 @@
         document.getElementById('realtime-summary-box').innerHTML = summaryHtml;
         document.getElementById('realtime-summary-box').style.display = 'block';
 
-        let stats = {
-            rt_tDT: rt_tDT,
-            rt_tTC: rt_tTC,
-            htChung: htChung,
-            target: mucTieuNgayAll,
-            vd: rt_cntVD,
-            totalTD: parsedRTThiDua.length,
-            parsedRTThiDua: parsedRTThiDua,
-            parsedRTBI: parsedRTBI
-        };
-        
-        window.reportMessageText = generateStoreCommandComment(stats, parsedNV);
+        let msg = `📊 BÁO CÁO NHANH REAL-TIME - ${timeStr} 📊\n`;
+        msg += `-------------------\n`;
+        msg += `- 🎯 Target Ngày: ${formatMoney(mucTieuNgayAll)}\n`;
+        msg += `- 📈 Realtime: ${formatMoney(rt_tDT)} (${formatPercent(htChung)})\n`;
+        msg += `- 📉 Còn lại: ${formatMoney(Math.max(0, mucTieuNgayAll - rt_tDT))}\n`;
+        msg += `- 🏆 Thi đua dự kiến đạt: ${rt_cntVD}/${parsedRTThiDua.length}\n`;
+        msg += `- 💳 DT Trả góp: ${formatMoney(rt_tTC)} (${formatPercent(rt_tDT > 0 ? rt_tTC/rt_tDT : 0)})\n`;
+        msg += `-------------------\n`;
+
+        msg += `🏁 TÌNH HÌNH NGÀNH HÀNG TẬP TRUNG:\n`;
+        let todoRT_NganhHang = [];
+        for (let name of top6LkNames) {
+            let row = dataRTBI.find(r => {
+                let n = getKey(r, "nhóm ngành hàng", "salegroupmastername");
+                return n && String(n).toLowerCase().trim() === name;
+            });
+            if (row) {
+                let dtqd = parseVnNumber(getKey(row, "revenue_KFactor_RT"));
+                let targetDay = parseVnNumber(getKey(row, "revenue_KFactor_AVEDay"));
+                let nganhHang = getKey(row, "nhóm ngành hàng", "salegroupmastername");
+                todoRT_NganhHang.push({ nganhHang: String(nganhHang).trim(), dtqd, targetDay });
+            }
+        }
+        if (todoRT_NganhHang.length === 0) {
+            msg += `- Chưa có dữ liệu realtime\n`;
+        } else {
+            msg += todoRT_NganhHang.map((item, idx) => {
+                let cl = Math.max(0, item.targetDay - item.dtqd);
+                return `${idx + 1}. ${item.nganhHang.replace("NNH ","")}: ${formatMoney(item.dtqd)}/${formatMoney(item.targetDay)} - Còn lại: ${formatMoney(cl)} TR`;
+            }).join('\n') + '\n';
+        }
+        msg += `-------------------\n`;
+
+        msg += `🏁 TÌNH HÌNH THI ĐUA TẬP TRUNG:\n`;
+        let todoRT_ThiDua = parsedRTThiDua.filter(x => x.htTarget < 1).slice(0, 6);
+        if (todoRT_ThiDua.length === 0) {
+            msg += `✅ Tất cả các nhóm thi đua hiện tại đã đạt mục tiêu ngày!`;
+        } else {
+            msg += todoRT_ThiDua.map((item, idx) => {
+                let cl = Math.max(0, item.mtNgay - item.thucHien);
+                let unit = item.isSL ? "SP" : "TR";
+                return `${idx + 1}. ${item.nganhHang}: ${formatMoney(item.thucHien)}/${formatMoney(item.mtNgay)} - Còn lại: ${formatMoney(cl)} ${unit}`;
+            }).join('\n');
+        }
+
+        window.reportMessageText = msg.trim();
         document.getElementById('commentBox').innerText = window.reportMessageText;
 
       } catch (e) { 
