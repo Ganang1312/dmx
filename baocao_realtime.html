@@ -462,6 +462,16 @@
         return `🏆 ${texts.join(' | ')} hoàn toàn lật kèo`;
     }
 
+    const pickRandom = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const shuffleArray = (array) => {
+        let arr = [...array];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    };
+
     function generateStoreCommandComment(stats, employeeSales) {
         let now = new Date();
         let timeFloat = now.getHours() + now.getMinutes() / 60;
@@ -471,33 +481,116 @@
         let dtTr = Math.round(rt_tDT);
         let gapTr = Math.round(Math.max(0, target - rt_tDT));
         
-        // 1. Tình hình ngày
-        let mood = "team đang làm nóng máy";
-        if (timeFloat < 11) mood = "team đang làm nóng máy";
-        else if (targetPercent >= 100) mood = "mùi chiến thắng thoang thoảng đâu đây";
-        else if (targetPercent > ((timeFloat - 9)/13)*100) mood = "nhịp bán đang lên rất êm";
-        else mood = "khách thưa, ae xách giỏ đi tìm cơ hội nhé";
-        let d1 = `⚔️ ${dtTr}TR (${targetPercent}%) | còn ${gapTr}TR – ${mood}`;
-        
-        // 2. Nhịp tiến độ
         let expected = Math.round(Math.max(0, ((timeFloat - 9)/13)) * 100);
         if (expected > 100) expected = 100;
         if (timeFloat < 10) expected = 0;
         let diff = targetPercent - expected;
+        
+        let isCaSang = (timeFloat >= 14.5 && timeFloat <= 15.5);
+        let isCuoiNgay = (timeFloat >= 21.5);
+
+        // 1. Tình hình ngày
+        let moods = [];
+        let prefix = "⚔️";
+        
+        if (isCaSang) {
+            prefix = "🌞 [TỔNG KẾT CA SÁNG]";
+            if (targetPercent >= 45) {
+                moods = ["ca sáng làm quá tốt, ca chiều nhẹ gánh", "chốt ca sáng rực rỡ, ae ca chiều duy trì nhé"];
+            } else {
+                moods = ["ca sáng hơi hụt, ca chiều gánh lại nhé", "bàn giao ca sáng, ae ca chiều phải bung sức rồi"];
+            }
+        } else if (isCuoiNgay) {
+            prefix = "🌙 [TỔNG KẾT NGÀY]";
+            if (targetPercent >= 100) {
+                moods = ["về đích an toàn, ae nghỉ ngơi lấy sức mai chiến tiếp", "kết thúc ngày trọn vẹn, cảm ơn toàn đội!"];
+            } else {
+                moods = ["đóng cửa chốt sổ, mai làm lại nhé ae", "chưa đạt target nhưng ae đã cố gắng, mai chiến tiếp!"];
+            }
+        } else if (timeFloat < 11) {
+            moods = ["team đang làm nóng máy", "mới mở ca, lấy năng lượng chiến nào", "đầu ngày chưa có khách, tìm cơ hội ngay ae ơi"];
+        } else if (targetPercent >= 100) {
+            moods = ["mùi chiến thắng thoang thoảng đâu đây", "số về rực rỡ, quá tuyệt vời!", "đã chạm đích, vét thêm khách lấy thưởng nào!"];
+        } else if (diff > 5) {
+            moods = ["nhịp bán đang lên rất êm", "tiến độ đang rất mượt", "team đang giữ phong độ cực tốt"];
+        } else if (diff >= -5) {
+            moods = ["nhịp bán đang đi ngang", "túc tắc nhặt đơn mặn", "đều tay chốt số"];
+        } else {
+            moods = ["khách thưa, ae xách giỏ đi tìm cơ hội nhé", "đang chậm nhịp, kéo thêm tương tác nào", "nhịp đang trễ, bứt tốc thôi anh em"];
+        }
+        let mood = pickRandom(moods);
+        let d1 = `${prefix} ${dtTr}TR (${targetPercent}%) | còn ${gapTr}TR – ${mood}`;
+        
+        // 2. Nhịp tiến độ
         let d2 = "";
-        if (targetPercent >= 100) d2 = `⏱️ Đã chốt xong KPI, giờ là lúc vét sạch khách vãng lai!`;
-        else if (diff >= 5) d2 = `⏱️ Đang chạy nhanh hơn tiến độ, anh em giữ chặt vô lăng nhé!`;
-        else if (diff >= -5) d2 = `⏱️ Nhịp bán đang bám rất sát, rướn xíu nữa là đẹp!`;
-        else d2 = `⏱️ Nhịp hôm nay hơi chậm, giờ vàng phải tăng tốc mạnh`;
+        if (isCaSang) {
+            d2 = pickRandom([
+                `⏱️ Nửa ngày trôi qua, thời gian ca sáng đã hết, chuẩn bị bàn giao súng ống!`,
+                `⏱️ Khép lại ca sáng với ${targetPercent}% KPI, ca chiều sẵn sàng tiếp quản!`,
+                `⏱️ Ca sáng đã hoàn thành nhiệm vụ thời gian, đánh giá nhịp độ để ca chiều bứt tốc!`
+            ]);
+        } else if (isCuoiNgay) {
+            d2 = pickRandom([
+                `⏱️ Đã hết giờ thi đấu, chốt sổ ngày hôm nay!`,
+                `⏱️ Quỹ thời gian ngày đã cạn, kết quả đã ngã ngũ!`,
+                `⏱️ Thời gian đếm ngược kết thúc, hoàn tất báo cáo ngày!`
+            ]);
+        } else if (targetPercent >= 100) {
+            d2 = pickRandom([
+                `⏱️ Đã chốt xong KPI, giờ là lúc vét sạch khách vãng lai!`,
+                `⏱️ Target đã vỡ, tranh thủ dọn sạch giỏ hàng của khách!`,
+                `⏱️ Về đích sớm, túc tắc nhặt thêm đơn mặn!`
+            ]);
+        } else if (diff >= 10) {
+            d2 = pickRandom([
+                `⏱️ Đang chạy cực nhanh (vượt ${diff}% so với kỳ vọng thời gian), anh em giữ chặt vô lăng nhé!`,
+                `⏱️ Tốc độ bốc số quá đỉnh (vượt kỳ vọng ${diff}%), duy trì nhịp này là bao ấm!`,
+                `⏱️ Vượt tiến độ xuất sắc (+${diff}%), nhịp lên số rất gắt, cứ đà này thì bùng nổ!`
+            ]);
+        } else if (diff >= 0) {
+            d2 = pickRandom([
+                `⏱️ Nhịp bán đang bám rất sát tiến độ chuẩn, rướn xíu nữa là đẹp!`,
+                `⏱️ Đang nhanh hơn kế hoạch ${diff}%, rướn nhẹ cái là vượt xa!`,
+                `⏱️ Tiến độ rất đều tay, nhanh hơn giờ chuẩn ${diff}%, chưa ai rớt nhịp!`
+            ]);
+        } else if (diff >= -10) {
+            d2 = pickRandom([
+                `⏱️ Đang chậm nhịp mất ${Math.abs(diff)}%, cần một hai bill to để gánh lại thời gian!`,
+                `⏱️ Thời gian trôi hơi nhanh, ae hụt ${Math.abs(diff)}% rồi, giờ vàng phải bứt tốc!`,
+                `⏱️ Đang bám đuổi tiến độ (trễ ${Math.abs(diff)}%), xốc lại đội hình bắt trọn từng khách!`
+            ]);
+        } else {
+            d2 = pickRandom([
+                `⏱️ Đang hụt tiến độ nặng (trễ ${Math.abs(diff)}%), ae xốc lại tinh thần kéo số gấp!`,
+                `⏱️ Nhịp này quá trễ so với giờ chuẩn, phải chủ động tìm khách ngay!`,
+                `⏱️ Đang báo động đỏ tiến độ (âm ${Math.abs(diff)}%), không để vuột mất bất kỳ khách nào nữa!`
+            ]);
+        }
         
         // 3. Trả góp
         let d3 = "💳 Trả góp: Chưa lên số";
         if (rt_tDT > 0) {
             let pct = (rt_tTC / rt_tDT) * 100;
             let formatTTC = Math.round(rt_tTC);
-            if (pct < 30) d3 = `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – rụng hơi nhiều, gặp khách là phải dí ngay!`;
-            else if (pct <= 45) d3 = `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – làm ổn nhưng vẫn còn khách bỏ sót`;
-            else d3 = `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – ae vắt kiệt sức mua thế này là quá tuyệt!`;
+            if (pct < 30) {
+                d3 = pickRandom([
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – rụng hơi nhiều, gặp khách là phải dí ngay!`,
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – tỷ lệ đang thấp, đừng quên kịch bản trả góp!`,
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – đang yếu môn này, rèn lại văn tư vấn thôi!`
+                ]);
+            } else if (pct <= 45) {
+                d3 = pickRandom([
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – làm ổn nhưng vẫn còn khách bỏ sót.`,
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – chấp nhận được nhưng vẫn có thể ép thêm.`,
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – đang ở mức an toàn, nhưng vắt thêm xíu nữa mới ngon.`
+                ]);
+            } else {
+                d3 = pickRandom([
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – ae vắt kiệt sức mua thế này là quá tuyệt!`,
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – tư vấn cực bén, tỷ lệ này thì đỉnh cao!`,
+                    `💳 Trả góp ${formatTTC}TR (${pct.toFixed(0)}%) – áp đảo hoàn toàn, khách nào cũng lọt lưới!`
+                ]);
+            }
         }
         
         // 4-7. Nhận xét toàn bộ nhân viên
@@ -517,18 +610,22 @@
         }
         
         let nvLines = [];
-        let templatesSold = [
-            names => `👑 ${names} tiếp tục kéo nhịp toàn đội rất lực`,
-            names => `🔥 ${names} bám sát phía sau, cuộc đua top bắt đầu nóng`,
-            names => `💪 ${names} giữ nhịp ổn định cho shop`,
-            names => `😄 ${names} đang vào form, chỉ cần thêm đơn là bùng nổ`,
-            names => `🚀 ${names} đang tăng tốc đuổi theo, cố lên xíu nữa nhé`
-        ];
-        let templatesZero = [
-            names => `👀 ${names} chờ khách đẹp mở hàng, cơ hội còn rất rộng`,
-            names => `🌱 ${names} nạp năng lượng xong chưa, chốt đơn thôi`,
-            names => `✨ ${names} thắp nhang gọi khách vô mở bát nào`
-        ];
+        let templatesSold = shuffleArray([
+            names => `👑 ${names} tiếp tục kéo nhịp toàn đội rất lực.`,
+            names => `🔥 ${names} bám sát phía sau, cuộc đua top bắt đầu nóng.`,
+            names => `💪 ${names} giữ nhịp ổn định cho shop.`,
+            names => `😄 ${names} đang vào form, chỉ cần thêm đơn là bùng nổ.`,
+            names => `🚀 ${names} đang tăng tốc đuổi theo, cố lên xíu nữa nhé.`,
+            names => `🌟 ${names} có phong độ bén, cứ đà này là top 1.`,
+            names => `🎯 ${names} đang nhặt bill mỏi tay, phát huy nha.`
+        ]);
+        let templatesZero = shuffleArray([
+            names => `👀 ${names} chờ khách đẹp mở hàng, cơ hội còn rất rộng.`,
+            names => `🌱 ${names} nạp năng lượng xong chưa, chốt đơn thôi!`,
+            names => `✨ ${names} thắp nhang gọi khách vô mở bát nào.`,
+            names => `⚡ ${names} nhanh tay kiếm khách gỡ nhịp đi.`,
+            names => `🤔 ${names} đang ủ mưu tung bill lớn đúng không?`
+        ]);
         
         let soldIdx = 0, zeroIdx = 0;
         for (let chunk of chunks) {
@@ -551,7 +648,29 @@
         let d9 = detectCompetitionTargetsManager(parsedRTThiDua);
         
         // 10. Hành động
-        let d10 = "🎯 Lệnh: gặp khách tư vấn combo + trả góp, không cho về tay không 😄";
+        let d10Opts = [];
+        if (isCuoiNgay) {
+            d10Opts = [
+                "🎯 Lệnh: Đóng ca an toàn, dọn dẹp siêu thị sạch sẽ, mai chiến tiếp!",
+                "🎯 Lệnh: Xóa tan mệt mỏi, sạc đầy năng lượng cho ngày mai nhé!",
+                "🎯 Lệnh: Tổng kết file đầy đủ, tắt điện kiểm tra an ninh trước khi về!"
+            ];
+        } else if (isCaSang) {
+            d10Opts = [
+                "🎯 Lệnh: Ca chiều nhận ca nhớ check lại list khách hàng tiềm năng nhé!",
+                "🎯 Lệnh: Bàn giao rõ ràng, ca chiều xông lên kéo số bù ngay!",
+                "🎯 Lệnh: Ca chiều nhận số, chủ động gọi khách cũ ra cửa hàng luôn!"
+            ];
+        } else {
+            d10Opts = [
+                "🎯 Lệnh: gặp khách tư vấn combo + trả góp, không cho về tay không 😄",
+                "🎯 Lệnh: 100% khách vào shop phải được nghe tư vấn trả góp!",
+                "🎯 Lệnh: Chủ động ra khơi săn khách, quyết không để rớt số!",
+                "🎯 Lệnh: Không để khách rời đi mà chưa nghe chữ 'Combo' nhé!",
+                "🎯 Lệnh: Tươi cười, chủ động chào hỏi và dí khách đến cùng!"
+            ];
+        }
+        let d10 = pickRandom(d10Opts);
         
         let out = [d1, d2, d3, ...nvLines, d8, d9, d10];
         return out.join('\n');
