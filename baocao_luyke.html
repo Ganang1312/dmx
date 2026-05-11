@@ -1674,32 +1674,8 @@
         };
 
         function shortName(name) {
-            let n = String(name).toUpperCase();
-            if (n.includes("TỦ LẠNH")) return "TỦ LẠNH, TỦ ĐÔNG, TỦ MÁT";
-            if (n.includes("MÁY LỌC KHÔNG KHÍ")) return "MÁY LỌC KHÔNG KHÍ";
-            if (n.includes("MÁY LỌC NƯỚC")) return "MÁY LỌC NƯỚC";
-            if (n.includes("ĐIỆN THOẠI")) return "ĐIỆN THOẠI, TABLET KÊNH ĐMX";
-            if (n.includes("LAPTOP")) return "Laptop";
-            if (n.includes("ĐIỆN TỬ") && n.includes("SONY")) return "Điện tử SONY";
-            if (n.includes("ĐIỆN TỬ") || n.includes("TIVI")) return "Điện tử";
-            if (n.includes("MÁY GIẶT")) return "Máy giặt & sấy";
-            if (n.includes("GIA DỤNG")) return "Gia dụng";
-            if (n.includes("PHỤ KIỆN") && n.includes("ĐỒNG HỒ")) return "Phụ kiện - Đồng hồ";
-            if (n.includes("PHỤ KIỆN")) return "Phụ kiện";
-            if (n.includes("ĐỒNG HỒ")) return "Đồng hồ";
-            if (n.includes("QUẠT")) return "Quạt gió";
-            if (n.includes("CAMERA")) return "Camera";
-            if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA")) return "Máy lạnh";
-            if (n.includes("PIN SẠC")) return "Pin sạc dự phòng";
-            if (n.includes("HOMECREDIT")) return "Homecredit";
-            if (n.includes("FECREDIT") || n.includes("FINANCE")) return "Tài chính (Fe, Shinhan...)";
-            if (n.includes("FLAGSHIP")) return "Smartphone Flagship";
-            if (n.includes("BẢO HIỂM")) return "Bảo hiểm";
-            if (n.includes("SIM")) return "Sim Số";
-            if (n.includes("VÍ")) return "Ví trả sau";
-            if (n.includes("CAKE")) return "Cake";
-            let res = name.replace("NNH ", "");
-            return res;
+            if (!name) return "";
+            return String(name).replace(/NNH\s/ig, "").trim();
         }
 
         function getEmoji(name) {
@@ -2011,6 +1987,12 @@
                                 isSL = false;
                             }
                         }
+                    } else if (sl === 0) {
+                        let nUpper = String(nganhHang).toUpperCase();
+                        if (target % 1 !== 0 || nUpper.includes("ĐIỆN TỬ") || nUpper.includes("MÁY LẠNH") || nUpper.includes("TỦ LẠNH") || nUpper.includes("GIA DỤNG") || nUpper.includes("ĐIỆN THOẠI") || nUpper.includes("ĐỒNG HỒ") || nUpper.includes("MÁY GIẶT")) {
+                            isSL = false;
+                            thucHien = dt;
+                        }
                     }
 
                     let htTarget = thucHien / target;
@@ -2158,7 +2140,7 @@
                     let tyTrong = tDT > 0 ? (item.dt / tDT) : 0;
                     let cHT = getColorClass(item.htTarget);
                     let name = shortName(item.nganhHang);
-                    if (name.length > 15) name = name.substring(0, 15);
+                    let fSizeBI = name.length > 45 ? "13px" : (name.length > 30 ? "15px" : "18px");
                     let industryEmoji = getEmoji(item.nganhHang);
 
                     let dtCKThang = (1 + item.tangGiamCK === 0) ? 0 : (item.dt / (1 + item.tangGiamCK));
@@ -2178,7 +2160,11 @@
                     htmlBI += `
           <tr>
               <td><div class="stt-pill ${sttPillClassBI}">${sttBI++}</div></td>
-              <td class="text-left"><span style="margin-right:8px;">${industryEmoji}</span> ${name} ${window.formatDelta(item.deltaDT, false)}</td>
+              <td class="text-left">
+                  <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: ${fSizeBI} !important; line-height: 1.3;">
+                      <span style="margin-right:8px;">${industryEmoji}</span> ${name} ${window.formatDelta(item.deltaDT, false)}
+                  </div>
+              </td>
               <td style="padding: 0;">
                   <div class="cell-prog-wrap">
                       <div class="cell-prog-bg" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT};"></div>
@@ -2324,8 +2310,10 @@
               <tr>
                 <td><div class="stt-pill ${sttPillClass}">${sttTD++}</div></td>
                 
-                <td class="text-left" style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">
-                    <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}
+                <td class="text-left" style="${nameStyle}; cursor:pointer; vertical-align: middle;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">
+                    <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: ${shortName(item.nganhHang).length > 45 ? '13px' : (shortName(item.nganhHang).length > 30 ? '15px' : '18px')} !important; line-height: 1.3;">
+                        <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}
+                    </div>
                 </td>
                 
                 <td style="color: #475569; font-size: 21px;">${mtNgayDisplay}</td>
@@ -2358,7 +2346,9 @@
                         mtNgayFormat = formatMoney(item.mtNgay);
                     }
 
-                    let nameHtml = `<span style="${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">${shortName(item.nganhHang)}</span> <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}`;
+                    let sName = shortName(item.nganhHang);
+                    let fSizeCard = sName.length > 40 ? "11px" : (sName.length > 25 ? "13px" : "15px");
+                    let nameHtml = `<div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: ${fSizeCard}; line-height: 1.3; ${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">${sName} <span style="font-size:11px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}</div>`;
                     let conLaiDisplayCard = item.htTarget >= 1 ? '<span style="font-size:16px;">🏆 Đã đạt</span>' : formatMoney(conLai);
                     let dash = 2 * Math.PI * 38;
                     let offset = dash - (Math.min(item.htDuKien, 1) * dash);
