@@ -1329,8 +1329,6 @@
             dateElement.innerText = yesterday.toLocaleDateString('vi-VN');
         }
 
-        const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
-        const CHAT_ID = "-5072214230";
         const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
 
         // Constant Variables for Tasks
@@ -1700,9 +1698,6 @@
         }
 
         async function loadData() {
-            const btn = document.getElementById('btnSend');
-            if (btn) btn.innerText = "⏳ Đang tổng hợp Big Data từ 3 luồng...";
-
             try {
                 await initHistory();
                 
@@ -2073,7 +2068,7 @@
                 let actualDaysRem = daysInMonth - daysPassed;
                 setText("bar-time-remaining", actualDaysRem > 0 ? `CÒN LẠI ${actualDaysRem} NGÀY` : `HẾT THÁNG`);
                 let revRem = Math.max(0, tTG - tDT);
-                setText("bar-rev-remaining", revRem > 0 ? `CÒN THIẾU ${formatMoney(revRem)} TR` : `ĐÃ VỀ ĐÍCH 🏆`);
+                setText("bar-rev-remaining", revRem > 0 ? `CÒN THIẾU ${formatMoney(revRem)} TR - CẦN ${formatMoney(mucTieuThucTeAll)} TR/NGÀY` : `ĐÃ VỀ ĐÍCH 🏆`);
 
                 let namConLai = Math.max(0, targetNam - thucHienNamDk);
                 setText("bar-year-text", formatPercent(tienDoNam));
@@ -2910,25 +2905,8 @@
                     document.getElementById('year-chart-container').style.display = 'none';
                 }
 
-                const btnSend = document.getElementById('btnSend');
-                const urlParams = new URLSearchParams(window.location.search);
-                if (urlParams.get('auto') === 'true') {
-                    if (btnSend) {
-                        btnSend.innerText = "⏳ Đang Auto-Capture...";
-                        btnSend.disabled = true;
-                    }
-                    setTimeout(executeCaptureAndSend, 2500);
-                } else {
-                    if (btnSend) {
-                        btnSend.innerText = "🚀 CHỤP TÁCH & GỬI TELEGRAM";
-                        btnSend.disabled = false;
-                    }
-                }
-
             } catch (error) {
                 console.error("Lỗi tải data:", error);
-                const btn = document.getElementById('btnSend');
-                if (btn) btn.innerText = "❌ LỖI KẾT NỐI DATA";
             }
         }
 
@@ -3013,53 +2991,6 @@
             } catch (err) { alert("Lỗi: " + err); }
         }
 
-        async function executeCaptureAndSend() {
-            const sendBtn = document.getElementById('btnSend');
-            if (sendBtn) {
-                sendBtn.innerText = "⏳ Đang xuất ảnh 1/2...";
-                sendBtn.disabled = true;
-            }
-
-            try {
-                let canvas1 = await html2canvas(document.getElementById('part1'), { scale: 2.5, useCORS: true });
-                if (sendBtn) sendBtn.innerText = "⏳ Đang xuất ảnh 2/2...";
-                let canvas2 = await html2canvas(document.getElementById('part2'), { scale: 2.5, useCORS: true });
-
-                if (sendBtn) sendBtn.innerText = "⏳ Đang gửi lên Telegram...";
-
-                let blob1 = await new Promise(resolve => canvas1.toBlob(resolve, 'image/png'));
-                let blob2 = await new Promise(resolve => canvas2.toBlob(resolve, 'image/png'));
-
-                let fd1 = new FormData();
-                fd1.append("chat_id", CHAT_ID);
-                fd1.append("document", blob1, "1_DoanhThu_LK.png");
-                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: fd1 });
-
-                let fd2 = new FormData();
-                fd2.append("chat_id", CHAT_ID);
-                fd2.append("document", blob2, "2_ThiDua_LK.png");
-                let res2 = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, { method: "POST", body: fd2 });
-                let data2 = await res2.json();
-
-                if (data2.ok) {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ chat_id: CHAT_ID, text: window.reportMessageText })
-                    });
-                    alert("🎉 Đã tách 2 ảnh siêu nét và gửi Nhận định AI thành công!");
-                } else {
-                    alert("Lỗi Gửi Ảnh: " + data2.description);
-                }
-            } catch (e) {
-                alert("Lỗi hệ thống: " + e);
-            } finally {
-                if (sendBtn) {
-                    sendBtn.innerText = "🚀 CHỤP ẢNH & GỬI LẠI";
-                    sendBtn.disabled = false;
-                }
-            }
-        }
 
         // --- KHU VỰC NHẬN XÉT ---
         const commentBoxHtml = `
