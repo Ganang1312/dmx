@@ -456,31 +456,26 @@
 
         let dataNV_BI, dataThiDua, dataStore_BI, dataStore_ThiDua, dataConfig;
 
+        const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
+        dataConfig = await resConfig.json();
+
         if (compVal === 'current') {
-            const bundleRes = await fetch(GAS_URL + "?action=getBundle&sheets=Config_ThiDua,Data_NV_BI,Data_NV_ThiDua,Data_BI,Data_ThiDua");
-            const bundle = await bundleRes.json();
-            dataConfig = bundle["Config_ThiDua"] || [];
-            dataNV_BI = bundle["Data_NV_BI"] || [];
-            dataThiDua = bundle["Data_NV_ThiDua"] || [];
-            dataStore_BI = bundle["Data_BI"] || [];
-            dataStore_ThiDua = bundle["Data_ThiDua"] || [];
-        } else {
-            const [resConfig, hData] = await Promise.all([
-                fetch(GAS_URL + "?sheet=Config_ThiDua").then(r => r.json()),
-                getHistoryForDate(compVal)
+            const [resNV_BI, resNV_ThiDua, resStore_BI, resStore_ThiDua] = await Promise.all([
+                fetch(GAS_URL + "?sheet=Data_NV_BI").then(r => r.json()), 
+                fetch(GAS_URL + "?sheet=Data_NV_ThiDua").then(r => r.json()),
+                fetch(GAS_URL + "?sheet=Data_BI").then(r => r.json()),
+                fetch(GAS_URL + "?sheet=Data_ThiDua").then(r => r.json())
             ]);
-            dataConfig = resConfig || [];
-            if (hData) {
-                dataNV_BI = hData["Data_NV_BI"] || [];
-                dataThiDua = hData["Data_NV_ThiDua"] || [];
-                dataStore_BI = hData["Data_BI"] || [];
-                dataStore_ThiDua = hData["Data_ThiDua"] || [];
-            } else {
-                dataNV_BI = [];
-                dataThiDua = [];
-                dataStore_BI = [];
-                dataStore_ThiDua = [];
-            }
+            dataNV_BI = resNV_BI;
+            dataThiDua = resNV_ThiDua;
+            dataStore_BI = resStore_BI;
+            dataStore_ThiDua = resStore_ThiDua;
+        } else {
+            let hData = await getHistoryForDate(compVal);
+            dataNV_BI = hData["Data_NV_BI"] || [];
+            dataThiDua = hData["Data_NV_ThiDua"] || [];
+            dataStore_BI = hData["Data_BI"] || [];
+            dataStore_ThiDua = hData["Data_ThiDua"] || [];
         }
 
         let actualBaseDate = baseVal;

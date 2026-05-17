@@ -401,15 +401,15 @@
     async function loadData() {
       setText('btnSend', "⏳ Đang kết nối Big Data...");
       try {
-        const bundleRes = await fetch(GAS_URL + "?action=getBundle&sheets=Data_BI,Data_ThiDua,Config_ThiDua,Data_Realtime_BI,Data_Realtime_ThiDua,Data_Realtime_NV");
-        const bundle = await bundleRes.json();
+        const [resBI, resThiDua, resConfig, resRTBI, resRTThiDua, resRTNV] = await Promise.all([
+            fetch(GAS_URL + "?sheet=Data_BI"), fetch(GAS_URL + "?sheet=Data_ThiDua"),
+            fetch(GAS_URL + "?sheet=Config_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_BI"),
+            fetch(GAS_URL + "?sheet=Data_Realtime_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_NV")
+        ]);
 
-        const dataBI = bundle["Data_BI"] || [];
-        const dataThiDua = bundle["Data_ThiDua"] || [];
-        const configData = bundle["Config_ThiDua"] || [];
-        const dataRTBI = bundle["Data_Realtime_BI"] || [];
-        const dataRTThiDua = bundle["Data_Realtime_ThiDua"] || [];
-        const dataRTNV = bundle["Data_Realtime_NV"] || [];
+        const dataBI = await resBI.json(); const dataThiDua = await resThiDua.json();
+        const configData = await resConfig.json(); const dataRTBI = await resRTBI.json();
+        const dataRTThiDua = await resRTThiDua.json(); const dataRTNV = await resRTNV.json();
 
         const currentDay = today.getDate();
         const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
