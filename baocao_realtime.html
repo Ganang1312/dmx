@@ -295,10 +295,28 @@
       if (val == null || val === '') return 0;
       if (typeof val === 'number') return val; 
       let str = String(val).trim().replace(/\s/g, ''); 
+      // Xử lý dấu phân cách hàng nghìn/thập phân kiểu VN
       if (str.includes(',') && str.includes('.')) {
           str = (str.lastIndexOf(',') > str.lastIndexOf('.')) ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
-      } else if (str.includes(',')) { str = str.replace(',', '.'); }
-      let num = parseFloat(str); return isNaN(num) ? 0 : num;
+      } else if (str.includes(',')) {
+          // Nếu chỉ có phẩy, kiểm tra xem có phải hàng nghìn không (ví dụ 1.000,000 hoặc 1,000)
+          let parts = str.split(',');
+          if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && parseInt(parts[0]) > 0)) {
+              str = str.replace(/,/g, '');
+          } else {
+              str = str.replace(',', '.');
+          }
+      } else if (str.includes('.')) {
+          // Nếu có nhiều dấu chấm thì là ngăn cách hàng nghìn
+          if ((str.match(/\./g) || []).length > 1) str = str.replace(/\./g, '');
+      }
+      let num = parseFloat(str); 
+      if (isNaN(num)) return 0;
+      // Chuẩn hóa: Nếu số > 1,000,000 thì khả năng cao là đơn vị ĐỒNG, chia cho 1 triệu để ra TRIỆU
+      if (num >= 1000000) return num / 1000000;
+      // Nếu số > 10,000 và < 1,000,000 thì có thể là đơn vị ĐỒNG (nhưng nhỏ) hoặc đã là triệu nhưng bị sai dấu?
+      // Trong BI Realtime, các con số DT thường > 100tr. Nếu là triệu thì nó sẽ là 100.0
+      return num;
     };
     const formatMoney = (val) => Math.round(val).toLocaleString('vi-VN'); 
     const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
@@ -383,15 +401,15 @@
     async function loadData() {
       setText('btnSend', "⏳ Đang kết nối Big Data...");
       try {
-        const [resBI, resThiDua, resConfig, resRTBI, resRTThiDua, resRTNV] = await Promise.all([
-            fetch(GAS_URL + "?sheet=Data_BI"), fetch(GAS_URL + "?sheet=Data_ThiDua"),
-            fetch(GAS_URL + "?sheet=Config_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_BI"),
-            fetch(GAS_URL + "?sheet=Data_Realtime_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_NV")
-        ]);
+        const bundleRes = await fetch(GAS_URL + "?action=getBundle&sheets=Data_BI,Data_ThiDua,Config_ThiDua,Data_Realtime_BI,Data_Realtime_ThiDua,Data_Realtime_NV");
+        const bundle = await bundleRes.json();
 
-        const dataBI = await resBI.json(); const dataThiDua = await resThiDua.json();
-        const configData = await resConfig.json(); const dataRTBI = await resRTBI.json();
-        const dataRTThiDua = await resRTThiDua.json(); const dataRTNV = await resRTNV.json();
+        const dataBI = bundle["Data_BI"] || [];
+        const dataThiDua = bundle["Data_ThiDua"] || [];
+        const configData = bundle["Config_ThiDua"] || [];
+        const dataRTBI = bundle["Data_Realtime_BI"] || [];
+        const dataRTThiDua = bundle["Data_Realtime_ThiDua"] || [];
+        const dataRTNV = bundle["Data_Realtime_NV"] || [];
 
         const currentDay = today.getDate();
         const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -464,21 +482,29 @@
         for(let row of dataThiDua) {
           let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng");
           if (!nganhHang || nganhHang === "N/A") continue;
+          let nganhClean = String(nganhHang).toLowerCase().trim();
           let target = parseVnNumber(getKey(row, "target", "mục tiêu"));
           let sl = parseVnNumber(getKey(row, "số lượng")); let dt = parseVnNumber(getKey(row, "doanh thu"));
-          let thucHien = sl; let isDT = false;
-          if (dt > 0 && (sl === 0 || Math.abs((dt/target)-1) < Math.abs((sl/target)-1))) { thucHien = dt; isDT = true; }
+          let isDT = false;
+          
+          if (nganhClean === "điện tử tcl" || target > 150) {
+              isDT = true;
+          } else if (dt > 0 && (sl === 0 || Math.abs((dt/target)-1) < Math.abs((sl/target)-1))) { 
+              isDT = true; 
+          }
+          
+          let thucHien = isDT ? dt : sl;
           let mtN = Math.max(0, (target - thucHien) / daysRemaining);
-          thiDuaLuyKeMap[String(nganhHang).toLowerCase().trim()] = { mtNgay: mtN, isDT: isDT, targetThang: target, lk_thucHien: thucHien };
+          thiDuaLuyKeMap[nganhClean] = { mtNgay: mtN, isDT: isDT, targetThang: target, lk_thucHien: thucHien };
         }
 
         let parsedRTBI = []; let rt_tDT = 0, rt_tTC = 0, rt_tSL = 0, rt_tTarget = 0;
         for(let row of dataRTBI) {
           let nganhHang = getKey(row, "nhóm ngành hàng", "salegroupmastername");
           if (!nganhHang || nganhHang === "N/A") continue;
-          let dtqd = parseVnNumber(getKey(row, "revenue_KFactor_RT"));
-          let sl = parseVnNumber(getKey(row, "quantity_RT"));
-          let targetDay = parseVnNumber(getKey(row, "revenue_KFactor_AVEDay"));
+          let dtqd = Math.max(parseVnNumber(getKey(row, "revenue_KFactor_RT")), parseVnNumber(getKey(row, "revenue_RT")), parseVnNumber(getKey(row, "doanh thu")));
+          let sl = Math.max(parseVnNumber(getKey(row, "quantity_RT")), parseVnNumber(getKey(row, "quantity_KFactor")), parseVnNumber(getKey(row, "số lượng")));
+          let targetDay = Math.max(parseVnNumber(getKey(row, "revenue_KFactor_AVEDay")), parseVnNumber(getKey(row, "target_Day")));
           let dtTC = parseVnNumber(getKey(row, "revenue_Installment"));
           
           rt_tDT += dtqd; rt_tTC += dtTC; rt_tSL += sl; rt_tTarget += targetDay;
@@ -493,6 +519,13 @@
         }
         parsedRTBI.sort((a, b) => b.dtqd - a.dtqd);
 
+        // Tạo bản đồ doanh thu quy đổi từ BI để đồng bộ sang Thi Đua
+        let biMap = {};
+        for(let i of parsedRTBI) {
+            let key = i.nganhHang.replace("NNH ", "").trim().toLowerCase();
+            biMap[key] = i.dtqd;
+        }
+
         let parsedRTThiDua = []; let rt_cntVD = 0, rt_cntCB = 0;
         for(let row of dataRTThiDua) {
           let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng");
@@ -503,7 +536,25 @@
           if (Object.keys(configMap).length > 0 && (!cObj.phanLoai || cObj.phanLoai === 0)) continue;
 
           let lkInfo = thiDuaLuyKeMap[nganhClean] || { mtNgay: 0, isDT: false, targetThang: 0, lk_thucHien: 0 };
-          let thucHien = lkInfo.isDT ? parseVnNumber(getKey(row, "revenue_RT")) : parseVnNumber(getKey(row, "quantity_RT"));
+          
+          // Lấy giá trị lớn nhất từ các cột có thể chứa dữ liệu thực tế (tránh trường hợp cột ưu tiên bị gán bằng 0)
+          let rt_dt = Math.max(biMap[nganhClean] || 0, parseVnNumber(getKey(row, "revenue_RT")), parseVnNumber(getKey(row, "revenue_KFactor_RT")), parseVnNumber(getKey(row, "doanh thu")));
+          let rt_sl = Math.max(parseVnNumber(getKey(row, "quantity_RT")), parseVnNumber(getKey(row, "quantity_KFactor")), parseVnNumber(getKey(row, "số lượng")));
+          let target_Day = parseVnNumber(getKey(row, "target_Day"));
+          
+          if (!lkInfo.isDT) {
+              if (target_Day > 0) {
+                  let devDT = rt_dt > 0 ? Math.abs((rt_dt/target_Day)-1) : 1;
+                  let devSL = rt_sl > 0 ? Math.abs((rt_sl/target_Day)-1) : 1;
+                  if (rt_dt > 0 && (rt_sl === 0 || devDT < devSL)) {
+                      lkInfo.isDT = true;
+                  }
+              } else if (rt_dt > 0 && rt_sl === 0) {
+                  lkInfo.isDT = true;
+              }
+          }
+
+          let thucHien = lkInfo.isDT ? rt_dt : rt_sl;
           let ht = lkInfo.mtNgay > 0 ? thucHien / lkInfo.mtNgay : (thucHien > 0 ? 1 : 0);
           if(ht >= 1) rt_cntVD++; else rt_cntCB++;
           

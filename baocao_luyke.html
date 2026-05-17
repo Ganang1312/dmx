@@ -1706,20 +1706,25 @@
 
                 let dataBI, dataThiDua, configData;
 
-                const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
-                configData = await resConfig.json();
-
                 if (compVal === 'current') {
-                    const [resBI, resThiDua] = await Promise.all([
-                        fetch(GAS_URL + "?sheet=Data_BI"),
-                        fetch(GAS_URL + "?sheet=Data_ThiDua")
-                    ]);
-                    dataBI = await resBI.json();
-                    dataThiDua = await resThiDua.json();
+                    const bundleRes = await fetch(GAS_URL + "?action=getBundle&sheets=Config_ThiDua,Data_BI,Data_ThiDua");
+                    const bundle = await bundleRes.json();
+                    configData = bundle["Config_ThiDua"] || [];
+                    dataBI = bundle["Data_BI"] || [];
+                    dataThiDua = bundle["Data_ThiDua"] || [];
                 } else {
-                    let hData = await getHistoryForDate(compVal);
-                    dataBI = hData["Data_BI"] || [];
-                    dataThiDua = hData["Data_ThiDua"] || [];
+                    const [resConfig, hData] = await Promise.all([
+                        fetch(GAS_URL + "?sheet=Config_ThiDua").then(r => r.json()),
+                        getHistoryForDate(compVal)
+                    ]);
+                    configData = resConfig || [];
+                    if (hData) {
+                        dataBI = hData["Data_BI"] || [];
+                        dataThiDua = hData["Data_ThiDua"] || [];
+                    } else {
+                        dataBI = [];
+                        dataThiDua = [];
+                    }
                 }
 
                 let actualBaseDate = baseVal;
