@@ -313,7 +313,7 @@
       let num = parseFloat(str); 
       if (isNaN(num)) return 0;
       // Chuẩn hóa: Nếu số > 1,000,000 thì khả năng cao là đơn vị ĐỒNG, chia cho 1 triệu để ra TRIỆU
-      if (num >= 1000000) return num / 1000000;
+      if (Math.abs(num) >= 1000000) return num / 1000000;
       // Nếu số > 10,000 và < 1,000,000 thì có thể là đơn vị ĐỒNG (nhưng nhỏ) hoặc đã là triệu nhưng bị sai dấu?
       // Trong BI Realtime, các con số DT thường > 100tr. Nếu là triệu thì nó sẽ là 100.0
       return num;
@@ -371,7 +371,7 @@
         let data = [];
         if (text && text.trim() !== "") {
             const lines = text.split('\n');
-            const regex = /^(\d+)\s+-\s+(.+?)\s+(\d+)\s+([\d,]+)$/;
+            const regex = /^(\d+)\s+-\s+(.+?)\s+(-?\d+)\s+(-?[\d,]+)$/;
             for (let line of lines) {
                 let match = line.trim().match(regex);
                 if (match) {
@@ -771,7 +771,7 @@
                 let maNV = String(getKey(row, "mã nv")).trim();
                 let tenNV = getKey(row, "tên nv");
                 let dt = parseVnNumber(getKey(row, "doanh thu"));
-                if (dt > 0) {
+                if (dt !== 0) {
                     let ratio = 0;
                     if (userMap && userMap[maNV]) ratio = userMap[maNV];
                     let targetNV = (mucTieuNgayAll * 1000000) * ratio;
