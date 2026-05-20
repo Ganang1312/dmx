@@ -1237,15 +1237,14 @@
         camStatusDot.className = "status-dot";
         camStatusText.textContent = "Đang chạy quét...";
 
-        const cameraConstraints = {
-          deviceId: { exact: cameraId },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        };
-
         const config = {
           fps: 10,
-          aspectRatio: 1.333333
+          aspectRatio: 1.333333,
+          videoConstraints: {
+            deviceId: { exact: cameraId },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          }
         };
 
         if (!settings.fullScreenScan) {
@@ -1260,7 +1259,7 @@
         }
 
         html5QrCode.start(
-          cameraConstraints,
+          cameraId,
           config,
           (decodedText) => {
             handleScanSuccess(decodedText, 'Camera');
