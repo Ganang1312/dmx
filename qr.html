@@ -735,6 +735,17 @@
             </label>
           </div>
 
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>Quét toàn màn hình</span>
+              <span class="setting-desc">Bỏ giới hạn khung ngắm, quét mọi góc camera</span>
+            </div>
+            <label class="switch" aria-label="Bật/Tắt quét toàn màn hình">
+              <input type="checkbox" id="settingFullScreenScan">
+              <span class="slider"></span>
+            </label>
+          </div>
+
         </div>
       </div>
 
@@ -825,7 +836,8 @@
     let settings = {
       sound: true,
       vibrate: true,
-      blockDuplicates: false
+      blockDuplicates: false,
+      fullScreenScan: false
     };
 
     // Camera instance container
@@ -899,6 +911,7 @@
           document.getElementById('settingSound').checked = settings.sound;
           document.getElementById('settingVibrate').checked = settings.vibrate;
           document.getElementById('settingBlockDuplicates').checked = settings.blockDuplicates;
+          document.getElementById('settingFullScreenScan').checked = !!settings.fullScreenScan;
         } catch (e) {
           console.error("Lỗi parse cấu hình cài đặt:", e);
         }
@@ -977,6 +990,14 @@
       document.getElementById('settingBlockDuplicates').addEventListener('change', (e) => {
         settings.blockDuplicates = e.target.checked;
         saveState();
+      });
+
+      document.getElementById('settingFullScreenScan').addEventListener('change', (e) => {
+        settings.fullScreenScan = e.target.checked;
+        saveState();
+        if (cameraActive) {
+          resetScannerLens();
+        }
       });
 
       // Action Buttons
@@ -1197,20 +1218,22 @@
 
         const config = {
           fps: 25,
-          qrbox: (width, height) => {
-            // Large square focus window, optimized for small QR codes and barcodes
+          aspectRatio: 1.333333,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
+        };
+
+        if (!settings.fullScreenScan) {
+          config.qrbox = (width, height) => {
             const size = Math.min(width, height);
             const scanSize = Math.floor(size * 0.75);
             return {
               width: scanSize,
               height: scanSize
             };
-          },
-          aspectRatio: 1.333333,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
-          }
-        };
+          };
+        }
 
         html5QrCode.start(
           cameraId,
