@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="description" content="Hệ thống quét mã QR & Barcode chuyên nghiệp cho di động và máy quét cầm tay. Tích hợp tự động lưu, xuất Excel/CSV và thống kê trùng lặp.">
+  <meta property="og:title" content="Hệ Thống Quét Mã QR & Barcode Công Nghiệp">
+  <meta property="og:description" content="Hệ thống quét mã QR & Barcode chuyên nghiệp cho di động và máy quét cầm tay. Tích hợp tự động lưu, xuất Excel/CSV và thống kê trùng lặp.">
+  <meta property="og:type" content="website">
+  <title>Hệ Thống Quét Mã QR & Barcode Công Nghiệp</title>
+  
+  <!-- Google Fonts: Outfit & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- CDN Libraries -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      /* Color System */
+      --bg-main: #0B0F19;
+      --bg-card: #151F32;
+      --bg-card-hover: #1E2D4A;
+      --border-color: #2D3E5E;
+      --text-primary: #F8FAFC;
+      --text-secondary: #94A3B8;
+      
+      --accent-emerald: #10B981;
+      --accent-emerald-glow: rgba(16, 185, 129, 0.4);
+      --accent-emerald-hover: #059669;
+      
+      --accent-orange: #F59E0B;
+      --accent-orange-glow: rgba(245, 158, 11, 0.4);
+      
+      --accent-red: #EF4444;
+      --accent-red-hover: #DC2626;
+
+      --font-ui: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      outline: none;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-ui);
+      padding: 16px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1::before {
+      content: '';
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald-glow);
+    }
+
+    .badge-live {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--accent-emerald);
+      color: var(--accent-emerald);
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+      animation: pulse-border 2s infinite ease-in-out;
+    }
+
+    /* Main Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 20px;
+      flex-grow: 1;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Asymmetric Cards Style (Brutalist Sharp Edges) */
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+      border-left: 2px solid var(--accent-emerald);
+      padding-left: 8px;
+      margin-bottom: 4px;
+    }
+
+    /* Scanner View Card */
+    .scanner-view-wrapper {
+      position: relative;
+      width: 100%;
+      background: #000;
+      border: 1px solid var(--border-color);
+      aspect-ratio: 4 / 3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #reader {
+      width: 100% !important;
+      height: 100% !important;
+      border: none !important;
+    }
+
+    #reader video {
+      object-fit: cover !important;
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    /* Overlay Scan Line Animation */
+    .scan-overlay-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 10px var(--accent-emerald);
+      z-index: 10;
+      animation: scan-move 3s infinite linear;
+      pointer-events: none;
+      display: none;
+    }
+
+    .scanning .scan-overlay-line {
+      display: block;
+    }
+
+    /* Controls Panel */
+    .control-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .btn {
+      font-family: var(--font-ui);
+      background-color: transparent;
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.15s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn:hover {
+      background-color: var(--bg-card-hover);
+      border-color: var(--text-secondary);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-success {
+      background-color: var(--accent-emerald);
+      color: #000;
+      border-color: var(--accent-emerald);
+      font-weight: 600;
+    }
+
+    .btn-success:hover {
+      background-color: var(--accent-emerald-hover);
+      border-color: var(--accent-emerald-hover);
+    }
+
+    .btn-danger {
+      background-color: rgba(239, 68, 68, 0.1);
+      border-color: var(--accent-red);
+      color: var(--accent-red);
+    }
+
+    .btn-danger:hover {
+      background-color: var(--accent-red);
+      color: var(--text-primary);
+    }
+
+    /* Form Fields Styling */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    select, input[type="text"] {
+      background-color: var(--bg-main);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 10px 12px;
+      font-family: var(--font-ui);
+      font-size: 13px;
+      width: 100%;
+      transition: border-color 0.15s ease;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--accent-emerald);
+    }
+
+    /* Switch Toggles styling */
+    .settings-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border-color);
+    }
+
+    .setting-label {
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .setting-desc {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 22px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--bg-main);
+      border: 1px solid var(--border-color);
+      transition: .2s;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-secondary);
+      transition: .2s;
+    }
+
+    input:checked + .slider {
+      border-color: var(--accent-emerald);
+      background-color: rgba(16, 185, 129, 0.1);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(22px);
+      background-color: var(--accent-emerald);
+    }
+
+    /* Duplicate Stats Sidebar Panel */
+    .stats-panel {
+      max-height: 250px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      background: var(--bg-main);
+    }
+
+    .stat-list {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-item {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-item:last-child {
+      border-bottom: none;
+    }
+
+    .stat-code {
+      font-family: var(--font-mono);
+      font-weight: 500;
+      word-break: break-all;
+      padding-right: 8px;
+    }
+
+    .stat-count {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid var(--accent-orange);
+      color: var(--accent-orange);
+      padding: 2px 6px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      font-size: 10px;
+    }
+
+    .stats-empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+
+    /* Keyboard scan hardware listener helper bar */
+    .keyboard-receiver-card {
+      border: 1px solid var(--border-color);
+      background: rgba(16, 185, 129, 0.03);
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-emerald);
+      box-shadow: 0 0 6px var(--accent-emerald-glow);
+      animation: blink 1.5s infinite;
+    }
+
+    .status-dot.inactive {
+      background-color: var(--text-secondary);
+      box-shadow: none;
+      animation: none;
+    }
+
+    /* Scanned Log Section */
+    .log-section {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .table-container {
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      background: var(--bg-card);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 13px;
+    }
+
+    th {
+      background-color: var(--bg-main);
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr.row-duplicate {
+      background: rgba(245, 158, 11, 0.03);
+    }
+
+    .col-mono {
+      font-family: var(--font-mono);
+      font-weight: 500;
+    }
+
+    /* Inline editable field */
+    .edit-input {
+      background: transparent;
+      border: 1px dashed transparent;
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 13px;
+      width: 100%;
+      padding: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .edit-input:focus {
+      background: var(--bg-main);
+      border-color: var(--accent-emerald);
+      border-style: solid;
+    }
+
+    .method-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 10px;
+      font-weight: 500;
+      border: 1px solid var(--border-color);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .method-camera {
+      color: #38BDF8;
+      border-color: rgba(56, 189, 248, 0.3);
+      background: rgba(56, 189, 248, 0.05);
+    }
+
+    .method-hardware {
+      color: var(--accent-emerald);
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .method-manual {
+      color: #94A3B8;
+      border-color: rgba(148, 163, 184, 0.3);
+      background: rgba(148, 163, 184, 0.05);
+    }
+
+    .dup-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--accent-orange);
+      font-weight: 600;
+      font-size: 10px;
+      text-transform: uppercase;
+    }
+
+    .action-cell {
+      text-align: right;
+    }
+
+    .btn-delete-row {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 11px;
+      transition: color 0.15s ease;
+    }
+
+    .btn-delete-row:hover {
+      color: var(--accent-red);
+    }
+
+    /* Notification Alerts overlay */
+    #alert-overlay {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 320px;
+      pointer-events: none;
+    }
+
+    .alert-toast {
+      background: var(--bg-card);
+      border-left: 4px solid var(--accent-emerald);
+      color: var(--text-primary);
+      padding: 12px 16px;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      transform: translateX(120%);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: auto;
+    }
+
+    .alert-toast.show {
+      transform: translateX(0);
+    }
+
+    .alert-toast.alert-dup {
+      border-left-color: var(--accent-orange);
+    }
+
+    .toast-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .toast-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .toast-text {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      word-break: break-all;
+    }
+
+    .alert-toast.alert-dup .toast-title {
+      color: var(--accent-orange);
+    }
+
+    .alert-toast .toast-title {
+      color: var(--accent-emerald);
+    }
+
+    /* Animations keyframes */
+    @keyframes scan-move {
+      0% { top: 0%; }
+      50% { top: 100%; }
+      100% { top: 0%; }
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(16, 185, 129, 0.4); }
+      50% { border-color: rgba(16, 185, 129, 1); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
+    }
+
+    /* Hardware scan invisible receiver input helper */
+    .invisible-input-receiver {
+      position: absolute;
+      top: -100px;
+      left: -100px;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hidden text input to catch mobile external hardware scanner events reliably -->
+  <input type="text" id="hwScannerReceiver" class="invisible-input-receiver" autocomplete="off">
+
+  <header>
+    <div>
+      <h1>Hệ Thống Quét Mã QR & Barcode</h1>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Thiết kế công nghiệp chuyên dụng cho xử lý kho hàng</p>
+    </div>
+    <div class="badge-live">Chế độ live</div>
+  </header>
+
+  <main class="dashboard-grid">
+    
+    <!-- LEFT COLUMN: Main Scanner Panel -->
+    <section style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <!-- Camera Card -->
+      <div class="card" id="cameraCard">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div class="card-title">Camera Quét Trực Tiếp</div>
+          <div style="font-size: 11px; color: var(--text-secondary); display:flex; align-items:center; gap:6px;">
+            <div id="camStatusDot" class="status-dot inactive"></div>
+            <span id="camStatusText">Camera đã tắt</span>
+          </div>
+        </div>
+
+        <div class="scanner-view-wrapper" id="scannerWrapper">
+          <div id="reader"></div>
+          <div class="scan-overlay-line"></div>
+        </div>
+
+        <div class="control-row">
+          <div class="form-group" style="grid-column: 1 / -1;">
+            <label class="form-label" for="cameraSelect">Chọn Camera nguồn</label>
+            <select id="cameraSelect" aria-label="Lựa chọn camera nguồn">
+              <option value="">Đang tải danh sách camera...</option>
+            </select>
+          </div>
+          <button class="btn btn-success" id="btnToggleCamera" aria-label="Bật hoặc Tắt Camera">
+            Bật Camera
+          </button>
+          <button class="btn" id="btnResetScanner" aria-label="Khởi động lại ống kính">
+            Đặt Lại Ống Kính
+          </button>
+        </div>
+      </div>
+
+      <!-- Manual Input Card -->
+      <div class="card">
+        <div class="card-title">Nhập mã thủ công / Bổ sung khi mã mờ</div>
+        <form id="manualForm" style="display:flex; gap:10px;" onsubmit="handleManualAdd(event)">
+          <input type="text" id="manualInput" placeholder="Nhập mã vạch hoặc mã QR..." autocomplete="off" aria-label="Nhập mã vạch thủ công">
+          <button type="submit" class="btn btn-success" style="padding: 0 20px;">Thêm</button>
+        </form>
+      </div>
+
+    </section>
+
+    <!-- RIGHT COLUMN: Control settings & Duplicate statistics -->
+    <section style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <!-- Settings Panel -->
+      <div class="card">
+        <div class="card-title">Cài đặt phản hồi</div>
+        <div class="settings-list">
+          
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>Phản hồi âm thanh</span>
+              <span class="setting-desc">Phát tiếng Bíp khi quét thành công</span>
+            </div>
+            <label class="switch" aria-label="Bật/Tắt âm thanh">
+              <input type="checkbox" id="settingSound" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>Phản hồi rung</span>
+              <span class="setting-desc">Rung điện thoại khi quét mã</span>
+            </div>
+            <label class="switch" aria-label="Bật/Tắt chế độ rung">
+              <input type="checkbox" id="settingVibrate" checked>
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-label">
+              <span>Chặn mã trùng lặp</span>
+              <span class="setting-desc">Cảnh báo và không cho phép ghi nhận trùng</span>
+            </div>
+            <label class="switch" aria-label="Bật/Tắt chặn mã trùng lặp">
+              <input type="checkbox" id="settingBlockDuplicates">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Hardware Scanner Connection Status Card -->
+      <div class="keyboard-receiver-card">
+        <div id="hwStatusDot" class="status-dot"></div>
+        <div style="display:flex; flex-direction:column;">
+          <span style="font-size: 13px; font-weight:600;">Lắng Nghe Máy Quét Ngoài</span>
+          <span style="font-size: 11px; color: var(--text-secondary);">Sẵn sàng nhận tín hiệu máy quét USB/Bluetooth</span>
+        </div>
+      </div>
+
+      <!-- Duplicate Statistics Card -->
+      <div class="card">
+        <div class="card-title">Báo Cáo Trùng Lặp (Realtime)</div>
+        <div class="stats-panel">
+          <div class="stat-list" id="duplicateStatsList">
+            <!-- Populated via Javascript -->
+            <div class="stats-empty">Chưa có mã trùng lặp nào</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Global Actions Card -->
+      <div class="card">
+        <div class="card-title">Thao Tác Dữ Liệu</div>
+        <button class="btn" style="width: 100%;" id="btnCopyAll" aria-label="Sao chép toàn bộ danh sách">
+          Sao Chép Toàn Bộ Mã (Dạng Dòng)
+        </button>
+        <div class="control-row">
+          <button class="btn" id="btnExportExcel" aria-label="Xuất dữ liệu sang Excel">
+            Xuất Excel
+          </button>
+          <button class="btn" id="btnExportCSV" aria-label="Xuất dữ liệu sang CSV">
+            Xuất CSV
+          </button>
+        </div>
+        <button class="btn btn-danger" style="width: 100%;" id="btnClearAll" aria-label="Xóa sạch dữ liệu đã quét">
+          Xóa Toàn Bộ Dữ Liệu
+        </button>
+      </div>
+
+    </section>
+
+    <!-- BOTTOM ROW: Full Data Log Table -->
+    <section class="log-section">
+      <div class="card" style="gap:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div class="card-title" id="scannedLogTitle">Nhật Ký Quét Mã (0 mã)</div>
+          <div style="font-size: 12px; color: var(--text-secondary);" id="uniqueCounterText">
+            Mã duy nhất: 0 | Trùng lặp: 0
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 60px;">STT</th>
+                <th>Nội Dung Mã (Nhấp để sửa trực tiếp)</th>
+                <th style="width: 160px;">Thời Gian Quét</th>
+                <th style="width: 140px;">Nguồn Quét</th>
+                <th style="width: 60px; text-align: right;">Thao Tác</th>
+              </tr>
+            </thead>
+            <tbody id="scanLogBody">
+              <!-- Dynamically Populated -->
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                  Chưa có dữ liệu. Hãy bật camera hoặc kết nối máy quét cầm tay để bắt đầu.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Sound/Toast Alert notifications container -->
+  <div id="alert-overlay" aria-live="polite"></div>
+
+  <!-- Audio Context instance initialization on user interaction -->
+  <script>
+    // System Configurations & State Variables
+    let scans = [];
+    let settings = {
+      sound: true,
+      vibrate: true,
+      blockDuplicates: false
+    };
+
+    // Camera instance container
+    let html5QrCode = null;
+    let cameraActive = false;
+
+    // Web Audio Context setup (Lazily loaded to comply with browser autoplay restrictions)
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Play synthesized alert sound
+    function playAlertSound(isDuplicate) {
+      initAudio();
+      if (!settings.sound || !audioCtx) return;
+
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      
+      osc.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+
+      if (isDuplicate) {
+        // Double tone warning beep for duplicate
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(650, now);
+        osc.frequency.linearRampToValueAtTime(300, now + 0.15);
+        
+        gainNode.gain.setValueAtTime(0.08, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else {
+        // Normal crisp short beep
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(950, now);
+        
+        gainNode.gain.setValueAtTime(0.12, now);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        
+        osc.start(now);
+        osc.stop(now + 0.08);
+      }
+    }
+
+    // Device vibration feedback
+    function triggerVibrate(isDuplicate) {
+      if (!settings.vibrate || !navigator.vibrate) return;
+      
+      if (isDuplicate) {
+        navigator.vibrate([100, 50, 100]); // double vibrate pattern
+      } else {
+        navigator.vibrate(70); // single quick vibrate
+      }
+    }
+
+    // Load state from localStorage on window ready
+    window.addEventListener('DOMContentLoaded', () => {
+      // Load Settings
+      const savedSettings = localStorage.getItem('scanner_settings');
+      if (savedSettings) {
+        try {
+          settings = { ...settings, ...JSON.parse(savedSettings) };
+          document.getElementById('settingSound').checked = settings.sound;
+          document.getElementById('settingVibrate').checked = settings.vibrate;
+          document.getElementById('settingBlockDuplicates').checked = settings.blockDuplicates;
+        } catch (e) {
+          console.error("Lỗi parse cấu hình cài đặt:", e);
+        }
+      }
+
+      // Load Scans
+      const savedScans = localStorage.getItem('scanner_scans');
+      if (savedScans) {
+        try {
+          scans = JSON.parse(savedScans);
+          renderScans();
+        } catch (e) {
+          console.error("Lỗi parse lịch sử quét:", e);
+        }
+      }
+
+      // Initialize UI controls
+      setupUIEvents();
+      setupHardwareScannerListener();
+      requestCameras();
+    });
+
+    // Save state helper
+    function saveState() {
+      localStorage.setItem('scanner_scans', JSON.stringify(scans));
+      localStorage.setItem('scanner_settings', JSON.stringify(settings));
+    }
+
+    // Toast alerts module
+    function showToast(title, text, isDup = false) {
+      const container = document.getElementById('alert-overlay');
+      const toast = document.createElement('div');
+      toast.className = `alert-toast ${isDup ? 'alert-dup' : ''}`;
+      
+      toast.innerHTML = `
+        <div class="toast-body">
+          <span class="toast-title">${title}</span>
+          <span class="toast-text">${text}</span>
+        </div>
+      `;
+      
+      container.appendChild(toast);
+      
+      // Force repaint to trigger animation transition
+      toast.offsetHeight;
+      toast.classList.add('show');
+
+      // Dismiss toast automatically after 3 seconds
+      setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+          toast.remove();
+        }, 300);
+      }, 3000);
+    }
+
+    // Calculate occurrences of scanned code
+    function getOccurrenceCount(code) {
+      return scans.filter(item => item.code.trim() === code.trim()).length;
+    }
+
+    // Setup global Event handlers
+    function setupUIEvents() {
+      // Toggle switches
+      document.getElementById('settingSound').addEventListener('change', (e) => {
+        settings.sound = e.target.checked;
+        saveState();
+        initAudio();
+      });
+
+      document.getElementById('settingVibrate').addEventListener('change', (e) => {
+        settings.vibrate = e.target.checked;
+        saveState();
+      });
+
+      document.getElementById('settingBlockDuplicates').addEventListener('change', (e) => {
+        settings.blockDuplicates = e.target.checked;
+        saveState();
+      });
+
+      // Action Buttons
+      document.getElementById('btnToggleCamera').addEventListener('click', toggleCameraFlow);
+      document.getElementById('btnResetScanner').addEventListener('click', resetScannerLens);
+      document.getElementById('btnCopyAll').addEventListener('click', copyAllToClipboard);
+      document.getElementById('btnExportExcel').addEventListener('click', exportToExcelFile);
+      document.getElementById('btnExportCSV').addEventListener('click', exportToCSVFile);
+      document.getElementById('btnClearAll').addEventListener('click', triggerClearAllScans);
+    }
+
+    // Hardware Scanner interception (Auto-buffering keyboard input)
+    function setupHardwareScannerListener() {
+      const hwReceiver = document.getElementById('hwScannerReceiver');
+      let scanBuffer = "";
+      let lastTime = 0;
+
+      // Keep focus on helper receiver input on desktop to reliably catch events
+      const refocusReceiver = () => {
+        const activeElem = document.activeElement;
+        // Don't hijack focus if user is actively writing in manual input or edit cell
+        if (activeElem && (activeElem.id === 'manualInput' || activeElem.classList.contains('edit-input'))) {
+          return;
+        }
+        hwReceiver.focus();
+      };
+
+      // Poll focus setup
+      document.body.addEventListener('click', refocusReceiver);
+      setInterval(refocusReceiver, 1500);
+
+      // Handle Key events on window
+      window.addEventListener('keydown', (e) => {
+        const target = e.target;
+        
+        // Skip global intercept if typing in manual input or editing a cell
+        if (target.id === 'manualInput' || target.classList.contains('edit-input')) {
+          return;
+        }
+
+        const now = Date.now();
+        
+        // Typical key event intervals in hardware scanners are < 25ms.
+        // If delta > 40ms, treat it as slow human keyboard typing and discard
+        if (now - lastTime > 40) {
+          scanBuffer = "";
+        }
+        
+        lastTime = now;
+
+        if (e.key === 'Enter') {
+          if (scanBuffer.trim().length > 0) {
+            handleScanSuccess(scanBuffer.trim(), 'Máy quét');
+            scanBuffer = "";
+            e.preventDefault();
+          }
+        } else if (e.key.length === 1) {
+          scanBuffer += e.key;
+        }
+      });
+
+      // Backup intercept on focused receiver input (for barcode guns mapping to textboxes)
+      hwReceiver.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          const val = hwReceiver.value.trim();
+          if (val.length > 0) {
+            handleScanSuccess(val, 'Máy quét');
+            hwReceiver.value = "";
+          }
+          e.preventDefault();
+        }
+      });
+    }
+
+    // Add scanned code processing
+    function handleScanSuccess(codeText, source = 'Camera') {
+      if (!codeText || codeText.trim().length === 0) return;
+      
+      const cleanCode = codeText.trim();
+      const count = getOccurrenceCount(cleanCode);
+      const isDuplicate = count > 0;
+
+      // Duplicate blocking check
+      if (isDuplicate && settings.blockDuplicates) {
+        playAlertSound(true);
+        triggerVibrate(true);
+        showToast("Đã Chặn Trùng", `Mã đã tồn tại trong lịch sử: ${cleanCode}`, true);
+        return;
+      }
+
+      // Add to array
+      const timestamp = new Date();
+      const timeStr = timestamp.toLocaleTimeString('vi-VN') + ' ' + timestamp.toLocaleDateString('vi-VN');
+      
+      scans.unshift({
+        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 9),
+        code: cleanCode,
+        time: timeStr,
+        method: source
+      });
+
+      saveState();
+      renderScans();
+
+      // Trigger Alert notifications
+      playAlertSound(isDuplicate);
+      triggerVibrate(isDuplicate);
+
+      if (isDuplicate) {
+        showToast("Phát Hiện Trùng Mã", `${cleanCode} (Đã quét ${count + 1} lần)`, true);
+      } else {
+        showToast("Quét Thành Công", `${cleanCode}`);
+      }
+    }
+
+    // Manual Form Add event handler
+    function handleManualAdd(e) {
+      e.preventDefault();
+      const input = document.getElementById('manualInput');
+      const val = input.value.trim();
+      
+      if (val.length === 0) return;
+      
+      handleScanSuccess(val, 'Nhập tay');
+      input.value = "";
+      input.focus();
+    }
+
+    // Camera list detection
+    function requestCameras() {
+      Html5Qrcode.getCameras().then(devices => {
+        const select = document.getElementById('cameraSelect');
+        select.innerHTML = '';
+        
+        if (devices && devices.length > 0) {
+          // Identify back camera by labels (environment focus)
+          let backCamId = devices[0].id;
+          devices.forEach((device) => {
+            const label = device.label.toLowerCase();
+            const option = document.createElement('option');
+            option.value = device.id;
+            option.text = device.label || `Camera ${select.length + 1}`;
+            select.appendChild(option);
+
+            // Auto pick standard back lens
+            if (label.includes('back') || label.includes('environment') || label.includes('sau')) {
+              backCamId = device.id;
+            }
+          });
+          select.value = backCamId;
+        } else {
+          const option = document.createElement('option');
+          option.value = "";
+          option.text = "Không tìm thấy camera khả dụng";
+          select.appendChild(option);
+        }
+      }).catch(err => {
+        console.error("Lỗi lấy thông tin máy ảnh:", err);
+        const select = document.getElementById('cameraSelect');
+        select.innerHTML = '<option value="">Lỗi cấp quyền camera</option>';
+      });
+    }
+
+    // Toggle camera scanning state
+    function toggleCameraFlow() {
+      const select = document.getElementById('cameraSelect');
+      const btn = document.getElementById('btnToggleCamera');
+      const wrapper = document.getElementById('scannerWrapper');
+      const camStatusDot = document.getElementById('camStatusDot');
+      const camStatusText = document.getElementById('camStatusText');
+
+      initAudio();
+
+      if (cameraActive) {
+        // Stop scanning
+        if (html5QrCode) {
+          html5QrCode.stop().then(() => {
+            cameraActive = false;
+            btn.textContent = "Bật Camera";
+            btn.className = "btn btn-success";
+            wrapper.classList.remove('scanning');
+            camStatusDot.className = "status-dot inactive";
+            camStatusText.textContent = "Camera đã tắt";
+          }).catch(err => {
+            console.error("Lỗi tắt camera:", err);
+          });
+        }
+      } else {
+        const cameraId = select.value;
+        if (!cameraId) {
+          alert("Vui lòng chọn camera trước!");
+          return;
+        }
+
+        // Initialize instance
+        html5QrCode = new Html5Qrcode("reader");
+        cameraActive = true;
+        btn.textContent = "Tắt Camera";
+        btn.className = "btn btn-danger";
+        wrapper.classList.add('scanning');
+        camStatusDot.className = "status-dot";
+        camStatusText.textContent = "Đang chạy quét...";
+
+        const config = {
+          fps: 15,
+          qrbox: (width, height) => {
+            // Rectangular focus window optimized for barcodes and QR codes
+            const size = Math.min(width, height);
+            return {
+              width: Math.floor(width * 0.75),
+              height: Math.floor(size * 0.45)
+            };
+          },
+          aspectRatio: 1.333333
+        };
+
+        html5QrCode.start(
+          cameraId,
+          config,
+          (decodedText) => {
+            handleScanSuccess(decodedText, 'Camera');
+          },
+          (errorMessage) => {
+            // Silent debug log to avoid visual clutter
+          }
+        ).catch(err => {
+          console.error("Không thể kích hoạt Camera:", err);
+          alert("Lỗi camera: " + err);
+          cameraActive = false;
+          btn.textContent = "Bật Camera";
+          btn.className = "btn btn-success";
+          wrapper.classList.remove('scanning');
+          camStatusDot.className = "status-dot inactive";
+          camStatusText.textContent = "Lỗi kết nối camera";
+        });
+      }
+    }
+
+    // Reset scanner container binding
+    function resetScannerLens() {
+      if (html5QrCode && cameraActive) {
+        toggleCameraFlow();
+        setTimeout(toggleCameraFlow, 400);
+      } else {
+        requestCameras();
+        showToast("Đã Đặt Lại", "Đã cập nhật lại thiết bị camera đầu vào");
+      }
+    }
+
+    // Inline edit scanned codes callback
+    function editScanCode(id, newCode) {
+      if (!newCode || newCode.trim().length === 0) return;
+      
+      const scanIndex = scans.findIndex(item => item.id === id);
+      if (scanIndex !== -1) {
+        scans[scanIndex].code = newCode.trim();
+        saveState();
+        renderScans();
+        showToast("Đã Cập Nhật", "Mã quét đã được sửa đổi thủ công");
+      }
+    }
+
+    // Delete single scan row
+    function deleteScanRow(id) {
+      scans = scans.filter(item => item.id !== id);
+      saveState();
+      renderScans();
+      showToast("Đã Xóa Mã", "Đã gỡ bỏ 1 mã khỏi nhật ký");
+    }
+
+    // Trigger full clear list
+    function triggerClearAllScans() {
+      if (scans.length === 0) return;
+      
+      if (confirm("Bạn có chắc chắn muốn xóa toàn bộ nhật ký quét hiện tại? Thao tác này không thể hoàn tác.")) {
+        scans = [];
+        saveState();
+        renderScans();
+        showToast("Đã Dọn Sạch", "Toàn bộ dữ liệu quét đã bị xóa");
+      }
+    }
+
+    // Copy list to Clipboard
+    function copyAllToClipboard() {
+      if (scans.length === 0) {
+        alert("Không có dữ liệu để sao chép!");
+        return;
+      }
+
+      // Format clean lines sorted in scan order (oldest to newest)
+      const orderedLines = [...scans].reverse().map(item => item.code).join('\n');
+      
+      navigator.clipboard.writeText(orderedLines).then(() => {
+        showToast("Đã Sao Chép", `Đã sao chép ${scans.length} mã vào clipboard`);
+      }).catch(err => {
+        alert("Lỗi sao chép clipboard: " + err);
+      });
+    }
+
+    // Render Data tables & statistics lists
+    function renderScans() {
+      const logBody = document.getElementById('scanLogBody');
+      const duplicateList = document.getElementById('duplicateStatsList');
+      const logTitle = document.getElementById('scannedLogTitle');
+      const counterText = document.getElementById('uniqueCounterText');
+      
+      // Update counters
+      const totalCodes = scans.length;
+      logTitle.textContent = `Nhật Ký Quét Mã (${totalCodes} mã)`;
+      
+      if (totalCodes === 0) {
+        logBody.innerHTML = `
+          <tr>
+            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+              Chưa có dữ liệu. Hãy bật camera hoặc kết nối máy quét cầm tay để bắt đầu.
+            </td>
+          </tr>
+        `;
+        duplicateList.innerHTML = `<div class="stats-empty">Chưa có mã trùng lặp nào</div>`;
+        counterText.textContent = "Mã duy nhất: 0 | Trùng lặp: 0";
+        return;
+      }
+
+      // Generate items table rows markup
+      let rowsHtml = "";
+      let uniqueCodes = new Set();
+      let duplicatesCounts = {};
+
+      scans.forEach((item, index) => {
+        const cleanCode = item.code.trim();
+        uniqueCodes.add(cleanCode);
+
+        // Track frequencies
+        duplicatesCounts[cleanCode] = (duplicatesCounts[cleanCode] || 0) + 1;
+      });
+
+      // Calculate unique stats counters
+      const uniqueCount = uniqueCodes.size;
+      const dupCount = totalCodes - uniqueCount;
+      counterText.textContent = `Mã duy nhất: ${uniqueCount} | Trùng lặp: ${dupCount}`;
+
+      // Populate Log table rows
+      scans.forEach((item, index) => {
+        const cleanCode = item.code.trim();
+        const occurrences = duplicatesCounts[cleanCode] || 1;
+        const isDuplicateRow = occurrences > 1;
+        
+        let badgeClass = "method-camera";
+        if (item.method === 'Máy quét') badgeClass = "method-hardware";
+        if (item.method === 'Nhập tay') badgeClass = "method-manual";
+
+        rowsHtml += `
+          <tr class="${isDuplicateRow ? 'row-duplicate' : ''}">
+            <td style="color: var(--text-secondary); font-family: var(--font-mono);">${totalCodes - index}</td>
+            <td>
+              <input type="text" class="edit-input" value="${escapeHtml(item.code)}" 
+                onchange="editScanCode('${item.id}', this.value)" 
+                title="Nhấp vào để chỉnh sửa nội dung mã trực tiếp"
+                aria-label="Chỉnh sửa nội dung mã quét">
+            </td>
+            <td style="color: var(--text-secondary); font-size:12px;">${item.time}</td>
+            <td>
+              <span class="method-badge ${badgeClass}">${item.method}</span>
+              ${isDuplicateRow ? `<span class="dup-indicator" title="Mã này xuất hiện ${occurrences} lần trong danh sách">⚠️ Trùng x${occurrences}</span>` : ''}
+            </td>
+            <td class="action-cell">
+              <button class="btn-delete-row" onclick="deleteScanRow('${item.id}')" aria-label="Xóa dòng này">Xóa</button>
+            </td>
+          </tr>
+        `;
+      });
+      logBody.innerHTML = rowsHtml;
+
+      // Populate Duplicate real-time statistics panel
+      let duplicatesHtml = "";
+      const sortedDuplicates = Object.keys(duplicatesCounts)
+        .filter(code => duplicatesCounts[code] > 1)
+        .map(code => ({ code, count: duplicatesCounts[code] }))
+        .sort((a, b) => b.count - a.count);
+
+      if (sortedDuplicates.length > 0) {
+        sortedDuplicates.forEach(item => {
+          duplicatesHtml += `
+            <div class="stat-item">
+              <span class="stat-code">${escapeHtml(item.code)}</span>
+              <span class="stat-count">${item.count} LẦN</span>
+            </div>
+          `;
+        });
+        duplicateList.innerHTML = duplicatesHtml;
+      } else {
+        duplicateList.innerHTML = `<div class="stats-empty">Không phát hiện mã trùng lặp nào</div>`;
+      }
+    }
+
+    // Export to Excel File (Standard clean sheet formatting)
+    function exportToExcelFile() {
+      if (scans.length === 0) {
+        alert("Không có dữ liệu quét để xuất!");
+        return;
+      }
+
+      // Reverse list to display chronologically from oldest (top) to newest (bottom)
+      const data = [...scans].reverse().map((item, idx) => {
+        const count = getOccurrenceCount(item.code);
+        return {
+          "STT": idx + 1,
+          "Mã Vạch / QR": item.code,
+          "Thời Gian Quét": item.time,
+          "Nguồn Nhập": item.method,
+          "Trạng Thái": count > 1 ? `Trùng lặp (Xuất hiện ${count} lần)` : "Mới"
+        };
+      });
+
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      
+      // Auto-fit column widths for readability
+      const maxCodeLen = Math.max(...data.map(d => d["Mã Vạch / QR"].length), 15);
+      worksheet['!cols'] = [
+        { wch: 8 },  // STT
+        { wch: maxCodeLen + 4 }, // Code content
+        { wch: 22 }, // Date time
+        { wch: 15 }, // Source
+        { wch: 25 }  // Status
+      ];
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "NhatKyQuetMa");
+      
+      const fileDate = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(workbook, `nhat_ky_quet_ma_${fileDate}.xlsx`);
+    }
+
+    // Export to standard UTF-8 CSV with Byte Order Mark for Excel display compatibility
+    function exportToCSVFile() {
+      if (scans.length === 0) {
+        alert("Không có dữ liệu quét để xuất!");
+        return;
+      }
+
+      // Add UTF-8 BOM
+      let csvContent = "\uFEFFSTT,Mã Vạch / QR,Thời Gian Quét,Nguồn Nhập,Trạng Thái\n";
+      
+      // Reverse array to output in scan sequence (oldest first)
+      const reversedScans = [...scans].reverse();
+      
+      reversedScans.forEach((item, idx) => {
+        const count = getOccurrenceCount(item.code);
+        const status = count > 1 ? "Trùng lặp" : "Mới";
+        
+        // Escape quotes
+        const escapedCode = item.code.replace(/"/g, '""');
+        csvContent += `${idx + 1},"${escapedCode}","${item.time}","${item.method}","${status}"\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", `nhat_ky_quet_ma_${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    // String sanitizer utility to prevent HTML injections
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+    }
+  </script>
+</body>
+</html>
