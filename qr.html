@@ -1149,7 +1149,9 @@
         
         if (devices && devices.length > 0) {
           // Identify back camera by labels (environment focus)
-          let backCamId = devices[0].id;
+          let fallbackBackCamId = "";
+          let primaryBackCamId = "";
+          
           devices.forEach((device) => {
             const label = device.label.toLowerCase();
             const option = document.createElement('option');
@@ -1157,12 +1159,22 @@
             option.text = device.label || `Camera ${select.length + 1}`;
             select.appendChild(option);
 
-            // Auto pick standard back lens
-            if (label.includes('back') || label.includes('environment') || label.includes('sau')) {
-              backCamId = device.id;
+            const isBack = label.includes('back') || label.includes('environment') || label.includes('sau');
+            const isUltraWide = label.includes('ultra') || label.includes('cực rộng') || label.includes('0.5x') || label.includes('macro');
+            const isTelephoto = label.includes('tele') || label.includes('viễn vọng') || label.includes('zoom') || label.includes('3x') || label.includes('5x');
+
+            if (isBack) {
+              if (!fallbackBackCamId) {
+                fallbackBackCamId = device.id;
+              }
+              // Prioritize the 1x main camera (not ultra-wide and not telephoto)
+              if (!isUltraWide && !isTelephoto && !primaryBackCamId) {
+                primaryBackCamId = device.id;
+              }
             }
           });
-          select.value = backCamId;
+          
+          select.value = primaryBackCamId || fallbackBackCamId || (devices.length > 0 ? devices[0].id : "");
         } else {
           const option = document.createElement('option');
           option.value = "";
