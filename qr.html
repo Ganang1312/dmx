@@ -1203,6 +1203,7 @@
         if (html5QrCode) {
           html5QrCode.stop().then(() => {
             cameraActive = false;
+            html5QrCode = null;
             btn.textContent = "Bật Camera";
             btn.className = "btn btn-success";
             wrapper.classList.remove('scanning');
@@ -1210,6 +1211,8 @@
             camStatusText.textContent = "Camera đã tắt";
           }).catch(err => {
             console.error("Lỗi tắt camera:", err);
+            html5QrCode = null;
+            cameraActive = false;
           });
         }
       } else {
@@ -1230,10 +1233,7 @@
 
         const config = {
           fps: 25,
-          aspectRatio: 1.333333,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
-          }
+          aspectRatio: 1.333333
         };
 
         if (!settings.fullScreenScan) {
@@ -1260,6 +1260,7 @@
           console.error("Không thể kích hoạt Camera:", err);
           alert("Lỗi camera: " + err);
           cameraActive = false;
+          html5QrCode = null;
           btn.textContent = "Bật Camera";
           btn.className = "btn btn-success";
           wrapper.classList.remove('scanning');
