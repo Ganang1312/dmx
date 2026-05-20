@@ -1222,6 +1222,12 @@
           return;
         }
 
+        // Clean container DOM to prevent duplicate instance bug
+        const container = document.getElementById("reader");
+        if (container) {
+          container.innerHTML = "";
+        }
+
         // Initialize instance
         html5QrCode = new Html5Qrcode("reader");
         cameraActive = true;
@@ -1231,8 +1237,14 @@
         camStatusDot.className = "status-dot";
         camStatusText.textContent = "Đang chạy quét...";
 
+        const cameraConstraints = {
+          deviceId: { exact: cameraId },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        };
+
         const config = {
-          fps: 25,
+          fps: 10,
           aspectRatio: 1.333333
         };
 
@@ -1248,7 +1260,7 @@
         }
 
         html5QrCode.start(
-          cameraId,
+          cameraConstraints,
           config,
           (decodedText) => {
             handleScanSuccess(decodedText, 'Camera');
