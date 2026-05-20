@@ -997,15 +997,30 @@
       // Keep focus on helper receiver input on desktop to reliably catch events
       const refocusReceiver = () => {
         const activeElem = document.activeElement;
-        // Don't hijack focus if user is actively writing in manual input or edit cell
-        if (activeElem && (activeElem.id === 'manualInput' || activeElem.classList.contains('edit-input'))) {
+        // Don't hijack focus if user is actively writing, editing, selecting, or clicking buttons
+        if (activeElem && (
+          activeElem.id === 'manualInput' || 
+          activeElem.classList.contains('edit-input') ||
+          activeElem.tagName === 'SELECT' || 
+          activeElem.tagName === 'BUTTON' || 
+          activeElem.tagName === 'INPUT' || 
+          activeElem.tagName === 'OPTION'
+        )) {
           return;
         }
         hwReceiver.focus();
       };
 
       // Poll focus setup
-      document.body.addEventListener('click', refocusReceiver);
+      document.body.addEventListener('click', (e) => {
+        const tag = e.target.tagName;
+        const isSwitch = e.target.closest('.switch');
+        // Do not refocus if clicking on interactive elements (inputs, select, buttons, labels)
+        if (tag === 'SELECT' || tag === 'INPUT' || tag === 'BUTTON' || tag === 'OPTION' || isSwitch) {
+          return;
+        }
+        refocusReceiver();
+      });
       setInterval(refocusReceiver, 1500);
 
       // Handle Key events on window
@@ -1181,16 +1196,20 @@
         camStatusText.textContent = "Đang chạy quét...";
 
         const config = {
-          fps: 15,
+          fps: 25,
           qrbox: (width, height) => {
-            // Rectangular focus window optimized for barcodes and QR codes
+            // Large square focus window, optimized for small QR codes and barcodes
             const size = Math.min(width, height);
+            const scanSize = Math.floor(size * 0.75);
             return {
-              width: Math.floor(width * 0.75),
-              height: Math.floor(size * 0.45)
+              width: scanSize,
+              height: scanSize
             };
           },
-          aspectRatio: 1.333333
+          aspectRatio: 1.333333,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
         };
 
         html5QrCode.start(
