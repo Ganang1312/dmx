@@ -159,7 +159,7 @@
     }
 
     #reader video {
-      object-fit: cover !important;
+      object-fit: contain !important;
       width: 100% !important;
       height: 100% !important;
     }
@@ -741,7 +741,7 @@
               <span class="setting-desc">Bỏ giới hạn khung ngắm, quét mọi góc camera</span>
             </div>
             <label class="switch" aria-label="Bật/Tắt quét toàn màn hình">
-              <input type="checkbox" id="settingFullScreenScan">
+              <input type="checkbox" id="settingFullScreenScan" checked>
               <span class="slider"></span>
             </label>
           </div>
@@ -837,7 +837,7 @@
       sound: true,
       vibrate: true,
       blockDuplicates: false,
-      fullScreenScan: false
+      fullScreenScan: true
     };
 
     // Camera instance container
@@ -1234,20 +1234,19 @@
           container.innerHTML = "";
         }
 
+        const formats = window.Html5QrcodeSupportedFormats ? [
+          Html5QrcodeSupportedFormats.QR_CODE,
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.ITF
+        ] : undefined;
+
         // Initialize instance with optimized formats support
-        html5QrCode = new Html5Qrcode("reader", {
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.QR_CODE,
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.CODE_39,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-            Html5QrcodeSupportedFormats.ITF
-          ],
-          verbose: false
-        });
+        html5QrCode = new Html5Qrcode("reader", formats ? { formatsToSupport: formats, verbose: false } : undefined);
         cameraActive = true;
         btn.textContent = "Tắt Camera";
         btn.className = "btn btn-danger";
