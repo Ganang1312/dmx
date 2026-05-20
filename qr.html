@@ -1117,6 +1117,12 @@
       saveState();
       renderScans();
 
+      // Populate manual input box for easy review/edit
+      const manualInput = document.getElementById('manualInput');
+      if (manualInput) {
+        manualInput.value = cleanCode;
+      }
+
       // Trigger Alert notifications
       playAlertSound(isDuplicate);
       triggerVibrate(isDuplicate);
@@ -1228,8 +1234,20 @@
           container.innerHTML = "";
         }
 
-        // Initialize instance
-        html5QrCode = new Html5Qrcode("reader");
+        // Initialize instance with optimized formats support
+        html5QrCode = new Html5Qrcode("reader", {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.QR_CODE,
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.ITF
+          ],
+          verbose: false
+        });
         cameraActive = true;
         btn.textContent = "Tắt Camera";
         btn.className = "btn btn-danger";
