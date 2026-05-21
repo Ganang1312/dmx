@@ -37,17 +37,16 @@
             background-color: var(--header-bg);
             box-shadow: var(--shadow);
             z-index: 10;
-            padding: 12px 24px;
+            padding: 6px 12px;
             display: flex;
-            flex-direction: column;
-            gap: 12px;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
         }
 
         @media (min-width: 768px) {
             header {
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
                 padding: 10px 30px;
                 gap: 20px;
             }
@@ -56,22 +55,42 @@
         .logo-area {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
         }
 
         .logo-icon {
             background: linear-gradient(135deg, #6366f1, #3b82f6);
             color: white;
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-family: 'Montserrat', sans-serif;
             font-weight: 900;
-            font-size: 20px;
+            font-size: 16px;
             box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+            flex-shrink: 0;
+        }
+
+        @media (min-width: 768px) {
+            .logo-icon {
+                width: 42px;
+                height: 42px;
+                font-size: 20px;
+                border-radius: 10px;
+            }
+        }
+
+        .logo-text {
+            display: none;
+        }
+
+        @media (min-width: 768px) {
+            .logo-text {
+                display: block;
+            }
         }
 
         .logo-text h1 {
@@ -97,18 +116,23 @@
             display: flex;
             background-color: #f8fafc;
             border: 1px solid #e2e8f0;
-            padding: 4px;
-            border-radius: 12px;
-            gap: 4px;
-            width: 100%;
+            padding: 3px;
+            border-radius: 10px;
+            gap: 2px;
+            flex: 1;
+            max-width: 100%;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
 
         @media (min-width: 768px) {
             .tabs-container {
+                flex: none;
                 width: auto;
                 min-width: 480px;
+                padding: 4px;
+                border-radius: 12px;
+                gap: 4px;
             }
         }
 
@@ -117,18 +141,27 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            padding: 10px 16px;
+            gap: 4px;
+            padding: 6px 8px;
             border: none;
             background: transparent;
             color: var(--text-sub);
             font-family: 'Nunito', sans-serif;
             font-weight: 800;
-            font-size: 13.5px;
-            border-radius: 8px;
+            font-size: 11.5px;
+            border-radius: 6px;
             cursor: pointer;
             white-space: nowrap;
             transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @media (min-width: 768px) {
+            .tab-btn {
+                gap: 8px;
+                padding: 10px 16px;
+                font-size: 13.5px;
+                border-radius: 8px;
+            }
         }
 
         .tab-btn:hover {
@@ -147,17 +180,21 @@
             flex: 1;
             position: relative;
             background-color: var(--bg-portal);
+            overflow: hidden;
         }
 
         iframe {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
+            width: 1px;
+            min-width: 100%;
+            *width: 100%;
             height: 100%;
             border: none;
             background-color: transparent;
             display: none;
+            -webkit-overflow-scrolling: touch;
         }
 
         iframe.active {
