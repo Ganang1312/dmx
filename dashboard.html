@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Báo Cáo - Cụm Savico</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-portal: #f1f5f9;
+            --header-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-portal);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* HEADER & TABS BAR */
+        header {
+            background-color: var(--header-bg);
+            box-shadow: var(--shadow);
+            z-index: 10;
+            padding: 12px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        @media (min-width: 768px) {
+            header {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                padding: 10px 30px;
+                gap: 20px;
+            }
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 20px;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
+        }
+
+        .logo-text h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+
+        .logo-text p {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* NAVIGATION TABS */
+        .tabs-container {
+            display: flex;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 4px;
+            border-radius: 12px;
+            gap: 4px;
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (min-width: 768px) {
+            .tabs-container {
+                width: auto;
+                min-width: 480px;
+            }
+        }
+
+        .tab-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: none;
+            background: transparent;
+            color: var(--text-sub);
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 13.5px;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background-color: #f1f5f9;
+        }
+
+        .tab-btn.active {
+            color: #4f46e5;
+            background-color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+        }
+
+        /* CONTENT AREA (IFRAME) */
+        .iframe-wrapper {
+            flex: 1;
+            position: relative;
+            background-color: var(--bg-portal);
+        }
+
+        iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: transparent;
+            display: none;
+        }
+
+        iframe.active {
+            display: block;
+        }
+
+        /* Spinner Loader */
+        .loader {
+            position: absolute;
+            inset: 0;
+            background-color: var(--bg-portal);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            z-index: 5;
+            transition: opacity 0.3s ease;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #cbd5e1;
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loader p {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-sub);
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo-area">
+            <div class="logo-icon">S</div>
+            <div class="logo-text">
+                <h1>Cổng Báo Cáo Savico</h1>
+                <p>Hệ Thống Dashboard Tổng Hợp</p>
+            </div>
+        </div>
+        <div class="tabs-container">
+            <button class="tab-btn active" onclick="switchTab('luyke')">📊 Lũy Kế</button>
+            <button class="tab-btn" onclick="switchTab('realtime')">📈 Realtime</button>
+            <button class="tab-btn" onclick="switchTab('nhanvien')">🧑‍💻 Nhân Viên</button>
+        </div>
+    </header>
+
+    <div class="iframe-wrapper">
+        <div class="loader" id="portal-loader">
+            <div class="spinner"></div>
+            <p>Đang tải dữ liệu báo cáo...</p>
+        </div>
+
+        <iframe id="iframe-luyke" class="active" src="baocao_luyke.html"></iframe>
+        <iframe id="iframe-realtime" src="baocao_realtime.html"></iframe>
+        <iframe id="iframe-nhanvien" src="baocao_nhanvien.html"></iframe>
+    </div>
+
+    <script>
+        const loader = document.getElementById('portal-loader');
+        const iframes = {
+            luyke: document.getElementById('iframe-luyke'),
+            realtime: document.getElementById('iframe-realtime'),
+            nhanvien: document.getElementById('iframe-nhanvien')
+        };
+        const loadedIframes = new Set(['luyke']); // Trang đầu tiên load mặc định
+
+        // Ẩn spinner khi iframe đang active tải xong
+        Object.keys(iframes).forEach(key => {
+            iframes[key].addEventListener('load', () => {
+                const activeBtn = document.querySelector('.tab-btn.active');
+                const activeTab = activeBtn.getAttribute('onclick').match(/'([^']+)'/)[1];
+                if (activeTab === key) {
+                    loader.style.opacity = '0';
+                    setTimeout(() => { loader.style.display = 'none'; }, 300);
+                }
+            });
+        });
+
+        function switchTab(tabKey) {
+            // Cập nhật trạng thái active cho các tab button
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                const key = btn.getAttribute('onclick').match(/'([^']+)'/)[1];
+                btn.classList.toggle('active', key === tabKey);
+            });
+
+            // Ẩn/Hiện iframe
+            Object.keys(iframes).forEach(key => {
+                iframes[key].classList.toggle('active', key === tabKey);
+            });
+
+            // Hiển thị loader nếu iframe chưa được tải lần nào
+            if (!loadedIframes.has(tabKey)) {
+                loader.style.display = 'flex';
+                loader.style.opacity = '1';
+                loadedIframes.add(tabKey);
+            } else {
+                loader.style.display = 'none';
+            }
+        }
+
+        // Tự động nhận diện tab và chế độ auto từ URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        const autoParam = urlParams.get('auto');
+        if (tabParam && iframes[tabParam]) {
+            if (autoParam === 'true') {
+                iframes[tabParam].src = "baocao_" + tabParam + ".html?auto=true";
+            }
+            switchTab(tabParam);
+        }
+    </script>
+</body>
+</html>

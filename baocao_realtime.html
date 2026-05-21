@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Realtime Dashboard - Cụm Savico</title>
   <script src="shared_config.js"></script>
+  <script src="shared_utils.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
@@ -287,67 +288,9 @@
     const timeStrFull = today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
     setText('current-date', today.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + today.toLocaleDateString('vi-VN'));
 
-    const BOT_TOKEN = "8689092467:AAFXjbS8C8QbOxReNz81-6AWtIiz8zCTDmw";
-    const CHAT_ID = "-5072214230"; 
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
     
-    const parseVnNumber = (val) => {
-      if (val == null || val === '') return 0;
-      if (typeof val === 'number') return val; 
-      let str = String(val).trim().replace(/\s/g, ''); 
-      // Xử lý dấu phân cách hàng nghìn/thập phân kiểu VN
-      if (str.includes(',') && str.includes('.')) {
-          str = (str.lastIndexOf(',') > str.lastIndexOf('.')) ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
-      } else if (str.includes(',')) {
-          // Nếu chỉ có phẩy, kiểm tra xem có phải hàng nghìn không (ví dụ 1.000,000 hoặc 1,000)
-          let parts = str.split(',');
-          if (parts.length > 2 || (parts.length === 2 && parts[1].length === 3 && parseInt(parts[0]) > 0)) {
-              str = str.replace(/,/g, '');
-          } else {
-              str = str.replace(',', '.');
-          }
-      } else if (str.includes('.')) {
-          // Nếu có nhiều dấu chấm thì là ngăn cách hàng nghìn
-          if ((str.match(/\./g) || []).length > 1) str = str.replace(/\./g, '');
-      }
-      let num = parseFloat(str); 
-      if (isNaN(num)) return 0;
-      // Chuẩn hóa: Nếu số > 1,000,000 thì khả năng cao là đơn vị ĐỒNG, chia cho 1 triệu để ra TRIỆU
-      if (Math.abs(num) >= 1000000) return num / 1000000;
-      // Nếu số > 10,000 và < 1,000,000 thì có thể là đơn vị ĐỒNG (nhưng nhỏ) hoặc đã là triệu nhưng bị sai dấu?
-      // Trong BI Realtime, các con số DT thường > 100tr. Nếu là triệu thì nó sẽ là 100.0
-      return num;
-    };
-    const formatMoney = (val) => Math.round(val).toLocaleString('vi-VN'); 
-    const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', {minimumFractionDigits: 1, maximumFractionDigits: 1}) + '%';
-    const getKey = (obj, ...names) => { let keys = Object.keys(obj); for(let n of names){ let m = keys.find(k=>k.trim().toLowerCase()===n.toLowerCase()); if(m) return obj[m]; } return undefined; };
-    
-    const getColorClass = (percent) => {
-        if (percent >= 1) return "#10b981";
-        if (percent >= 0.8) return "#3b82f6";
-        if (percent >= 0.5) return "#f39c12";
-        return "#ef4444";
-    };
 
-    function getEmoji(name) {
-        let n = String(name).toUpperCase();
-        if (n.includes("QUẠT")) return "🎐";
-        if (n.includes("ĐIỆN TỬ") || n.includes("TIVI") || n.includes("SONY")) return "📺";
-        if (n.includes("GIẶT") || n.includes("SẤY")) return "🧺";
-        if (n.includes("PIN") || n.includes("SẠC")) return "🔋";
-        if (n.includes("LAPTOP")) return "💻";
-        if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "🧊";
-        if (n.includes("LỌC") || n.includes("NƯỚC") || n.includes("MLN")) return "🚰";
-        if (n.includes("GIA DỤNG")) return "🍳";
-        if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE") || n.includes("FLAGSHIP")) return "📱";
-        if (n.includes("CAMERA")) return "📷";
-        if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "❄️";
-        if (n.includes("ĐỒNG HỒ") || n.includes("THỜI TRANG")) return "⌚";
-        if (n.includes("BẢO HIỂM") || n.includes("FINANCE") || n.includes("CREDIT") || n.includes("VÍ") || n.includes("CAKE") || n.includes("HC")) return "💳";
-        if (n.includes("SIM")) return "📶";
-        if (n.includes("PHỤ KIỆN")) return "🎧";
-        return "📦";
-    }
 
     function openRtModal() {
         const m = document.getElementById('rtInputModal');
@@ -399,17 +342,16 @@
     }
 
     async function loadData() {
-      setText('btnSend', "⏳ Đang kết nối Big Data...");
       try {
-        const [resBI, resThiDua, resConfig, resRTBI, resRTThiDua, resRTNV] = await Promise.all([
-            fetch(GAS_URL + "?sheet=Data_BI"), fetch(GAS_URL + "?sheet=Data_ThiDua"),
-            fetch(GAS_URL + "?sheet=Config_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_BI"),
-            fetch(GAS_URL + "?sheet=Data_Realtime_ThiDua"), fetch(GAS_URL + "?sheet=Data_Realtime_NV")
-        ]);
+        const res = await fetch(GAS_URL + "?action=getAllSheets");
+        const pack = await res.json();
 
-        const dataBI = await resBI.json(); const dataThiDua = await resThiDua.json();
-        const configData = await resConfig.json(); const dataRTBI = await resRTBI.json();
-        const dataRTThiDua = await resRTThiDua.json(); const dataRTNV = await resRTNV.json();
+        const dataBI = pack["Data_BI"] || [];
+        const dataThiDua = pack["Data_ThiDua"] || [];
+        const configData = pack["Config_ThiDua"] || [];
+        const dataRTBI = pack["Data_Realtime_BI"] || [];
+        const dataRTThiDua = pack["Data_Realtime_ThiDua"] || [];
+        const dataRTNV = pack["Data_Realtime_NV"] || [];
 
         const currentDay = today.getDate();
         const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -925,10 +867,7 @@
         this.disabled = false;
     });
 
-    function downloadURI(uri, name) {
-        let link = document.createElement("a"); link.download = name; link.href = uri;
-        document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    }
+
 
     async function copyComment(clickedBtn) {
         const text = document.getElementById('commentBox').innerText;
