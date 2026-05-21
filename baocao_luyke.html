@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>Lũy Kế Dashboard - Cụm Savico</title>
     <script src="shared_config.js"></script>
-    <script src="shared_utils.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
@@ -1652,9 +1651,50 @@
             }
         };
 
+        const parseVnNumber = (val) => {
+            if (val == null || val === '') return 0;
+            if (typeof val === 'number') return val;
+            let str = String(val).trim().replace(/\s/g, '');
+            if (str.includes(',') && str.includes('.')) {
+                str = (str.lastIndexOf(',') > str.lastIndexOf('.')) ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
+            } else if (str.includes(',')) { str = str.replace(',', '.'); }
+            let num = parseFloat(str); return isNaN(num) ? 0 : num;
+        };
+        const formatMoney = (val) => Math.round(val).toLocaleString('vi-VN');
+        const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+        const getKey = (obj, ...names) => { let keys = Object.keys(obj); for (let n of names) { let m = keys.find(k => k.trim().toLowerCase() === n.toLowerCase()); if (m) return obj[m]; } return undefined; };
+
+        const getColorClass = (percent) => {
+            if (percent >= 1) return "#10b981";
+            if (percent >= 0.75) return "#3b82f6";
+            if (percent >= 0.4) return "#f59e0b";
+            return "#ef4444";
+        };
+
         function shortName(name) {
             if (!name) return "";
             return String(name).replace(/NNH\s/ig, "").trim();
+        }
+
+        function getEmoji(name) {
+            let n = String(name).toUpperCase();
+            if (n.includes("QUẠT")) return "🎐";
+            if (n.includes("ĐIỆN TỬ") || n.includes("TIVI") || n.includes("SONY")) return "📺";
+            if (n.includes("GIẶT") || n.includes("SẤY")) return "🧺";
+            if (n.includes("PIN") || n.includes("SẠC")) return "🔋";
+            if (n.includes("LAPTOP")) return "💻";
+            if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "❄️";
+            if (n.includes("KHÔNG KHÍ") || n.includes("MLKK")) return "🌀";
+            if (n.includes("LỌC") || n.includes("NƯỚC") || n.includes("MLN")) return "🚰";
+            if (n.includes("GIA DỤNG")) return "🍳";
+            if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE") || n.includes("FLAGSHIP")) return "📱";
+            if (n.includes("CAMERA")) return "📷";
+            if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "🌡️";
+            if (n.includes("ĐỒNG HỒ") || n.includes("THỜI TRANG")) return "⌚";
+            if (n.includes("BẢO HIỂM") || n.includes("FINANCE") || n.includes("CREDIT") || n.includes("VÍ") || n.includes("CAKE") || n.includes("HC")) return "💳";
+            if (n.includes("SIM")) return "📶";
+            if (n.includes("PHỤ KIỆN")) return "🎧";
+            return "📦";
         }
 
         async function loadData() {
@@ -1664,16 +1704,19 @@
                 let baseVal = document.getElementById('baseDateSel') ? document.getElementById('baseDateSel').value : 'auto';
                 let compVal = document.getElementById('compDateSel') ? document.getElementById('compDateSel').value : 'current';
 
+                let dataBI, dataThiDua, configData;
+
+                const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
+                configData = await resConfig.json();
+
                 if (compVal === 'current') {
-                    const res = await fetch(GAS_URL + "?action=getAllSheets");
-                    const pack = await res.json();
-                    configData = pack["Config_ThiDua"] || [];
-                    dataBI = pack["Data_BI"] || [];
-                    dataThiDua = pack["Data_ThiDua"] || [];
+                    const [resBI, resThiDua] = await Promise.all([
+                        fetch(GAS_URL + "?sheet=Data_BI"),
+                        fetch(GAS_URL + "?sheet=Data_ThiDua")
+                    ]);
+                    dataBI = await resBI.json();
+                    dataThiDua = await resThiDua.json();
                 } else {
-                    const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
-                    configData = await resConfig.json();
-                    
                     let hData = await getHistoryForDate(compVal);
                     dataBI = hData["Data_BI"] || [];
                     dataThiDua = hData["Data_ThiDua"] || [];
@@ -2867,7 +2910,15 @@
             }
         }
 
-
+        // --- HÀM HỖ TRỢ TẢI ẢNH VỀ MÁY ---
+        function downloadURI(uri, name) {
+            let link = document.createElement("a");
+            link.download = name;
+            link.href = uri;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
 
         // --- SỰ KIỆN: CHỤP TÁCH VÀ LƯU MÁY ---
         const btnDownloadSplit = document.getElementById('btnDownloadSplit');
