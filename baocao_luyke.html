@@ -3055,13 +3055,14 @@
                         try {
                             await fetch(GAS_URL, {
                                 method: "POST",
-                                mode: "no-cors",
                                 body: JSON.stringify({
                                     action: "upload_screenshot",
                                     cmdId: cmdId,
                                     imgData: base64Data
                                 })
                             });
+                            // Đợi thêm 1 giây để đảm bảo trình duyệt hoàn tất gửi gói tin ảnh lớn và nhận phản hồi
+                            await new Promise(resolve => setTimeout(resolve, 1000));
                         } catch (e) {
                             console.error("Upload error:", e);
                         }
