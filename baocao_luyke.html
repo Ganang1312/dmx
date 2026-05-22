@@ -1031,6 +1031,7 @@
     </div>
 
             <div class="top-actions" data-html2canvas-ignore="true" style="display:flex; justify-content:center; align-items:center; margin: 20px auto 15px auto; max-width: 950px; width: 100%; box-sizing: border-box; flex-wrap: wrap; gap: 8px;">
+        <button class="btn-action" onclick="loadData(true)" style="background: #10b981; color: white; border-color: #10b981;">🔄 ĐỔ DỮ LIỆU MỚI</button>
         <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
         <button class="btn-action" id="btnDownloadFull">📸 CHỤP FULL</button>
         <button class="btn-action" id="btnCopyComment" style="background:#2563eb; color:white; border:none;">📋 NHẬN XÉT</button>
@@ -1063,7 +1064,7 @@
             </div>
 
             <div class="header-title">BÁO CÁO LŨY KẾ CỤM SAVICO</div>
-            <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span></div>
+            <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span> <span id="cache-status" style="text-transform: none; font-size: 13px; color: #64748b; font-weight: normal; margin-left: 10px;"></span></div>
 
             <!-- THANH TIẾN ĐỘ TỔNG QUAN -->
             <div
@@ -1697,8 +1698,9 @@
             return "📦";
         }
 
-        async function loadData() {
+        async function loadData(forceRefresh = false) {
             try {
+                const setHTML_safe = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
                 await initHistory();
                 
                 let baseVal = document.getElementById('baseDateSel') ? document.getElementById('baseDateSel').value : 'auto';
@@ -1706,16 +1708,32 @@
 
                 let dataBI, dataThiDua, configData;
 
-                const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
-                configData = await resConfig.json();
+                // Xử lý nạp dữ liệu cấu hình và dữ liệu hiện tại
+                let cached = localStorage.getItem("BC_CACHE_LUYKE");
+                let cacheTime = localStorage.getItem("BC_CACHE_LUYKE_TIME");
+                let currentData;
+
+                if (cached && !forceRefresh) {
+                    currentData = JSON.parse(cached);
+                    let updateTime = cacheTime ? new Date(parseInt(cacheTime)).toLocaleTimeString('vi-VN') + " - " + new Date(parseInt(cacheTime)).toLocaleDateString('vi-VN') : "Không rõ";
+                    setHTML_safe("cache-status", `(Đang xem data offline lưu lúc: ${updateTime})`);
+                } else {
+                    setHTML_safe("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
+                    const res = await fetch(GAS_URL + "?sheets=Config_ThiDua,Data_BI,Data_ThiDua");
+                    currentData = await res.json();
+                    
+                    localStorage.setItem("BC_CACHE_LUYKE", JSON.stringify(currentData));
+                    localStorage.setItem("BC_CACHE_LUYKE_TIME", Date.now().toString());
+                    
+                    let updateTime = new Date().toLocaleTimeString('vi-VN') + " - " + new Date().toLocaleDateString('vi-VN');
+                    setHTML_safe("cache-status", `(Vừa cập nhật mới lúc: ${updateTime})`);
+                }
+
+                configData = currentData["Config_ThiDua"] || [];
 
                 if (compVal === 'current') {
-                    const [resBI, resThiDua] = await Promise.all([
-                        fetch(GAS_URL + "?sheet=Data_BI"),
-                        fetch(GAS_URL + "?sheet=Data_ThiDua")
-                    ]);
-                    dataBI = await resBI.json();
-                    dataThiDua = await resThiDua.json();
+                    dataBI = currentData["Data_BI"] || [];
+                    dataThiDua = currentData["Data_ThiDua"] || [];
                 } else {
                     let hData = await getHistoryForDate(compVal);
                     dataBI = hData["Data_BI"] || [];

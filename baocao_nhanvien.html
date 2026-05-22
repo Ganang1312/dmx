@@ -210,6 +210,7 @@
   </div>
 
       <div class="top-actions" data-html2canvas-ignore="true" style="display:flex; justify-content:center; align-items:center; margin: 20px auto 10px auto; max-width: 950px; width: 100%; box-sizing: border-box; flex-wrap: nowrap; gap: 5px;">
+        <button class="btn-action" onclick="loadData(true)" style="background: #10b981; color: white; border-color: #10b981;">🔄 ĐỔ DỮ LIỆU MỚI</button>
         <button class="btn-action" id="btnDownloadSplit">📸 TÁCH</button>
         <button class="btn-action" id="btnDownloadFull">📸 TOÀN</button>
         <button class="btn-action" id="btnDownloadShort" style="border-color:#f39c12; color:#f39c12;">✂️ RÚT GỌN</button>
@@ -233,7 +234,7 @@
       <!-- PHẦN 1: TỔNG HỢP -->
       <div id="part1" class="report-box">
         <div class="header-title">BÁO CÁO NHÂN VIÊN SAVICO</div>
-        <div class="date-text">🗓️ CẬP NHẬT: <span id="current-date"></span></div>
+        <div class="date-text">🗓️ CẬP NHẬT: <span id="current-date"></span> <span id="cache-status" style="text-transform: none; font-size: 13px; color: #64748b; font-weight: normal; margin-left: 10px;"></span></div>
 
         <div class="sec-title" style="margin-top: 25px; margin-bottom: 20px;"><span>1</span> XẾP HẠNG & THI ĐUA CÁ NHÂN</div>
 
@@ -439,7 +440,7 @@
 
 
 
-    async function loadData() {
+    async function loadData(forceRefresh = false) {
     try {
       const btn = document.getElementById('btnSend');
       if (btn) btn.innerText = "⏳ Đang tổng hợp Big Data NV...";
@@ -455,20 +456,34 @@
 
         let dataNV_BI, dataThiDua, dataStore_BI, dataStore_ThiDua, dataConfig;
 
-        const resConfig = await fetch(GAS_URL + "?sheet=Config_ThiDua");
-        dataConfig = await resConfig.json();
+        // Xử lý nạp dữ liệu cấu hình và dữ liệu hiện tại
+        let cached = localStorage.getItem("BC_CACHE_NHANVIEN");
+        let cacheTime = localStorage.getItem("BC_CACHE_NHANVIEN_TIME");
+        let currentData;
+
+        if (cached && !forceRefresh) {
+            currentData = JSON.parse(cached);
+            let updateTime = cacheTime ? new Date(parseInt(cacheTime)).toLocaleTimeString('vi-VN') + " - " + new Date(parseInt(cacheTime)).toLocaleDateString('vi-VN') : "Không rõ";
+            setHTML("cache-status", `(Đang xem data offline lưu lúc: ${updateTime})`);
+        } else {
+            setHTML("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
+            const res = await fetch(GAS_URL + "?sheets=Config_ThiDua,Data_NV_BI,Data_NV_ThiDua,Data_BI,Data_ThiDua");
+            currentData = await res.json();
+            
+            localStorage.setItem("BC_CACHE_NHANVIEN", JSON.stringify(currentData));
+            localStorage.setItem("BC_CACHE_NHANVIEN_TIME", Date.now().toString());
+            
+            let updateTime = new Date().toLocaleTimeString('vi-VN') + " - " + new Date().toLocaleDateString('vi-VN');
+            setHTML("cache-status", `(Vừa cập nhật mới lúc: ${updateTime})`);
+        }
+
+        dataConfig = currentData["Config_ThiDua"] || [];
 
         if (compVal === 'current') {
-            const [resNV_BI, resNV_ThiDua, resStore_BI, resStore_ThiDua] = await Promise.all([
-                fetch(GAS_URL + "?sheet=Data_NV_BI").then(r => r.json()), 
-                fetch(GAS_URL + "?sheet=Data_NV_ThiDua").then(r => r.json()),
-                fetch(GAS_URL + "?sheet=Data_BI").then(r => r.json()),
-                fetch(GAS_URL + "?sheet=Data_ThiDua").then(r => r.json())
-            ]);
-            dataNV_BI = resNV_BI;
-            dataThiDua = resNV_ThiDua;
-            dataStore_BI = resStore_BI;
-            dataStore_ThiDua = resStore_ThiDua;
+            dataNV_BI = currentData["Data_NV_BI"] || [];
+            dataThiDua = currentData["Data_NV_ThiDua"] || [];
+            dataStore_BI = currentData["Data_BI"] || [];
+            dataStore_ThiDua = currentData["Data_ThiDua"] || [];
         } else {
             let hData = await getHistoryForDate(compVal);
             dataNV_BI = hData["Data_NV_BI"] || [];
