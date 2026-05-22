@@ -1650,12 +1650,13 @@
 
     window.onload = async () => {
         await initHistory();
-        await loadData();
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAuto = urlParams.get('auto') === 'true';
+        await loadData(isAuto);
         
         // AUTO DOWNLOAD/UPLOAD NẾU CÓ THAM SỐ ?auto=true
-        const urlParams = new URLSearchParams(window.location.search);
         const cmdId = urlParams.get('cmdId');
-        if (urlParams.get('auto') === 'true') {
+        if (isAuto) {
             if (cmdId) {
                 console.log("🚀 Chế độ AUTO BOT: Đang chụp ảnh và upload lên Google Drive...");
                 setTimeout(async () => {
