@@ -10,6 +10,12 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
 
+        #chart-proportion .apexcharts-datalabel-rect,
+        #chart-proportion .apexcharts-datalabels rect {
+            fill: #64748b !important;
+            fill-opacity: 0.92 !important;
+        }
+
         body {
             font-family: 'Nunito', sans-serif;
             background: #e9ecef;
@@ -1030,6 +1036,30 @@
         </div>
     </div>
 
+    <!-- Modal Chi tiết Doanh thu (Tỷ trọng & Tăng trưởng) -->
+    <div id="revenueDetailsModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
+        <div style="background:#fff; width: 1100px; max-width:95%; max-height: 90vh; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.3); transform: translateY(-20px); transition:transform 0.3s ease;" id="revenueDetailsModalBox">
+            <div style="background:#2563eb; color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:18px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+                <span>📈 Phân tích Tỷ trọng & Tăng trưởng Ngành hàng</span>
+                <button onclick="closeRevenueDetailsModal()" style="background:none; border:none; color:white; font-size:32px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
+            </div>
+            <div style="padding:20px; overflow-y:auto; flex: 1; background: #f8fafc;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; align-items: stretch;">
+                    <!-- Cột 1: Biểu đồ tròn Tỷ Trọng -->
+                    <div style="background:white; border:2px solid #cbd5e1; border-radius:12px; padding:15px 15px 10px; display:flex; flex-direction:column; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                        <div style="font-size:14px; font-weight:900; color:#1e293b; text-transform:uppercase; margin-bottom:15px; text-align:center; min-height:40px; display:flex; align-items:center; justify-content:center;">📊 TỶ TRỌNG DOANH THU CÁC NGÀNH HÀNG</div>
+                        <div id="chart-proportion" style="width: 100%; flex: 1; display: flex; justify-content: center; align-items: center;"></div>
+                    </div>
+                    <!-- Cột 2: Biểu đồ cột Tăng Trưởng (Ngang) -->
+                    <div style="background:white; border:2px solid #cbd5e1; border-radius:12px; padding:15px 15px 10px; display:flex; flex-direction:column; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                        <div style="font-size:14px; font-weight:900; color:#1e293b; text-transform:uppercase; margin-bottom:15px; text-align:center; min-height:40px; display:flex; align-items:center; justify-content:center;">📈 TĂNG TRƯỞNG DOANH THU SO VỚI CÙNG KỲ</div>
+                        <div id="chart-growth" style="width: 100%; flex: 1;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
             <div class="top-actions" data-html2canvas-ignore="true" style="display:flex; justify-content:center; align-items:center; margin: 20px auto 15px auto; max-width: 950px; width: 100%; box-sizing: border-box; flex-wrap: wrap; gap: 8px;">
         <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
         <button class="btn-action" id="btnDownloadFull">📸 CHỤP FULL</button>
@@ -1194,7 +1224,7 @@
                 </div>
             </div>
 
-            <div class="sec-title" style="margin-top: 25px;"><span>2</span> CHI TIẾT DOANH THU</div>
+            <div class="sec-title" style="margin-top: 25px; cursor: pointer;" onclick="openRevenueDetailsModal()" title="Click để xem biểu đồ tỷ trọng & tăng trưởng"><span>2</span> CHI TIẾT DOANH THU</div>
 
             <div class="todo-board" style="margin-bottom: 20px;">
                 <div class="todo-header">
@@ -1394,6 +1424,299 @@
             b.style.transform = 'translateY(-20px)';
             setTimeout(() => { m.style.display = 'none'; }, 300);
         };
+
+        window.revenuePieChart = null;
+        window.revenueBarChart = null;
+
+        window.openRevenueDetailsModal = function() {
+            if (!window.parsedBI || window.parsedBI.length === 0) {
+                alert("Dữ liệu chưa tải xong hoặc không có dữ liệu ngành hàng!");
+                return;
+            }
+
+            const m = document.getElementById('revenueDetailsModal');
+            const b = document.getElementById('revenueDetailsModalBox');
+            m.style.display = 'flex';
+            setTimeout(() => {
+                m.style.opacity = '1';
+                b.style.transform = 'translateY(0)';
+                renderRevenueDetailsCharts();
+            }, 300);
+        };
+
+        window.closeRevenueDetailsModal = function() {
+            const m = document.getElementById('revenueDetailsModal');
+            const b = document.getElementById('revenueDetailsModalBox');
+            m.style.opacity = '0';
+            b.style.transform = 'translateY(-20px)';
+            setTimeout(() => { m.style.display = 'none'; }, 300);
+        };
+
+        function renderRevenueDetailsCharts() {
+            function adjustBarLabels() {
+                setTimeout(() => {
+                    const labels = document.querySelectorAll("#chart-growth .apexcharts-datalabels text");
+                    labels.forEach(label => {
+                        const txt = label.textContent.trim();
+                        if (label.getAttribute("data-adjusted") === "true") return;
+                        
+                        const x = parseFloat(label.getAttribute("x"));
+                        if (isNaN(x)) return;
+                        
+                        if (txt.startsWith("-")) {
+                            label.setAttribute("text-anchor", "end");
+                            label.setAttribute("x", (x - 24).toString());
+                        } else {
+                            label.setAttribute("text-anchor", "start");
+                        }
+                        label.setAttribute("data-adjusted", "true");
+                    });
+                }, 50);
+            }
+
+            if (window.revenuePieChart) {
+                window.revenuePieChart.destroy();
+                window.revenuePieChart = null;
+            }
+            if (window.revenueBarChart) {
+                window.revenueBarChart.destroy();
+                window.revenueBarChart = null;
+            }
+
+            // 1. Group Donut Chart (Top 5 + Ngành hàng khác)
+            const top5 = window.parsedBI.slice(0, 5);
+            const remaining = window.parsedBI.slice(5);
+            let otherDT = 0;
+            remaining.forEach(item => {
+                otherDT += item.dt;
+            });
+
+            const pieData = top5.map(item => item.dt);
+            const pieLabels = top5.map(item => item.nganhHang);
+
+            if (otherDT > 0) {
+                pieData.push(otherDT);
+                pieLabels.push("Ngành hàng khác");
+            }
+
+            const pieOptions = {
+                series: pieData,
+                labels: pieLabels,
+                chart: {
+                    type: 'donut',
+                    height: 420,
+                    fontFamily: 'Nunito, sans-serif',
+                    events: {
+                        mounted: function() {
+                            function forceGreyRects() {
+                                const container = document.getElementById('chart-proportion');
+                                if (!container) return;
+                                const allRects = container.querySelectorAll('rect');
+                                allRects.forEach(r => {
+                                    const w = parseFloat(r.getAttribute('width') || 0);
+                                    const h = parseFloat(r.getAttribute('height') || 0);
+                                    if (w > 10 && w < 500 && h > 10 && h < 100) {
+                                        r.style.setProperty('fill', '#64748b', 'important');
+                                        r.style.setProperty('fill-opacity', '0.92', 'important');
+                                    }
+                                });
+                            }
+                            forceGreyRects();
+                            setTimeout(forceGreyRects, 100);
+                            setTimeout(forceGreyRects, 300);
+                            const obs = new MutationObserver(() => { forceGreyRects(); });
+                            const target = document.getElementById('chart-proportion');
+                            if (target) obs.observe(target, { childList: true, subtree: true, attributes: true });
+                            setTimeout(() => obs.disconnect(), 3000);
+                        }
+                    }
+                },
+                stroke: {
+                    width: 2,
+                    colors: ['#fff']
+                },
+                plotOptions: {
+                    pie: {
+                        donut: {
+                            size: '45%'
+                        },
+                        dataLabels: {
+                            offset: -10,
+                            minAngleToShowLabel: 10
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function(val, opts) {
+                        const name = opts.w.globals.labels[opts.seriesIndex];
+                        const value = opts.w.globals.series[opts.seriesIndex];
+                        const roundedVal = Math.round(value);
+                        const roundedPercent = Math.round(val * 10) / 10;
+                        return [
+                            name,
+                            `${roundedVal.toLocaleString('vi-VN')} TR (${roundedPercent}%)`
+                        ];
+                    },
+                    style: {
+                        fontSize: '15px',
+                        fontFamily: 'Nunito, sans-serif',
+                        fontWeight: '900',
+                        colors: ['#ffffff']
+                    },
+                    background: {
+                        enabled: true,
+                        foreColor: '#ffffff',
+                        padding: 6,
+                        borderRadius: 6,
+                        borderWidth: 0,
+                        opacity: 0.92,
+                        dropShadow: {
+                            enabled: false
+                        }
+                    },
+                    dropShadow: {
+                        enabled: false
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(val) {
+                            return val.toLocaleString('vi-VN') + " TR";
+                        }
+                    }
+                },
+                legend: {
+                    show: false
+                }
+            };
+
+            // 2. Map Bar Chart Data & Filter Growth >= 10M
+            const barRaw = window.parsedBI.map(item => {
+                let dtCKThang = (!item.tangGiamCK || isNaN(item.tangGiamCK) || !isFinite(item.tangGiamCK) || (1 + item.tangGiamCK === 0)) ? 0 : (item.dt / (1 + item.tangGiamCK));
+                let chenhLech = item.dt - dtCKThang;
+                let percent = isNaN(item.tangGiamCK) || !isFinite(item.tangGiamCK) ? 0 : Math.round(item.tangGiamCK * 100);
+                return {
+                    name: item.nganhHang,
+                    val: Math.round(chenhLech * 10) / 10,
+                    percent: percent
+                };
+            }).filter(dp => Math.abs(dp.val) >= 10);
+
+            // Sort ascending (most negative on top, most positive at bottom)
+            barRaw.sort((a, b) => a.val - b.val);
+
+            // Build categories with embedded values for clean display
+            const barCategories = barRaw.map(d => {
+                let prefix = d.val > 0 ? "+" : "";
+                let pctPrefix = d.percent > 0 ? "+" : "";
+                return `${d.name}  ${prefix}${d.val.toLocaleString('vi-VN')} TR (${pctPrefix}${d.percent}%)`;
+            });
+            const barValues = barRaw.map(d => d.val);
+
+            // Dynamic chart height based on number of items
+            const barChartHeight = Math.max(300, barRaw.length * 48 + 60);
+
+            const barOptions = {
+                series: [{
+                    name: 'Tăng trưởng',
+                    data: barValues
+                }],
+                chart: {
+                    type: 'bar',
+                    height: barChartHeight,
+                    fontFamily: 'Nunito, sans-serif',
+                    toolbar: {
+                        show: false
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        barHeight: '60%',
+                        borderRadius: 4,
+                        borderRadiusApplication: 'end',
+                        colors: {
+                            ranges: [{
+                                from: -999999,
+                                to: -0.0001,
+                                color: '#ef4444'
+                            }, {
+                                from: 0,
+                                to: 999999,
+                                color: '#10b981'
+                            }]
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                xaxis: {
+                    categories: barCategories,
+                    labels: {
+                        show: false
+                    },
+                    axisBorder: {
+                        show: false
+                    },
+                    axisTicks: {
+                        show: false
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        maxWidth: 380,
+                        style: {
+                            colors: barRaw.map(d => d.val >= 0 ? '#047857' : '#b91c1c'),
+                            fontSize: '13px',
+                            fontWeight: 700,
+                            fontFamily: 'Nunito, sans-serif'
+                        },
+                        offsetX: -5
+                    }
+                },
+                grid: {
+                    show: true,
+                    borderColor: '#f1f5f9',
+                    xaxis: {
+                        lines: { show: false }
+                    },
+                    yaxis: {
+                        lines: { show: false }
+                    },
+                    padding: {
+                        left: 10,
+                        right: 20
+                    }
+                },
+                annotations: {
+                    xaxis: [{
+                        x: 0,
+                        strokeDashArray: 0,
+                        borderColor: '#94a3b8',
+                        borderWidth: 1.5
+                    }]
+                },
+                tooltip: {
+                    custom: function({ series, seriesIndex, dataPointIndex, w }) {
+                        const d = barRaw[dataPointIndex];
+                        let prefix = d.val > 0 ? "+" : "";
+                        let pctPrefix = d.percent > 0 ? "+" : "";
+                        return `<div style="padding: 10px; font-family: Nunito, sans-serif; font-size: 13px; font-weight: 700;">` +
+                            `<strong>${d.name}</strong><br/>` +
+                            `Tăng trưởng: <span style="color:${d.val >= 0 ? '#10b981' : '#ef4444'}">${prefix}${d.val.toLocaleString('vi-VN')} TR (${pctPrefix}${d.percent}%)</span>` +
+                            `</div>`;
+                    }
+                }
+            };
+
+            window.revenuePieChart = new ApexCharts(document.querySelector("#chart-proportion"), pieOptions);
+            window.revenuePieChart.render();
+
+            window.revenueBarChart = new ApexCharts(document.querySelector("#chart-growth"), barOptions);
+            window.revenueBarChart.render();
+        }
 
         window.catApexChart = null;
 
@@ -2226,6 +2549,7 @@
             <td style="color:#0d47a1;">100%</td>
         </tr>`;
                 setHTML("board-bi", htmlBI);
+                window.parsedBI = parsedBI;
 
                 // RENDER BẢNG VIỆC CẦN LÀM HÔM NAY (MỤC 2)
                 let todoList = parsedBI.slice(0, 6);
