@@ -162,7 +162,6 @@
   </div>
 
   <div class="top-actions" data-html2canvas-ignore="true">
-      <button class="btn-action" onclick="loadData(true)" style="background: #10b981; color: white; border-color: #10b981;">🔄 ĐỔ DỮ LIỆU MỚI</button>
       <button class="btn-action" id="btnDownloadSplit">📸 TẢI ẢNH TÁCH (LƯU MÁY)</button>
       <button class="btn-action" id="btnDownloadFull">📸 TẢI ẢNH TOÀN TRANG</button>
       <button class="btn-action" onclick="copyComment()" style="background: #2563eb; color: white; border-color: #2563eb;">📋 SAO CHÉP NHẬN XÉT</button>
@@ -397,27 +396,13 @@
         openBILink('bcdtnh', 1, 'realtime_manual');
     }
 
-    async function loadData(forceRefresh = false) {
+    async function loadData() {
       try {
-        let cached = localStorage.getItem("BC_CACHE_REALTIME");
-        let cacheTime = localStorage.getItem("BC_CACHE_REALTIME_TIME");
-        let allData;
-
-        if (cached && !forceRefresh) {
-            allData = JSON.parse(cached);
-            let updateTime = cacheTime ? new Date(parseInt(cacheTime)).toLocaleTimeString('vi-VN') + " - " + new Date(parseInt(cacheTime)).toLocaleDateString('vi-VN') : "Không rõ";
-            setHTML("cache-status", `(Đang xem data offline lưu lúc: ${updateTime})`);
-        } else {
-            setHTML("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
-            const res = await fetch(GAS_URL + "?sheets=Data_BI,Data_ThiDua,Config_ThiDua,Data_Realtime_BI,Data_Realtime_ThiDua,Data_Realtime_NV");
-            allData = await res.json();
-            
-            localStorage.setItem("BC_CACHE_REALTIME", JSON.stringify(allData));
-            localStorage.setItem("BC_CACHE_REALTIME_TIME", Date.now().toString());
-            
-            let updateTime = new Date().toLocaleTimeString('vi-VN') + " - " + new Date().toLocaleDateString('vi-VN');
-            setHTML("cache-status", `(Vừa cập nhật mới lúc: ${updateTime})`);
-        }
+        localStorage.removeItem("BC_CACHE_REALTIME");
+        localStorage.removeItem("BC_CACHE_REALTIME_TIME");
+        setHTML("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
+        const res = await fetch(GAS_URL + "?sheets=Data_BI,Data_ThiDua,Config_ThiDua,Data_Realtime_BI,Data_Realtime_ThiDua,Data_Realtime_NV");
+        const allData = await res.json();
 
         const dataBI = allData["Data_BI"] || [];
         const dataThiDua = allData["Data_ThiDua"] || [];
