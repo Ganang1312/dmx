@@ -3036,45 +3036,20 @@
         });
 
         window.onload = async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const isAuto = urlParams.get('auto') === 'true';
-            await loadData(isAuto);
+            await loadData();
 
             // Cập nhật nội dung nhận xét sau khi load xong data
             if (window.reportMessageText) {
                 document.getElementById('commentBox').innerText = window.reportMessageText;
             }
 
-            // AUTO DOWNLOAD/UPLOAD NẾU CÓ THAM SỐ ?auto=true
-            const cmdId = urlParams.get('cmdId');
-            if (isAuto) {
-                if (cmdId) {
-                    console.log("🚀 Chế độ AUTO BOT: Đang chụp ảnh và upload lên Google Drive...");
-                    setTimeout(async () => {
-                        let c = await html2canvas(document.getElementById('report-container'), { scale: 2.0, backgroundColor: "#e9ecef" });
-                        let base64Data = c.toDataURL("image/jpeg", 0.85);
-                        try {
-                            await fetch(GAS_URL, {
-                                method: "POST",
-                                body: JSON.stringify({
-                                    action: "upload_screenshot",
-                                    cmdId: cmdId,
-                                    imgData: base64Data
-                                })
-                            });
-                            // Đợi thêm 1 giây để đảm bảo trình duyệt hoàn tất gửi gói tin ảnh lớn và nhận phản hồi
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                        } catch (e) {
-                            console.error("Upload error:", e);
-                        }
-                        window.close();
-                    }, 2000);
-                } else {
-                    console.log("🚀 Chế độ AUTO: Đang tự động tải ảnh...");
-                    setTimeout(() => {
-                        document.getElementById('btnDownloadSplit').click();
-                    }, 2000);
-                }
+            // AUTO DOWNLOAD NẾU CÓ THAM SỐ ?auto=true
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto') === 'true') {
+                console.log("🚀 Chế độ AUTO: Đang tự động tải ảnh...");
+                setTimeout(() => {
+                    document.getElementById('btnDownloadSplit').click();
+                }, 2000);
             }
         };
 
