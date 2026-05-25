@@ -2440,7 +2440,7 @@
                 
                 let diffTC = totalTyLeTC*100 - base_totalTyLeTC*100;
                 if(isNaN(diffTC)) diffTC = 0;
-                setHTML("c-tc-delta", `<span class="delta-badge ${diffTC >= 0 ? 'neg' : 'pos'}">${diffTC >= 0 ? '▲ +' : '▼ '}${diffTC.toFixed(1)}%</span>`);
+                setHTML("c-tc-delta", `<span class="delta-badge ${diffTC >= 0 ? 'pos' : 'neg'}">${diffTC >= 0 ? '▲ +' : '▼ '}${diffTC.toFixed(1)}%</span>`);
                 setText("c-tc", formatPercent(totalTyLeTC));
                 setHTML("c-tc-sub", `<span style="color:${colorTyTrongTC}; font-weight:900;">${formatMoney(tTC)} TR</span>`);
 
