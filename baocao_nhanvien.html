@@ -1210,8 +1210,106 @@
         part1.style.width = originalWidth;
         downloadURI(c1.toDataURL("image/png"), "1_XepHang_ThiDua_NV.png");
 
-        let c3 = await html2canvas(document.getElementById('part3'), { scale: 2.5 });
+        // Xử lý chụp Part 3 (Phân tích chi tiết hiệu suất cá nhân) theo bố cục hàng động
+        let part3 = document.getElementById('part3');
+        let grid = document.getElementById('performance-grid');
+        
+        // Save original styles and layout of grid and part3
+        let origPart3Width = part3.style.width;
+        let origGridDisplay = grid.style.display;
+        let origGridTemplateColumns = grid.style.gridTemplateColumns;
+        let origGridGap = grid.style.gap;
+        let origGridWidth = grid.style.width;
+        let origGridFlexDirection = grid.style.flexDirection;
+
+        // Save card elements and their original inline styles
+        let cards = Array.from(grid.querySelectorAll('.perf-card'));
+        let origCardStyles = cards.map(card => ({
+            card: card,
+            width: card.style.width,
+            flex: card.style.flex
+        }));
+
+        // Calculate temporary row sizes based on card count
+        let n = cards.length;
+        let rowSizes = [];
+        if (n <= 4) {
+            rowSizes = [n];
+        } else {
+            let q = Math.floor(n / 4);
+            let rem = n % 4;
+            
+            if (rem === 0) {
+                rowSizes = Array(q).fill(4);
+            } else if (rem === 3) {
+                rowSizes = Array(q).fill(4).concat([3]);
+            } else if (rem === 2) {
+                if (q === 1) {
+                    rowSizes = [3, 3];
+                } else {
+                    rowSizes = Array(q).fill(4).concat([2]);
+                }
+            } else if (rem === 1) {
+                if (q === 1) {
+                    rowSizes = [3, 2];
+                } else if (q === 2) {
+                    rowSizes = [3, 3, 3];
+                } else {
+                    rowSizes = Array(q - 2).fill(4).concat([3, 3, 3]);
+                }
+            }
+        }
+
+        // Switch to flex container to stack rows vertically
+        grid.style.display = 'flex';
+        grid.style.flexDirection = 'column';
+        grid.style.gap = '15px';
+        grid.style.width = '100%';
+
+        // Set dynamic container width according to the maximum columns in any row
+        let maxCardsInARow = Math.max(...rowSizes);
+        let tempContainerWidth = maxCardsInARow * 470 + (maxCardsInARow - 1) * 15;
+        part3.style.width = tempContainerWidth + 'px';
+
+        // Clear grid and append row containers
+        grid.innerHTML = '';
+        let cardIdx = 0;
+        rowSizes.forEach(size => {
+            let rowContainer = document.createElement('div');
+            rowContainer.style.display = 'flex';
+            rowContainer.style.gap = '15px';
+            rowContainer.style.justifyContent = 'center';
+            rowContainer.style.width = '100%';
+            
+            for (let i = 0; i < size; i++) {
+                if (cardIdx < cards.length) {
+                    let card = cards[cardIdx++];
+                    card.style.width = '470px';
+                    card.style.flex = '0 0 470px';
+                    rowContainer.appendChild(card);
+                }
+            }
+            grid.appendChild(rowContainer);
+        });
+
+        // Capture after temporary layout is applied
+        let c3 = await html2canvas(part3, { scale: 2.5 });
         downloadURI(c3.toDataURL("image/png"), "2_HieuSuat_NV.png");
+
+        // Restore original grid layout and card properties
+        grid.innerHTML = '';
+        origCardStyles.forEach(item => {
+            item.card.style.width = item.width;
+            item.card.style.flex = item.flex;
+            grid.appendChild(item.card);
+        });
+        grid.style.display = origGridDisplay;
+        grid.style.gridTemplateColumns = origGridTemplateColumns;
+        grid.style.gap = origGridGap;
+        grid.style.width = origGridWidth;
+        grid.style.flexDirection = origGridFlexDirection;
+        part3.style.width = origPart3Width;
+
         this.disabled = false;
     });
 
