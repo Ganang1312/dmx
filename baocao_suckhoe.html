@@ -1,0 +1,2243 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Báo cáo đánh giá sức khỏe siêu thị dựa vào dữ liệu lũy kế và nhân viên. Theo dõi tiến độ và biểu đồ theo ngày, tháng, năm.">
+  <meta property="og:title" content="Báo Cáo Sức Khỏe Siêu Thị - Cụm Savico">
+  <meta property="og:description" content="Báo cáo đánh giá sức khỏe siêu thị dựa vào dữ liệu lũy kế và nhân viên. Theo dõi tiến độ và biểu đồ theo ngày, tháng, năm.">
+  <meta property="og:type" content="website">
+  <title>Báo Cáo Sức Khỏe Siêu Thị - Cụm Savico</title>
+  <script src="shared_config.js"></script>
+  <script src="html-to-image.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800;900&display=swap');
+    
+    :root {
+      --bg-body: #eef2f7;
+      --bg-panel: #ffffff;
+      --border-color: transparent;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --text-label: #475569;
+      --bg-badge-stable: rgba(14, 165, 233, 0.15);
+      --color-badge-stable: #0284c7;
+      --row-hover: rgba(148, 163, 184, 0.05);
+      --input-bg: #eef2f7;
+      --table-scroll-bg: #ffffff;
+      --table-header-bg: rgba(148, 163, 184, 0.08);
+      --table-cell-text: #1e293b;
+      --row-selected: rgba(254, 240, 138, 0.4);
+      --neumorphic-outset: 0 0 20px rgba(163, 177, 198, 0.45), 0 4px 8px rgba(163, 177, 198, 0.2);
+      --neumorphic-inset: inset 0 0 10px rgba(163, 177, 198, 0.35), inset 0 2px 4px rgba(163, 177, 198, 0.15);
+      --panel-shadow: var(--neumorphic-outset);
+      --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      --teal-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --glass-blur: none;
+      --glass-bg: #ffffff;
+      --border-table: rgba(148, 163, 184, 0.35);
+    }
+    
+    [data-theme="dark"] {
+      --bg-body: #121824;
+      --bg-panel: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-label: #cbd5e1;
+      --bg-badge-stable: rgba(14, 165, 233, 0.15);
+      --color-badge-stable: #38bdf8;
+      --row-hover: rgba(255, 255, 255, 0.03);
+      --input-bg: #121824;
+      --table-scroll-bg: #1e293b;
+      --table-header-bg: rgba(255, 255, 255, 0.05);
+      --table-cell-text: #f8fafc;
+      --row-selected: rgba(234, 179, 8, 0.15);
+      --neumorphic-outset: 0 0 20px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+      --neumorphic-inset: inset 0 0 10px rgba(0, 0, 0, 0.45), inset 0 2px 4px rgba(0, 0, 0, 0.25);
+      --border-color: transparent;
+      --panel-shadow: var(--neumorphic-outset);
+      --border-table: rgba(156, 163, 175, 0.35);
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body { 
+      font-family: 'Nunito', sans-serif; 
+      background: var(--bg-body); 
+      color: var(--text-main);
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      padding: 15px; 
+      margin: 0; 
+      overflow-x: hidden;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    /* CONTAINER */
+    .dashboard-container {
+      width: 1420px;
+      max-width: 98vw;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    /* TOP CONTROL BAR */
+    .control-bar {
+      background: var(--bg-panel);
+      padding: 16px 20px;
+      border: none;
+      border-radius: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--panel-shadow);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    
+    .logo-title-sec {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .db-logo {
+      font-size: 24px;
+      background: var(--bg-body);
+      color: #0ea5e9;
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      box-shadow: var(--neumorphic-inset);
+    }
+    
+    .db-title-text {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      margin: 0;
+    }
+    
+    .db-subtitle-text {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-top: 1px;
+      text-transform: uppercase;
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .filters label {
+      font-weight: 900;
+      font-size: 11px;
+      color: var(--text-label);
+    }
+    .filters select {
+      padding: 6px 12px;
+      font-family: 'Inter', 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 12px;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      background: var(--input-bg);
+      color: var(--text-main);
+      cursor: pointer;
+      box-shadow: var(--neumorphic-inset);
+      transition: all 0.2s;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .btn {
+      padding: 8px 14px;
+      font-family: 'Inter', 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 11px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      background: var(--bg-panel);
+      color: var(--text-main);
+      box-shadow: var(--neumorphic-outset);
+      white-space: nowrap;
+    }
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(148, 163, 184, 0.15);
+    }
+    .btn:active {
+      transform: translateY(1px);
+      box-shadow: var(--neumorphic-inset);
+    }
+    .btn-primary {
+      background: var(--teal-gradient);
+      color: #fff;
+      box-shadow: var(--neumorphic-outset);
+    }
+    .btn-primary:hover {
+      background: var(--teal-gradient);
+      opacity: 0.9;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    }
+    .btn-blue {
+      background: var(--primary-gradient);
+      color: #fff;
+      box-shadow: var(--neumorphic-outset);
+    }
+    .btn-blue:hover {
+      background: var(--primary-gradient);
+      opacity: 0.9;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
+    }
+
+    /* TOP KPI BAR */
+    .kpi-summary-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    
+    .kpi-card {
+      background: var(--bg-panel);
+      border: none;
+      border-radius: 16px;
+      padding: 16px 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--neumorphic-outset);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    
+    .kpi-left {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    
+    .kpi-title {
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .kpi-value {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--text-main);
+      margin-top: 4px;
+      line-height: 1.1;
+    }
+    
+    .kpi-sub {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    .kpi-right-gauge {
+      width: 76px;
+      height: 76px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .kpi-gauge-score {
+      position: absolute;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 15px;
+      color: var(--text-main);
+    }
+    
+    .health-badge {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: none;
+      display: inline-block;
+      margin-top: 4px;
+      text-transform: uppercase;
+      box-shadow: var(--neumorphic-inset);
+    }
+    
+    .status-excellent { background: #d1fae5; color: #069669; }
+    .status-stable { background: #dbeafe; color: #2563eb; }
+    .status-warning { background: #fef3c7; color: #d97706; }
+    .status-danger { background: #fee2e2; color: #dc2626; }
+
+    /* MAIN OPERATIONAL GRID */
+    .operational-grid {
+      display: grid;
+      grid-template-columns: 26% 38% 36%;
+      gap: 16px;
+      height: 720px;
+    }
+    
+    .grid-column {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: 100%;
+    }
+    
+    .panel {
+      background: var(--bg-panel);
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--neumorphic-outset);
+      position: relative;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .panel-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 13px;
+      font-weight: 900;
+      color: var(--text-main);
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .panel-badge {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 10px;
+      padding: 3px 8px;
+      border: none;
+      background: var(--bg-body);
+      color: var(--text-main);
+      border-radius: 6px;
+      box-shadow: var(--neumorphic-inset);
+    }
+
+    /* LEFT PANELS */
+    .trend-panel {
+      flex: 0 0 230px;
+    }
+    
+    .annual-panel {
+      flex: 1;
+    }
+    
+    .progress-bar-container {
+      margin: 10px 0;
+    }
+    
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--text-label);
+      margin-bottom: 4px;
+    }
+    
+    .progress-bg {
+      height: 12px;
+      background: var(--bg-body);
+      border: none;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--neumorphic-inset);
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: #10b981;
+      width: 0%;
+      transition: width 0.5s ease;
+    }
+    
+    .progress-bottom-msg {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* MIDDLE & RIGHT PANEL TABLES */
+    .table-panel {
+      flex: 1;
+      overflow: hidden;
+    }
+    
+    .table-scroll {
+      flex: 1;
+      overflow-y: auto;
+      border: none;
+      border-radius: 12px;
+      background: var(--bg-panel);
+      box-shadow: var(--neumorphic-inset);
+      padding: 8px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      font-weight: 800;
+      table-layout: fixed;
+    }
+    
+    th {
+      background: var(--table-header-bg);
+      color: var(--text-main);
+      padding: 10px 4px;
+      font-weight: 900;
+      border-bottom: 2px solid var(--border-table) !important;
+      border-right: 1.5px solid var(--border-table) !important;
+      text-align: center;
+      text-transform: uppercase;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    th:last-child {
+      border-right: none !important;
+    }
+    
+    td {
+      padding: 8px 4px;
+      border-bottom: 1.5px solid var(--border-table) !important;
+      border-right: 1.5px solid var(--border-table) !important;
+      text-align: center;
+      vertical-align: middle;
+      color: var(--text-main);
+    }
+    
+    td:last-child {
+      border-right: none !important;
+    }
+    
+    tr:last-child td {
+      border-bottom: none !important;
+    }
+    
+    tr:hover td {
+      background: var(--row-hover);
+    }
+    
+    tr.clickable-row {
+      cursor: pointer;
+    }
+    
+    tr.selected-row td {
+      background: var(--row-selected) !important;
+    }
+    
+    .td-left {
+      text-align: left;
+      padding-left: 8px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .td-bold {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      color: var(--text-main);
+    }
+    
+    /* CELL COLOR BADGES */
+    .badge-cell {
+      padding: 3px 8px;
+      font-size: 10px;
+      font-weight: 900;
+      border-radius: 6px;
+      border: none;
+      display: inline-block;
+    }
+
+    /* RIGHT COLUMN - BOTTOM PANELS */
+    .insights-panel {
+      flex: 0 0 170px;
+      background: var(--bg-panel);
+    }
+    
+    .insights-scroll {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .insight-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      background: var(--bg-body);
+      color: var(--text-main);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.35;
+      box-shadow: var(--neumorphic-outset);
+    }
+    
+    .insight-row-tag {
+      font-size: 9px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: none;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      box-shadow: var(--neumorphic-inset);
+    }
+    
+    .tag-urgent { background: #fee2e2; color: #dc2626; }
+    .tag-support { background: #fef3c7; color: #d97706; }
+    .tag-info { background: #eff6ff; color: #2563eb; }
+
+    .action-panel {
+      flex: 0 0 250px;
+    }
+    
+    .action-split-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 12px;
+      flex: 1;
+      min-height: 0;
+    }
+    
+    .action-subbox {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .action-subbox textarea {
+      flex: 1;
+      border: none;
+      border-radius: 12px;
+      padding: 10px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      font-size: 11px;
+      resize: none;
+      outline: none;
+      background: var(--bg-body);
+      color: var(--text-main);
+      box-shadow: var(--neumorphic-inset);
+    }
+    
+    .action-subbox textarea:focus {
+      background: var(--bg-body);
+    }
+    
+    .chat-preview-box {
+      flex: 1;
+      background: var(--bg-body);
+      color: var(--text-main);
+      border-radius: 12px;
+      padding: 10px;
+      font-family: monospace;
+      font-size: 10px;
+      white-space: pre-wrap;
+      overflow-y: auto;
+      border: none;
+      line-height: 1.3;
+      box-shadow: var(--neumorphic-inset);
+    }
+    
+    /* FILTER RESET BADGE */
+    .filter-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--row-selected);
+      border: none;
+      padding: 4px 10px;
+      font-size: 10px;
+      font-weight: 900;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+      box-shadow: var(--neumorphic-outset);
+    }
+    .filter-close-btn {
+      font-size: 12px;
+      font-weight: 900;
+      color: #ef4444;
+    }
+    
+    .copyright {
+      font-size: 11px;
+      font-weight: 900;
+      color: var(--text-muted);
+      text-align: center;
+      text-transform: uppercase;
+      margin-top: 5px;
+    }
+    
+    /* DUAL PROGRESS BAR */
+    .progress-bar-cell {
+      position: relative;
+      width: 100%;
+      height: 8px;
+      background: var(--bg-body);
+      border: none;
+      border-radius: 4px;
+      overflow: hidden; 
+      margin-top: 4px;
+      box-shadow: var(--neumorphic-inset);
+    }
+    .progress-fill-cell {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .benchmark-marker {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2.5px;
+      background: #f97316; 
+      z-index: 2;
+      box-shadow: 0 0 4px rgba(249, 115, 22, 0.8);
+    }
+    .fill-green { background: #10b981; }
+    .fill-yellow { background: #f59e0b; }
+    .fill-red { background: #ef4444; }
+
+    /* TABS */
+    .msg-tab-btn {
+      flex: 1;
+      padding: 6px 12px;
+      font-size: 10px;
+      font-weight: 800;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      background: var(--bg-body);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      transition: all 0.2s;
+      box-shadow: var(--neumorphic-outset);
+    }
+    .msg-tab-btn.active {
+      background: var(--bg-panel);
+      color: var(--text-main);
+      border-bottom: 2px solid #ff8a9f;
+      font-weight: 900;
+      box-shadow: var(--neumorphic-inset);
+    }
+
+    /* HEATMAP */
+    #heatmap-table th, #heatmap-table td {
+      border: 1px solid rgba(148, 163, 184, 0.15) !important;
+      padding: 6px 4px !important;
+    }
+    
+    /* HIDE SCROLLBARS FOR PRINTING */
+    body.rendering-canvas .table-scroll,
+    body.rendering-canvas .insights-scroll,
+    body.rendering-canvas .chat-preview-box {
+      overflow-y: visible !important;
+      max-height: none !important;
+      height: auto !important;
+    }
+    
+    body.rendering-canvas .operational-grid {
+      height: auto !important;
+    }
+
+    /* TAB NAVIGATION SYSTEM - PREMIUM MODULAR SEGMENTED CONTROLS */
+    .top-nav-container {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        margin: 15px auto 25px auto;
+        max-width: 1010px;
+        width: 100%;
+        box-sizing: border-box;
+        background: var(--bg-panel);
+        border-radius: 20px;
+        box-shadow: var(--neumorphic-outset);
+        padding: 8px 12px;
+        gap: 6px;
+        position: relative;
+        font-family: 'Inter', 'Nunito', sans-serif;
+        transition: all 0.3s ease;
+    }
+    .top-nav-container a {
+        text-decoration: none;
+        padding: 10px 18px;
+        font-weight: 800;
+        font-size: 12px;
+        color: var(--text-muted);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 12px;
+        position: relative;
+        letter-spacing: 0.3px;
+    }
+    .top-nav-container a:hover {
+        color: var(--text-main);
+        background: rgba(148, 163, 184, 0.08);
+        transform: translateY(-1px);
+    }
+    .top-nav-container a.active-tab {
+        color: white !important;
+        background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        font-weight: 900 !important;
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+    }
+    .top-nav-container a.active-tab::after {
+        display: none !important;
+    }
+    #btnReloadTop,
+    #btnThemeTop,
+    #theme-icon-btn {
+        position: absolute !important;
+        height: 38px;
+        padding: 0 16px !important;
+        border-radius: 12px !important;
+        font-weight: 800 !important;
+        font-size: 11px !important;
+        letter-spacing: 0.3px;
+        font-family: 'Inter', 'Nunito', sans-serif !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-shadow: var(--neumorphic-outset) !important;
+        border: none !important;
+        cursor: pointer !important;
+        background: var(--bg-panel) !important;
+        color: var(--text-main) !important;
+        transition: all 0.2s ease !important;
+    }
+    #btnReloadTop {
+        right: 68px !important;
+    }
+    #btnThemeTop,
+    #theme-icon-btn {
+        right: 12px !important;
+        width: 44px !important;
+        padding: 0 !important;
+    }
+    #btnReloadTop:hover,
+    #btnThemeTop:hover,
+    #theme-icon-btn:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 10px rgba(148, 163, 184, 0.15) !important;
+    }
+    #btnReloadTop:active,
+    #btnThemeTop:active,
+    #theme-icon-btn:active {
+        transform: translateY(1px) !important;
+        box-shadow: var(--neumorphic-inset) !important;
+    }
+    
+    [data-theme="dark"] #btnReloadTop,
+    [data-theme="dark"] #theme-icon-btn {
+        background: var(--bg-panel) !important;
+        border: none !important;
+        color: var(--text-main) !important;
+        box-shadow: var(--neumorphic-outset) !important;
+    }
+    </style>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    
+    <!-- TOP ACTIONS (NAVIGATION) -->
+    <div class="top-nav-container" data-html2canvas-ignore="true">
+      <a href="baocao_luyke.html">📊 LŨY KẾ</a>
+      <a href="baocao_nhanvien.html">👥 NHÂN VIÊN</a>
+      <a href="baocao_realtime.html">⚡ REALTIME</a>
+      <a href="baocao_suckhoe.html" class="active-tab">🏥 SỨC KHỎE</a>
+      <button onclick="clearGasCacheAndReload()" style="position: absolute; right: 48px; padding: 8px 14px; font-weight: 800; font-size: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; border: none; background: var(--bg-panel); color: var(--text-main); font-family: 'Inter', sans-serif; box-shadow: var(--neumorphic-outset);" id="btnReloadTop">
+        <span>🔄 Làm mới</span>
+      </button>
+      
+      <button onclick="toggleTheme()" style="position: absolute; right: 0; padding: 8px 14px; font-weight: 800; font-size: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; border: none; background: var(--bg-panel); color: var(--text-main); font-family: 'Inter', sans-serif; box-shadow: var(--neumorphic-outset);" id="theme-icon-btn">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+
+    <!-- TOP CONTROL BAR -->
+    <div class="control-bar" data-html2canvas-ignore="true">
+      <div class="logo-title-sec">
+        <div class="db-logo">SAVICO</div>
+        <div>
+          <h1 class="db-title-text">🏥 Dashboard Sức Khỏe & Vận Hành</h1>
+          <div class="db-subtitle-text">Hệ thống phân tích hiệu suất thời gian thực <span id="cache-status" style="text-transform: none; font-size: 13px; color: #64748b; font-weight: normal; margin-left: 10px;"></span></div>
+        </div>
+      </div>
+      
+      <div class="filters">
+        <label>📅 XEM NGÀY:</label>
+        <select id="compDateSel" onchange="loadData()">
+          <option value="current">Hiện tại (Mới nhất)</option>
+        </select>
+        
+        <label>SO VỚI NGÀY:</label>
+        <select id="baseDateSel" onchange="loadData()">
+          <option value="auto">Tự động (Hôm trước)</option>
+        </select>
+      </div>
+      
+      <div class="actions">
+        <button class="btn btn-blue" id="btnDownloadCurrent">
+          📸 CHỤP MÀN HÌNH
+        </button>
+        <button class="btn btn-primary" id="btnCopyComments" onclick="copyReportText()">
+          📋 COPY NHẬN XÉT
+        </button>
+      </div>
+    </div>
+
+    <!-- TOP KPI BAR -->
+    <div class="kpi-summary-grid">
+      <!-- Health Score Circular Gauge -->
+      <div class="kpi-card">
+        <div class="kpi-left">
+          <span class="kpi-title">Điểm Sức Khỏe Siêu Thị</span>
+          <div class="kpi-value" id="health-score-percent">0%</div>
+          <div>
+            <span class="health-badge status-stable" id="health-status">ỔN ĐỊNH</span>
+          </div>
+        </div>
+        <div class="kpi-right-gauge">
+          <div id="chart-health-gauge"></div>
+          <span class="kpi-gauge-score" id="health-gauge-text">0</span>
+        </div>
+      </div>
+      
+      <!-- Revenue KPI -->
+      <div class="kpi-card">
+        <div class="kpi-left">
+          <span class="kpi-title">Doanh Thu Quy Đổi</span>
+          <div class="kpi-value" id="val-store-rev">0 TR</div>
+          <span class="kpi-sub" id="val-store-rev-target">Mục tiêu: 0 TR (0%)</span>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <span style="font-size: 10px; font-weight: 900; color: #64748b; display: block; text-transform: uppercase;">Dự kiến tháng</span>
+          <span style="font-size: 18px; font-weight: 900; color: #1e272e;" id="val-store-forecast">0%</span>
+        </div>
+      </div>
+      
+      <!-- Contests KPI -->
+      <div class="kpi-card">
+        <div class="kpi-left">
+          <span class="kpi-title">Thi Đua Ngành Hàng</span>
+          <div class="kpi-value" id="val-contest-achieved">0/0 Nhóm</div>
+          <span class="kpi-sub" id="val-contest-percent">Tỷ lệ đạt mục tiêu: 0%</span>
+        </div>
+        <div style="font-size: 28px; color: #10b981; opacity: 0.8;">🏆</div>
+      </div>
+      
+      <!-- Staff KPI -->
+      <div class="kpi-card">
+        <div class="kpi-left">
+          <span class="kpi-title">Nhân Sự Đạt Chuẩn</span>
+          <div class="kpi-value" id="val-staff-achieved">0/0 NV</div>
+          <span class="kpi-sub" id="val-staff-percent">Tỷ lệ đạt chuẩn: 0%</span>
+        </div>
+        <div style="font-size: 28px; color: #3b82f6; opacity: 0.8;">👥</div>
+      </div>
+    </div>
+
+    <!-- MAIN OPERATIONAL GRID -->
+    <div class="operational-grid" id="main-op-grid">
+      
+      <!-- COLUMN 1: OPERATION TRENDS & KIP YEAR -->
+      <div class="grid-column">
+        <!-- Sparkline Panel -->
+        <div class="panel trend-panel">
+          <div class="panel-header">
+            <span class="panel-title">📈 Xu Hướng Điểm Sức Khỏe</span>
+            <span class="panel-badge">5 Ngày gần đây</span>
+          </div>
+          <div id="chart-health-trend" style="flex: 1; width: 100%;"></div>
+        </div>
+        
+        <!-- Year Target Progress Panel -->
+        <div class="panel annual-panel">
+          <div class="panel-header">
+            <span class="panel-title">📅 Chỉ Tiêu Doanh Thu Năm</span>
+            <span class="panel-badge">Lũy kế dự báo</span>
+          </div>
+          
+          <div class="progress-bar-container">
+            <div class="progress-info">
+              <span id="year-prog-label" style="font-weight: 900;">Dự báo năm: 0 TR</span>
+              <span id="year-prog-percent" style="font-weight: 900; color: #10b981;">0%</span>
+            </div>
+            <div class="progress-bg">
+              <div class="progress-fill" id="year-prog-bar"></div>
+            </div>
+            <div class="progress-bottom-msg" id="year-prog-msg">Cần đóng góp thêm để đạt mục tiêu năm</div>
+          </div>
+          
+          <div style="font-size: 11px; font-weight: 900; color: #1e272e; text-transform: uppercase; margin-bottom: 4px; border-top: 1px dashed #cbd5e1; padding-top: 10px;">
+            📊 Phân tích mục tiêu theo tháng
+          </div>
+          <div id="chart-months-bar" style="flex: 1; width: 100%;"></div>
+        </div>
+      </div>
+      
+      <!-- COLUMN 2: CATEGORY RANKINGS -->
+      <div class="grid-column">
+        <div class="panel table-panel">
+          <div class="panel-header">
+            <span class="panel-title">🏆 Chỉ Tiêu Thi Đua Các Ngành Hàng</span>
+            <div id="cat-filter-badge" style="display: none;">
+              <div class="filter-indicator" onclick="resetCategoryFilter()">
+                <span>Đang lọc</span>
+                <span class="filter-close-btn">&times;</span>
+              </div>
+            </div>
+            <div id="staff-filter-badge-on-cat" style="display: none;">
+              <div class="filter-indicator" onclick="resetStaffFilter()" style="background: var(--bg-badge-stable); color: var(--color-badge-stable); border-color: var(--color-badge-stable);">
+                <span id="staff-filter-name-on-cat">Lọc NV</span>
+                <span class="filter-close-btn">&times;</span>
+              </div>
+            </div>
+            <span class="panel-badge" id="cat-count-badge">0 Ngành</span>
+          </div>
+          
+          <div class="table-scroll">
+            <table id="category-table">
+              <thead>
+                <tr>
+                  <th style="width: 44%;">Ngành Hàng</th>
+                  <th style="width: 17%;">Target</th>
+                  <th style="width: 17%;">Đã Bán</th>
+                  <th style="width: 22%;">% Hoàn Thành</th>
+                </tr>
+              </thead>
+              <tbody id="category-table-body">
+                <!-- rendered programmatically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- COLUMN 3: STAFF KPI & INSIGHTS -->
+      <div class="grid-column">
+        <!-- Staff Table Panel -->
+        <div class="panel table-panel" style="flex: 1.2;">
+          <div class="panel-header">
+            <span class="panel-title">👥 Hiệu Suất KPI Nhân Sự</span>
+            <span class="panel-badge" id="staff-filter-title">Toàn Siêu Thị</span>
+            <div id="cat-filter-badge-on-staff" style="display: none; margin-left: 8px;">
+              <div class="filter-indicator" onclick="resetCategoryFilter()">
+                <span>Đang lọc</span>
+                <span class="filter-close-btn">&times;</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="table-scroll">
+            <table id="staff-table">
+              <thead>
+                <tr>
+                  <th style="width: 42%;">Nhân Viên</th>
+                  <th style="width: 17%;">Target</th>
+                  <th style="width: 17%;">Thực Tế</th>
+                  <th style="width: 24%;">% Đạt (Tiến Độ)</th>
+                </tr>
+              </thead>
+              <tbody id="staff-table-body">
+                <!-- rendered programmatically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Automated Improvement Insights Panel -->
+        <div class="panel insights-panel">
+          <div class="panel-header">
+            <span class="panel-title">💡 Hành Động Cải Thiện Đề Xuất</span>
+            <span class="panel-badge">Tự động sinh</span>
+          </div>
+          <div class="insights-scroll" id="insights-container">
+            <!-- rendered programmatically -->
+          </div>
+        </div>
+        
+        <!-- Comment & Send Message Panel -->
+        <div class="panel action-panel">
+          <div class="panel-header">
+            <span class="panel-title">✍️ Chỉ Đạo Vận Hành & Tin Nhắn Báo Cáo</span>
+          </div>
+          
+          <div class="action-split-grid">
+            <div class="action-subbox">
+              <span style="font-size: 10px; font-weight: 800; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase;">Ý kiến Quản lý:</span>
+              <textarea id="manager-notes" oninput="updateCopyPreview()" placeholder="Nhập chỉ đạo hoặc lưu ý riêng tại đây để thêm vào tin nhắn báo cáo..."></textarea>
+            </div>
+            <div class="action-subbox">
+              <div class="message-tabs" style="display: flex; gap: 4px; margin-bottom: 6px; border-bottom: 1.5px solid var(--border-color); padding-bottom: 2px;">
+                <button class="msg-tab-btn active" id="tab-praise-btn" onclick="switchMessageTab('praise')">🏆 TUYÊN DƯƠNG</button>
+                <button class="msg-tab-btn" id="tab-warning-btn" onclick="switchMessageTab('warning')">📢 ĐÔN ĐỐC</button>
+              </div>
+              <div class="chat-preview-box" id="copy-preview">
+                <!-- Preview output -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+
+
+    
+    <div class="copyright">
+      REPORT SỨC KHỎE SIÊU THỊ © BY NH.DƯƠNG-32859
+    </div>
+
+  </div>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxjTGuxxRiX1zY78pRkZ55qhJQF5om1Vht_kC3exy5JsYVBwjH1u7G2crr6dwbFz0lj/exec";
+    
+    // Globals
+    window.availableDates = [];
+    window.dateMapYMD = {};
+    window.historyDataCache = {};
+    let globalStoreHealthScore = 80;
+    
+    // Active Data and Filters
+    let rawStoreConfig = [];
+    let parsedThiDua = [];
+    let parsedStaff = [];
+    let selectedCategoryClean = null;
+    let selectedStaffId = null;
+    let currentMessageTab = 'praise';
+    let timeProgress = 0.5;
+
+    // Theme Switcher & Loader
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const targetTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      
+      document.documentElement.setAttribute('data-theme', targetTheme);
+      try {
+          localStorage.setItem('theme', targetTheme);
+      } catch(e) {}
+      
+      if (typeof memoryCache !== 'undefined') {
+          memoryCache._app_theme = targetTheme;
+          saveMemoryCacheToWindowName();
+      }
+      
+      const iconEl = document.getElementById('theme-icon');
+      if (iconEl) iconEl.innerText = targetTheme === 'dark' ? '☀️' : '🌙';
+      
+      updateChartThemes();
+    }
+    
+    (function() {
+      let savedTheme = 'light';
+      try {
+        savedTheme = localStorage.getItem('theme');
+      } catch(e) {}
+      if (!savedTheme && typeof memoryCache !== 'undefined' && memoryCache._app_theme) {
+        savedTheme = memoryCache._app_theme;
+      }
+      if (savedTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+      document.addEventListener('DOMContentLoaded', () => {
+        const iconEl = document.getElementById('theme-icon');
+        if (iconEl) iconEl.innerText = savedTheme === 'dark' ? '☀️' : '🌙';
+      });
+    })();
+
+    function getChartThemeColors() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      return {
+        foreColor: isDark ? '#9ca3af' : '#64748b',
+        gridColor: isDark ? 'rgba(75, 85, 99, 0.4)' : '#cbd5e1',
+        gaugeTrack: isDark ? 'rgba(31, 41, 55, 0.5)' : '#f1f5f9',
+        barColors: isDark ? ['#374151', '#10b981'] : ['#475569', '#10b981'],
+        canvasBg: isDark ? '#0b0f19' : '#e9ecef'
+      };
+    }
+    
+    function getHealthScoreColor(score) {
+      if (score >= 90) return "#10b981";
+      if (score >= 75) return "#3b82f6";
+      if (score >= 55) return "#f59e0b";
+      return "#ef4444";
+    }
+
+    function updateChartThemes() {
+      if (gaugeChart) renderHealthGauge(globalStoreHealthScore, getHealthScoreColor(globalStoreHealthScore));
+      if (trendChart) renderTrendChart();
+      if (barChart) loadData(); // refresh columns chart
+    }
+    
+    // Summary values
+    let globalStoreRevPercent = 0;
+    let globalContestPercent = 0;
+    let globalStaffPercent = 0;
+    let globalDateString = "";
+    let globalRemRev = 0;
+    
+    // Chart References
+    let gaugeChart = null;
+    let trendChart = null;
+    let barChart = null;
+
+    // Numerical helpers
+    const parseVnNumber = (val) => {
+      if (val == null || val === '') return 0;
+      if (typeof val === 'number') return val;
+      let str = String(val).trim().replace(/\s/g, '');
+      if (str.includes(',') && str.includes('.')) {
+        str = (str.lastIndexOf(',') > str.lastIndexOf('.')) ? str.replace(/\./g, '').replace(',', '.') : str.replace(/,/g, '');
+      } else if (str.includes(',')) { str = str.replace(',', '.'); }
+      let num = parseFloat(str); return isNaN(num) ? 0 : num;
+    };
+    
+    const formatMoney = (val) => Math.round(val).toLocaleString('vi-VN');
+    const formatPercent = (val) => (val * 100).toLocaleString('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + '%';
+    const getKey = (obj, ...names) => { 
+      let keys = Object.keys(obj); 
+      for (let n of names) { 
+        let m = keys.find(k => k.trim().toLowerCase() === n.toLowerCase()); 
+        if (m) return obj[m]; 
+      } 
+      return undefined; 
+    };
+    
+    const getBadgeClass = (percent) => {
+      if (percent >= 1.0) return "status-excellent";
+      if (percent >= 0.8) return "status-stable";
+      if (percent >= 0.5) return "status-warning";
+      return "status-danger";
+    };
+    
+    const getEmoji = (name) => {
+      let n = String(name).toUpperCase();
+      if (n.includes("QUẠT")) return "🎐";
+      if (n.includes("ĐIỆN TỬ") || n.includes("TIVI") || n.includes("SONY")) return "📺";
+      if (n.includes("GIẶT") || n.includes("SẤY")) return "🧺";
+      if (n.includes("PIN") || n.includes("SẠC")) return "🔋";
+      if (n.includes("LAPTOP")) return "💻";
+      if (n.includes("TỦ LẠNH") || n.includes("ĐÔNG") || n.includes("MÁT")) return "❄️";
+      if (n.includes("KHÔNG KHÍ") || n.includes("MLKK")) return "🌀";
+      if (n.includes("LỌC") || n.includes("NƯỚC") || n.includes("MLN")) return "🚰";
+      if (n.includes("GIA DỤNG")) return "🍳";
+      if (n.includes("ĐIỆN THOẠI") || n.includes("SMARTPHONE") || n.includes("PHONE") || n.includes("FLAGSHIP")) return "📱";
+      if (n.includes("CAMERA")) return "📷";
+      if (n.includes("MÁY LẠNH") || n.includes("ĐIỀU HÒA") || n.includes("LẠNH ĐẶC QUYỀN")) return "🌡️";
+      if (n.includes("ĐỒNG HỒ") || n.includes("THỜI TRANG")) return "⌚";
+      if (n.includes("BẢO HIỂM") || n.includes("FINANCE") || n.includes("CREDIT") || n.includes("VÍ") || n.includes("CAKE") || n.includes("HC")) return "💳";
+      if (n.includes("SIM")) return "📶";
+      if (n.includes("PHỤ KIỆN")) return "🎧";
+      return "📦";
+    };
+
+    async function initHistory() {
+      try {
+        const res = await fetch(GAS_URL + "?action=getHistoryDates");
+        const rawDates = await res.json();
+        
+        let validDates = [];
+        let seenYMD = new Set();
+        if (Array.isArray(rawDates)) {
+          let sortedDates = rawDates.slice().sort((a, b) => {
+            let da = new Date(a); let db = new Date(b);
+            if (isNaN(da) || isNaN(db)) return String(b).localeCompare(String(a));
+            return db - da;
+          });
+          
+          function toYMD(d) {
+            let dt = new Date(d);
+            if (isNaN(dt.getTime())) return String(d);
+            let y = dt.getFullYear();
+            let m = String(dt.getMonth() + 1).padStart(2, '0');
+            let day = String(dt.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+          }
+
+          sortedDates.forEach(d => {
+            let ymd = String(d).length > 10 ? toYMD(d) : d;
+            if (ymd && !seenYMD.has(ymd)) {
+              seenYMD.add(ymd);
+              validDates.push({ orig: d, ymd: ymd });
+            }
+          });
+        }
+        
+        window.availableDates = validDates.map(item => item.orig);
+        window.dateMapYMD = {};
+        validDates.forEach(item => window.dateMapYMD[item.orig] = item.ymd);
+
+        let baseSel = document.getElementById('baseDateSel');
+        let compSel = document.getElementById('compDateSel');
+        if(!baseSel || !compSel) return;
+        
+        let htmlBase = '<option value="auto">Tự động (Hôm trước)</option>';
+        let htmlComp = '<option value="current">Hiện tại (Mới nhất)</option>';
+        
+        window.availableDates.forEach(function(d) {
+          let ymd = window.dateMapYMD[d] || d;
+          let parts = ymd.split('-');
+          let display = parts.length === 3 ? parts[2]+'/'+parts[1]+'/'+parts[0] : ymd;
+          htmlBase += '<option value="' + d + '">' + display + '</option>';
+          htmlComp += '<option value="' + d + '">' + display + '</option>';
+        });
+        baseSel.innerHTML = htmlBase;
+        compSel.innerHTML = htmlComp;
+      } catch(e) { 
+        console.error("Lỗi lấy lịch sử ngày:", e); 
+      }
+    }
+
+    async function getHistoryForDate(dateVal) {
+      if (!dateVal || dateVal === 'auto' || dateVal === 'current') return null;
+      if (!window.historyDataCache[dateVal]) {
+        let queryDate = window.dateMapYMD && window.dateMapYMD[dateVal] ? window.dateMapYMD[dateVal] : dateVal;
+        const res = await fetch(GAS_URL + "?action=getHistoryData&date=" + encodeURIComponent(queryDate));
+        window.historyDataCache[dateVal] = await res.json();
+      }
+      return window.historyDataCache[dateVal];
+    }
+
+    // Load and Compute Operational Dashboard Data
+    async function loadData() {
+      try {
+        let baseVal = document.getElementById('baseDateSel') ? document.getElementById('baseDateSel').value : 'auto';
+        let compVal = document.getElementById('compDateSel') ? document.getElementById('compDateSel').value : 'current';
+
+        // Load all required sheets including Data_NV_ThiDua for drill-down category matching
+        const cacheStatusEl = document.getElementById("cache-status");
+        if (cacheStatusEl) cacheStatusEl.innerHTML = `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`;
+
+        const res = await fetch(GAS_URL + "?sheets=Config_ThiDua,Data_BI,Data_ThiDua,Data_NV_BI,Data_NV_ThiDua");
+        const fromCache = res.headers.get('X-From-Cache') === 'true';
+        const currentData = await res.json();
+
+        if (cacheStatusEl) {
+          if (fromCache) {
+            cacheStatusEl.innerHTML = `(⚡ Dữ liệu lưu cục bộ)`;
+          } else {
+            let updateTime = new Date().toLocaleTimeString('vi-VN') + " - " + new Date().toLocaleDateString('vi-VN');
+            cacheStatusEl.innerHTML = `(Vừa cập nhật mới lúc: ${updateTime})`;
+          }
+        }
+        
+        let dataBI, dataThiDua, dataConfig, dataNV_BI, dataNV_ThiDua;
+        dataConfig = currentData["Config_ThiDua"] || [];
+        rawStoreConfig = dataConfig; // Save to global config
+        
+        if (compVal === 'current') {
+          dataBI = currentData["Data_BI"] || [];
+          dataThiDua = currentData["Data_ThiDua"] || [];
+          dataNV_BI = currentData["Data_NV_BI"] || [];
+          dataNV_ThiDua = currentData["Data_NV_ThiDua"] || [];
+        } else {
+          let hData = await getHistoryForDate(compVal);
+          dataBI = hData["Data_BI"] || [];
+          dataThiDua = hData["Data_ThiDua"] || [];
+          dataNV_BI = hData["Data_NV_BI"] || [];
+          dataNV_ThiDua = hData["Data_NV_ThiDua"] || [];
+        }
+
+        // Determine actual date string
+        let reportDateText = "";
+        let todayObj = new Date();
+        if (compVal === 'current') {
+          let yesterday = new Date(todayObj);
+          yesterday.setDate(todayObj.getDate() - 1);
+          reportDateText = yesterday.toLocaleDateString('vi-VN');
+          todayObj = yesterday;
+        } else {
+          let ymd = window.dateMapYMD[compVal] || compVal;
+          let parts = ymd.split('-');
+          if (parts.length === 3) {
+            reportDateText = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            todayObj = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+          } else {
+            reportDateText = ymd;
+          }
+        }
+        globalDateString = reportDateText;
+
+        // Date calculations
+        const currentDay = todayObj.getDate();
+        let reportMonth = todayObj.getMonth();
+        let reportYear = todayObj.getFullYear();
+        const daysInMonth = new Date(reportYear, reportMonth + 1, 0).getDate();
+        let daysPassed = currentDay;
+        if (daysPassed <= 0) daysPassed = 1;
+        timeProgress = daysPassed / daysInMonth;
+        
+        window.daysPassed = daysPassed;
+        window.daysInMonth = daysInMonth;
+
+        // 1. REVENUE CALCULATION (50% WEIGHT)
+        let tDT = 0, tTG = 0;
+        for (let row of dataBI) {
+          let dt = parseVnNumber(getKey(row, "doanh thu quy đổi"));
+          let tg = parseVnNumber(getKey(row, "target"));
+          let nganhHang = getKey(row, "nhóm ngành hàng", "ngành hàng", "salegroupmastername");
+          if (!nganhHang || String(nganhHang).trim() === "" || String(nganhHang).trim().toUpperCase() === "N/A") continue;
+          tDT += dt; 
+          tTG += tg;
+        }
+        
+        let storeRevPercent = tTG > 0 ? tDT / tTG : 0;
+        let totalDKThang = (tDT / daysPassed) * daysInMonth;
+        let dkHT = tTG > 0 ? totalDKThang / tTG : 0;
+        let scoreRev = Math.min(100, Math.max(0, dkHT * 100));
+        globalStoreRevPercent = scoreRev;
+
+        // Update Revenue UI
+        document.getElementById('val-store-rev').innerText = formatMoney(tDT) + " TR";
+        document.getElementById('val-store-rev-target').innerText = `Mục tiêu: ${formatMoney(tTG)} TR (${formatPercent(storeRevPercent)})`;
+        document.getElementById('val-store-forecast').innerText = formatPercent(dkHT);
+        let remRev = tTG - tDT;
+        globalRemRev = remRev;
+
+        // 2. CONTEST CATEGORIES CALCULATION (30% WEIGHT)
+        let configMap = {};
+        let targetNam = 0;
+        let thucHienCacThangTruoc = 0;
+
+        if (dataConfig && dataConfig.length > 0) {
+          for (let c of dataConfig) {
+            let ten = getKey(c, "ngành hàng", "nhóm ngành hàng");
+            let phanLoai = parseVnNumber(getKey(c, "phân loại", "loại", "mức độ"));
+            if (ten) configMap[String(ten).toLowerCase().trim()] = { phanLoai };
+
+            let targetT = parseVnNumber(getKey(c, "target", "target tháng", "mục tiêu tháng", "kế hoạch"));
+            let thucHienT = parseVnNumber(getKey(c, "thực hiện", "dt thực hiện", "doanh thu thực hiện"));
+            let thangValue = parseVnNumber(getKey(c, "Tháng", "tháng", "thang"));
+            
+            if (targetT > 0) targetNam += targetT;
+            if (thangValue > 0) {
+              let currentMonthVal = todayObj.getMonth() + 1;
+              if (thangValue < currentMonthVal && thucHienT > 0) {
+                thucHienCacThangTruoc += thucHienT;
+              }
+            } else {
+              if (thucHienT > 0) thucHienCacThangTruoc += thucHienT;
+            }
+          }
+        }
+
+        parsedThiDua = [];
+        let cntDK = 0, totalTD = 0;
+
+        for (let row of dataThiDua) {
+          let nganhHang = getKey(row, "maingroupname", "main group name", "nhóm ngành hàng", "nhóm ngành hàng chính");
+          if (!nganhHang || String(nganhHang).trim() === "" || nganhHang === "N/A") continue;
+
+          let target = parseVnNumber(getKey(row, "target", "mục tiêu"));
+          if (target <= 0) continue;
+
+          let nganhClean = String(nganhHang).toLowerCase().trim();
+          let cObj = configMap[nganhClean] || {};
+          if (Object.keys(configMap).length > 0 && (!cObj.phanLoai || cObj.phanLoai === 0)) continue;
+
+          let sl = parseVnNumber(getKey(row, "số lượng", "quantity"));
+          let dt = parseVnNumber(getKey(row, "doanh thu"));
+
+          let thucHien = sl;
+          let isSL = true;
+          if (dt > 0) {
+            if (sl === 0 || Math.abs((dt/target)-1) < Math.abs((sl/target)-1)) {
+              thucHien = dt;
+              isSL = false;
+            }
+          }
+          
+          let htTarget = thucHien / target;
+          let htDuKien = ((thucHien / daysPassed) * daysInMonth) / target;
+          
+          let item = { nganhHang, thucHien, target, htTarget, htDuKien, isSL };
+          parsedThiDua.push(item);
+          totalTD++;
+
+          if (htDuKien >= 1.0) {
+            cntDK++;
+          }
+        }
+
+        // Sort categories by progress percentage (descending)
+        parsedThiDua.sort((a, b) => b.htDuKien - a.htDuKien);
+        let scoreContest = totalTD > 0 ? (cntDK / totalTD) * 100 : 0;
+        globalContestPercent = scoreContest;
+
+        // Update Contests UI
+        document.getElementById('val-contest-achieved').innerText = `${cntDK}/${totalTD} Nhóm`;
+        document.getElementById('val-contest-percent').innerText = `Tỷ lệ đạt mục tiêu: ${formatPercent(totalTD > 0 ? cntDK / totalTD : 0)}`;
+        document.getElementById('cat-count-badge').innerText = `${totalTD} Ngành`;
+
+        // 3. STAFF PERFORMANCE CALCULATION (20% WEIGHT)
+        let userMap = {}; 
+        if (dataConfig && dataConfig.length > 0) {
+          for (let row of dataConfig) {
+            let userId = getKey(row, "user");
+            if (!userId || String(userId).trim() === "") continue;
+            userId = String(userId).trim().toUpperCase();
+            
+            let name = getKey(row, "user-họ và tên", "họ và tên", "tên nhân viên");
+            if (!name) name = "Unknown";
+            
+            let percent = parseVnNumber(getKey(row, "% chia", "tỷ lệ %"));
+            let ratio = percent <= 1 ? percent : percent / 100; 
+            let target = ratio * tTG;
+            
+            userMap[userId] = { name, target, ratio, dt: 0, tdSales: {} };
+          }
+        }
+
+        // Load general sales of staff
+        if (dataNV_BI && dataNV_BI.length > 0) {
+          for(let row of dataNV_BI) {
+            let userId = String(getKey(row, "mã nv", "mã nhân viên", "employeeid", "user", "staffuser")).trim().toUpperCase();
+            if (!userId || userId === "") continue;
+            let dtQD = parseVnNumber(getKey(row, "doanh thu quy đổi", "revenue_kfactor", "dt quy đổi")); 
+            if (userMap[userId]) {
+              userMap[userId].dt += dtQD;
+            }
+          }
+        }
+
+        // Load detailed sales of staff per category (for drill-down filtering)
+        if (dataNV_ThiDua && dataNV_ThiDua.length > 0) {
+          for (let row of dataNV_ThiDua) {
+            let userId = String(getKey(row, "staffuser", "mã nv", "employeeid", "user")).trim().toUpperCase();
+            let program = getKey(row, "programname", "nhóm ngành hàng", "ngành hàng");
+            let val = parseVnNumber(getKey(row, "value_compe", "thực hiện", "đã bán"));
+            
+            if (userId && program && userMap[userId]) {
+              let cleanProg = String(program).toLowerCase().trim();
+              userMap[userId].tdSales[cleanProg] = (userMap[userId].tdSales[cleanProg] || 0) + val;
+            }
+          }
+        }
+
+        parsedStaff = [];
+        let cntDatChuan = 0;
+        let totalEmployees = 0;
+
+        for (let userId in userMap) {
+          let u = userMap[userId];
+          if (u.dt === 0 && u.target === 0) continue;
+          totalEmployees++;
+          let htTarget = u.target > 0 ? u.dt / u.target : 0;
+          let expHT = htTarget / timeProgress;
+          
+          let item = { userId, name: u.name, dt: u.dt, tg: u.target, ratio: u.ratio, htTarget, expHT, tdSales: u.tdSales };
+          parsedStaff.push(item);
+          
+          if (expHT >= 0.8) {
+            cntDatChuan++;
+          }
+        }
+
+        let scoreStaff = totalEmployees > 0 ? (cntDatChuan / totalEmployees) * 100 : 0;
+        globalStaffPercent = scoreStaff;
+
+        // Update Staff UI
+        document.getElementById('val-staff-achieved').innerText = `${cntDatChuan}/${totalEmployees} NV`;
+        document.getElementById('val-staff-percent').innerText = `Tỷ lệ đạt chuẩn: ${formatPercent(totalEmployees > 0 ? cntDatChuan / totalEmployees : 0)}`;
+
+        // Sort staff by actual sales (descending)
+        parsedStaff.sort((a, b) => b.dt - a.dt);
+
+        // 4. OVERALL HEALTH SCORE & STATUS
+        let healthScore = Math.round(scoreRev * 0.5 + scoreContest * 0.3 + scoreStaff * 0.2);
+        globalStoreHealthScore = healthScore;
+
+        let statusText = "ỔN ĐỊNH";
+        let statusClass = "status-stable";
+        let scoreColor = "#3b82f6";
+        if (healthScore >= 90) {
+          statusText = "XUẤT SẮC 🌟";
+          statusClass = "status-excellent";
+          scoreColor = "#10b981";
+        } else if (healthScore >= 75) {
+          statusText = "ỔN ĐỊNH 🛡️";
+          statusClass = "status-stable";
+          scoreColor = "#3b82f6";
+        } else if (healthScore >= 55) {
+          statusText = "CẢNH BÁO ⚠️";
+          statusClass = "status-warning";
+          scoreColor = "#f59e0b";
+        } else {
+          statusText = "NGUY HIỂM 🚨";
+          statusClass = "status-danger";
+          scoreColor = "#ef4444";
+        }
+
+        // Apply health text
+        const hBadge = document.getElementById('health-status');
+        hBadge.innerText = statusText.replace(/[\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD00-\uDFFF]/g, ''); // strip emoji for standard styling
+        hBadge.className = `health-badge ${statusClass}`;
+        
+        document.getElementById('health-score-percent').innerText = `${healthScore}%`;
+        document.getElementById('health-gauge-text').innerText = healthScore;
+        document.getElementById('health-gauge-text').style.color = scoreColor;
+
+        renderHealthGauge(healthScore, scoreColor);
+
+        // 5. ANNUAL PROGRESS INDICATOR
+        let thucHienNamDk = thucHienCacThangTruoc + totalDKThang;
+        let tienDoNam = targetNam > 0 ? thucHienNamDk / targetNam : 0;
+        
+        document.getElementById('year-prog-label').innerText = `Dự báo lũy kế: ${formatMoney(thucHienNamDk)} / ${formatMoney(targetNam)} TR`;
+        document.getElementById('year-prog-percent').innerText = formatPercent(tienDoNam);
+        document.getElementById('year-prog-bar').style.width = Math.min(tienDoNam * 100, 100) + '%';
+        document.getElementById('year-prog-bar').style.background = scoreColor;
+        
+        let missingYear = targetNam - thucHienNamDk;
+        document.getElementById('year-prog-msg').innerText = missingYear > 0 
+          ? `Cần thêm ${formatMoney(missingYear)} TR đạt kế hoạch năm` 
+          : `Đã hoàn thành xuất sắc chỉ tiêu năm! 🎉`;
+
+        // Render Months Chart and Trend Chart safely
+        try {
+          renderMonthsChart(dataConfig, tTG, tDT, todayObj.getMonth() + 1);
+        } catch (chartErr) {
+          console.error("Lỗi vẽ biểu đồ cột tháng:", chartErr);
+        }
+        
+        try {
+          await renderTrendChart();
+        } catch (trendErr) {
+          console.error("Lỗi vẽ biểu đồ xu hướng:", trendErr);
+        }
+
+        // 6. RENDER TABLES
+        try {
+          renderCategoryTable();
+          renderStaffTable();
+        } catch (tableErr) {
+          console.error("Lỗi render các bảng dữ liệu:", tableErr);
+        }
+
+        // 7. ACTIONABLE INSIGHTS
+        try {
+          populateActionableInsights(statusText, healthScore);
+        } catch (insightErr) {
+          console.error("Lỗi đề xuất hành động:", insightErr);
+        }
+
+      } catch (e) {
+        console.error("Lỗi tải và tính toán dữ liệu:", e);
+      }
+    }
+
+    // Render Middle Column: Category table
+    function renderCategoryTable() {
+      const tbody = document.getElementById('category-table-body');
+      let html = "";
+      
+      let catListToShow = [...parsedThiDua];
+      
+      // Filter & Sort by completion percentage if a staff is selected
+      if (selectedStaffId && parsedStaff) {
+        let staff = parsedStaff.find(s => String(s.userId).toUpperCase() === selectedStaffId);
+        if (staff) {
+          catListToShow.sort((a, b) => {
+            let cleanA = String(a.nganhHang).toLowerCase().trim();
+            let cleanB = String(b.nganhHang).toLowerCase().trim();
+            
+            let targetA = a.target * staff.ratio;
+            let actualA = staff.tdSales[cleanA] || 0;
+            let pctA = targetA > 0 ? actualA / targetA : 0;
+            
+            let targetB = b.target * staff.ratio;
+            let actualB = staff.tdSales[cleanB] || 0;
+            let pctB = targetB > 0 ? actualB / targetB : 0;
+            
+            return pctB - pctA;
+          });
+        }
+      }
+      
+      // Update Staff Filter Badge on Category
+      const staffBadgeOnCat = document.getElementById('staff-filter-badge-on-cat');
+      const staffFilterNameOnCat = document.getElementById('staff-filter-name-on-cat');
+      if (selectedStaffId) {
+        let staff = parsedStaff.find(s => String(s.userId).toUpperCase() === selectedStaffId);
+        staffFilterNameOnCat.innerText = `NV: ${staff ? staff.name : selectedStaffId}`;
+        staffBadgeOnCat.style.display = "block";
+      } else {
+        staffBadgeOnCat.style.display = "none";
+      }
+
+      catListToShow.forEach((c, index) => {
+        let cleanName = String(c.nganhHang).toLowerCase().trim();
+        let isSelected = selectedCategoryClean === cleanName;
+        let rowClass = isSelected ? "clickable-row selected-row" : "clickable-row";
+        
+        let unitText = c.isSL ? " SP" : " TR";
+        let displayTarget = c.target;
+        let displayActual = c.thucHien;
+        let displayProgress = c.htDuKien;
+        
+        if (selectedStaffId) {
+          let staff = parsedStaff.find(s => String(s.userId).toUpperCase() === selectedStaffId);
+          if (staff) {
+            let dp = window.daysPassed || 1;
+            let dim = window.daysInMonth || 30;
+            displayTarget = c.target * staff.ratio;
+            displayActual = staff.tdSales[cleanName] || 0;
+            displayProgress = displayTarget > 0 ? ((displayActual / dp) * dim) / displayTarget : 0;
+          }
+        }
+        
+        let formattedTarget = Math.round(displayTarget);
+        let formattedActual = Math.round(displayActual);
+        if (selectedStaffId && !c.isSL) {
+          formattedTarget = displayTarget.toFixed(1);
+          formattedActual = displayActual.toFixed(1);
+        }
+        
+        let badgeClass = getBadgeClass(displayProgress);
+        let progressText = formatPercent(displayProgress);
+        
+        // Dual Progress Bar
+        let barPercent = Math.min(displayProgress * 100, 100);
+        let fillClass = "fill-green";
+        if (displayProgress < timeProgress) {
+          fillClass = "fill-red";
+        } else if (displayProgress < timeProgress + 0.1) {
+          fillClass = "fill-yellow";
+        }
+        
+        let markerPos = timeProgress * 100;
+        
+        html += `
+          <tr class="${rowClass}" onclick="toggleCategoryFilter('${cleanName}')">
+            <td class="td-left">
+              <span style="font-size:11px; color:var(--text-muted); margin-right:4px;">${index + 1}.</span>
+              <span style="font-size:13px; margin-right:4px;">${getEmoji(c.nganhHang)}</span>
+              <span>${c.nganhHang}</span>
+            </td>
+            <td>${formattedTarget}${unitText}</td>
+            <td class="td-bold">${formattedActual}${unitText}</td>
+            <td>
+              <span class="badge-cell ${badgeClass}">${progressText}</span>
+              <div class="progress-bar-cell">
+                <div class="progress-fill-cell ${fillClass}" style="width: ${barPercent}%"></div>
+                <div class="benchmark-marker" style="left: ${markerPos}%"></div>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      tbody.innerHTML = html;
+    }
+
+    // Render Right Column: Staff table with dynamic category filter support
+    function renderStaffTable() {
+      const tbody = document.getElementById('staff-table-body');
+      let html = "";
+      
+      const filterTitle = document.getElementById('staff-filter-title');
+      const catBadgeOnStaff = document.getElementById('cat-filter-badge-on-staff');
+      
+      if (selectedCategoryClean) {
+        let selectedCat = parsedThiDua.find(c => String(c.nganhHang).toLowerCase().trim() === selectedCategoryClean);
+        let catName = selectedCat ? selectedCat.nganhHang : "Ngành Hàng";
+        filterTitle.innerText = `Trong Ngành: ${catName}`;
+        catBadgeOnStaff.style.display = "block";
+      } else {
+        filterTitle.innerText = "Toàn Siêu Thị";
+        catBadgeOnStaff.style.display = "none";
+      }
+      
+      let tempStaffList = [];
+      
+      parsedStaff.forEach(s => {
+        let isSelected = selectedStaffId === String(s.userId).toUpperCase();
+        
+        if (selectedCategoryClean) {
+          let selectedCat = parsedThiDua.find(c => String(c.nganhHang).toLowerCase().trim() === selectedCategoryClean);
+          if (!selectedCat) return;
+          
+          let target = selectedCat.target * s.ratio;
+          let actual = s.tdSales[selectedCategoryClean] || 0;
+          let htTarget = target > 0 ? actual / target : 0;
+          let isSL = selectedCat.isSL;
+          
+          tempStaffList.push({
+            userId: s.userId,
+            name: s.name,
+            target: target,
+            actual: actual,
+            progress: htTarget,
+            isSL: isSL,
+            isSelected: isSelected
+          });
+        } else {
+          tempStaffList.push({
+            userId: s.userId,
+            name: s.name,
+            target: s.tg,
+            actual: s.dt,
+            progress: s.htTarget,
+            isSL: false,
+            isSelected: isSelected
+          });
+        }
+      });
+      
+      tempStaffList.sort((a, b) => b.progress - a.progress);
+      
+      if (tempStaffList.length === 0) {
+        html = `<tr><td colspan="4" style="padding: 20px; text-align: center; color: var(--text-muted); font-weight: 800;">Không có dữ liệu nhân viên cho ngành hàng này</td></tr>`;
+      } else {
+        tempStaffList.forEach((s, index) => {
+          let badgeClass = getBadgeClass(s.progress);
+          let progressText = formatPercent(s.progress);
+          
+          let targetDisplay = s.isSL ? `${Math.round(s.target)} SP` : `${formatMoney(s.target)} TR`;
+          let actualDisplay = s.isSL ? `${Math.round(s.actual)} SP` : `${formatMoney(s.actual)} TR`;
+          
+          if (s.target <= 0 && s.actual <= 0) {
+            badgeClass = "status-warning";
+            progressText = "N/A (Thiếu target)";
+          }
+          
+          let barPercent = Math.min(s.progress * 100, 100);
+          let fillClass = "fill-green";
+          if (s.progress < timeProgress) {
+            fillClass = "fill-red";
+          } else if (s.progress < timeProgress + 0.1) {
+            fillClass = "fill-yellow";
+          }
+          
+          let markerPos = timeProgress * 100;
+          let rowClass = s.isSelected ? "clickable-row selected-row" : "clickable-row";
+          
+          html += `
+            <tr class="${rowClass}" onclick="toggleStaffFilter('${s.userId}')">
+              <td class="td-left">
+                <span style="font-size:11px; color:var(--text-muted); margin-right:4px;">${index + 1}.</span>
+                🧑‍💼 ${s.name}
+              </td>
+              <td>${targetDisplay}</td>
+              <td class="td-bold">${actualDisplay}</td>
+              <td>
+                <span class="badge-cell ${badgeClass}">${progressText}</span>
+                <div class="progress-bar-cell">
+                  <div class="progress-fill-cell ${fillClass}" style="width: ${barPercent}%"></div>
+                  <div class="benchmark-marker" style="left: ${markerPos}%"></div>
+                </div>
+              </td>
+            </tr>
+          `;
+        });
+      }
+      
+      tbody.innerHTML = html;
+    }
+
+    window.toggleCategoryFilter = function(cleanName) {
+      if (selectedCategoryClean === cleanName) {
+        selectedCategoryClean = null;
+      } else {
+        selectedCategoryClean = cleanName;
+      }
+      renderCategoryTable();
+      renderStaffTable();
+      updateCopyPreview();
+    };
+
+    window.toggleStaffFilter = function(userId) {
+      let uUpper = String(userId).toUpperCase();
+      if (selectedStaffId === uUpper) {
+        selectedStaffId = null;
+      } else {
+        selectedStaffId = uUpper;
+      }
+      renderCategoryTable();
+      renderStaffTable();
+      updateCopyPreview();
+    };
+    
+    window.resetCategoryFilter = function() {
+      selectedCategoryClean = null;
+      renderCategoryTable();
+      renderStaffTable();
+      updateCopyPreview();
+    };
+
+    window.resetStaffFilter = function() {
+      selectedStaffId = null;
+      renderCategoryTable();
+      renderStaffTable();
+      updateCopyPreview();
+    };
+
+    window.switchMessageTab = function(tabType) {
+      currentMessageTab = tabType;
+      document.getElementById('tab-praise-btn').classList.toggle('active', tabType === 'praise');
+      document.getElementById('tab-warning-btn').classList.toggle('active', tabType === 'warning');
+      updateCopyPreview();
+    };
+
+    // Automated Insights & Copy Chat preview
+    function populateActionableInsights(statusText, healthScore) {
+      const container = document.getElementById('insights-container');
+      let html = "";
+      
+      let slowCats = parsedThiDua.filter(c => c.htDuKien < 0.85).slice(0, 3);
+      if (slowCats.length === 0) {
+        html += `
+          <div class="insight-row">
+            <span class="insight-row-tag tag-info">OK</span>
+            <span>Tất cả ngành hàng thi đua đều bám sát và đạt tiến độ kế hoạch.</span>
+          </div>
+        `;
+      } else {
+        slowCats.forEach(c => {
+          let action = `Ngành hàng <b>${c.nganhHang}</b> đang hụt sâu mục tiêu dự kiến (dự kiến đạt ${formatPercent(c.htDuKien)}). Cần bổ sung ngay chương trình ưu đãi, phân bổ nhân sự chốt sales.`;
+          html += `
+            <div class="insight-row">
+              <span class="insight-row-tag tag-urgent">Khẩn cấp</span>
+              <span>${action}</span>
+            </div>
+          `;
+        });
+      }
+      
+      let slowStaff = parsedStaff.filter(s => s.expHT < 0.8).slice(0, 3);
+      if (slowStaff.length === 0) {
+        html += `
+          <div class="insight-row">
+            <span class="insight-row-tag tag-info">OK</span>
+            <span>Tất cả nhân sự đạt nhịp doanh thu ổn định.</span>
+          </div>
+        `;
+      } else {
+        slowStaff.forEach(s => {
+          let action = `Nhân viên <b>${s.name}</b> có nhịp bán hàng thấp (đạt ${formatPercent(s.htTarget)} target cá nhân). Ca trưởng cần trực tiếp kèm cặp.`;
+          html += `
+            <div class="insight-row">
+              <span class="insight-row-tag tag-support">Kèm cặp</span>
+              <span>${action}</span>
+            </div>
+          `;
+        });
+      }
+      
+      container.innerHTML = html;
+      
+      window.autoGeneratedTemplate = {
+        date: globalDateString,
+        status: statusText,
+        score: healthScore,
+        remRev: globalRemRev
+      };
+      
+      updateCopyPreview();
+    }
+
+    function updateCopyPreview() {
+      if (!window.autoGeneratedTemplate) return;
+      
+      let t = window.autoGeneratedTemplate;
+      let managerNote = document.getElementById('manager-notes').value.trim();
+      let managerNoteFormatted = managerNote ? `\n📌 CHỈ ĐẠO CỦA BAN QUẢN LÝ:\n${managerNote.split('\n').map(line => `+ ${line}`).join('\n')}\n` : "";
+      
+      let formattedText = "";
+      
+      if (currentMessageTab === 'praise') {
+        formattedText += `🏆 BẢN TIN TUYÊN DƯƠNG DOANH SỐ - SAVICO\n📆 Ngày: ${t.date}\n🛡️ Sức khỏe siêu thị: ${t.status} (${t.score} điểm)\n--------------------------\n`;
+        
+        let bestCats = parsedThiDua.filter(c => c.htDuKien >= 1.0).slice(0, 4);
+        if (bestCats.length > 0) {
+          formattedText += `🔥 TOP NGÀNH HÀNG DẪN ĐẦU:\n`;
+          bestCats.forEach(c => {
+            formattedText += `🥇 ${c.nganhHang}: Đạt ${formatPercent(c.htTarget)} (Dự báo đạt ${formatPercent(c.htDuKien)})\n`;
+          });
+        } else {
+          formattedText += `👍 Các ngành hàng đang giữ nhịp hoàn thành ổn định.\n`;
+        }
+        
+        let bestStaff = parsedStaff.filter(s => s.htTarget >= timeProgress).slice(0, 4);
+        if (bestStaff.length > 0) {
+          formattedText += `\n🌟 TOP NHÂN SỰ VƯỢT TIẾN ĐỘ THỜI GIAN (${formatPercent(timeProgress)}):\n`;
+          bestStaff.forEach(s => {
+            formattedText += `👤 ${s.name}: Doanh số ${formatMoney(s.dt)} TR (Đạt ${formatPercent(s.htTarget)} target)\n`;
+          });
+        }
+        
+        if (t.remRev <= 0) {
+          formattedText += `\n🎉 Chúc mừng Siêu Thị đã hoàn thành xuất sắc mục tiêu doanh thu tháng! 🏆\n`;
+        }
+      } else {
+        formattedText += `📢 THÔNG BÁO ĐÔN ĐỐC & CẢNH BÁO TIẾN ĐỘ - SAVICO\n📆 Ngày: ${t.date}\n🚨 Sức khỏe siêu thị: ${t.status} (${t.score} điểm)\n--------------------------\n`;
+        
+        if (t.remRev > 0) {
+          formattedText += `💰 Khoảng cách mục tiêu: Còn thiếu ${formatMoney(t.remRev)} TR để về đích.\n`;
+        }
+        
+        let slowCats = parsedThiDua.filter(c => c.htDuKien < 0.85).slice(0, 4);
+        if (slowCats.length > 0) {
+          formattedText += `\n⚠️ NGÀNH HÀNG CẦN TẬP TRUNG:\n`;
+          slowCats.forEach(c => {
+            formattedText += `📍 ${c.nganhHang}: Dự kiến chỉ đạt ${formatPercent(c.htDuKien)} (Mới đạt ${formatPercent(c.htTarget)})\n`;
+          });
+        }
+        
+        let slowStaff = parsedStaff.filter(s => s.expHT < 0.8).slice(0, 4);
+        if (slowStaff.length > 0) {
+          formattedText += `\n👥 NHÂN SỰ CẦN ĐẨY MẠNH DOANH SỐ:\n`;
+          slowStaff.forEach(s => {
+            formattedText += `👤 ${s.name}: Doanh số ${formatMoney(s.dt)} TR (Tiến độ thực tế ${formatPercent(s.htTarget)})\n`;
+          });
+        }
+      }
+      
+      formattedText += managerNoteFormatted;
+      formattedText += `\n--------------------------\nReport generated by Antigravity AI Engine`;
+      
+      document.getElementById('copy-preview').innerText = formattedText;
+      window.reportMessageText = formattedText;
+    }
+
+    function copyReportText() {
+      if (!window.reportMessageText) return;
+      navigator.clipboard.writeText(window.reportMessageText).then(() => {
+        alert("Đã copy nhận xét báo cáo vào bộ nhớ tạm! Bạn có thể dán vào LINE/Telegram/Zalo.");
+      }).catch(err => {
+        console.error("Lỗi copy text:", err);
+      });
+    }
+
+    // RENDER APEXCHARTS DIAGRAMS
+    function renderHealthGauge(score, color) {
+      const cTheme = getChartThemeColors();
+      const options = {
+        series: [score],
+        chart: {
+          type: 'radialBar',
+          width: 76,
+          height: 76,
+          sparkline: { enabled: true },
+          background: 'transparent'
+        },
+        plotOptions: {
+          radialBar: {
+            hollow: { size: '60%' },
+            track: {
+              background: cTheme.gaugeTrack,
+              strokeWidth: '97%'
+            },
+            dataLabels: {
+              show: false
+            }
+          }
+        },
+        fill: {
+          type: 'solid',
+          colors: [color]
+        },
+        stroke: { lineCap: 'round' }
+      };
+
+      if (gaugeChart) gaugeChart.destroy();
+      gaugeChart = new ApexCharts(document.querySelector("#chart-health-gauge"), options);
+      gaugeChart.render();
+    }
+
+    async function renderTrendChart() {
+      if (window.availableDates.length === 0) return;
+      
+      let datesToFetch = window.availableDates.slice(0, 5).reverse();
+      let promises = datesToFetch.map(d => getHistoryForDate(d).catch(err => {
+        console.warn("Lỗi tải lịch sử ngày:", d, err);
+        return null;
+      }));
+      let results = await Promise.all(promises);
+      
+      let trendDataScores = [];
+      let trendLabels = [];
+      
+      results.forEach((hData, index) => {
+        try {
+          if (!hData) return;
+          let dateKey = datesToFetch[index];
+          let ymd = window.dateMapYMD[dateKey] || dateKey || "";
+          if (typeof ymd !== 'string') ymd = String(ymd);
+          let parts = ymd.split('-');
+          let shortDate = parts.length === 3 ? `${parts[2]}/${parts[1]}` : ymd;
+          trendLabels.push(shortDate);
+          
+          let hBI = hData["Data_BI"] || [];
+          let hTD = hData["Data_ThiDua"] || [];
+          
+          let tDT_h = 0, tTG_h = 0;
+          hBI.forEach(row => {
+            tDT_h += parseVnNumber(getKey(row, "doanh thu quy đổi"));
+            tTG_h += parseVnNumber(getKey(row, "target"));
+          });
+          
+          let daysPassed_h = 1;
+          let daysInMonth_h = 30;
+          if (parts.length === 3) {
+            let pdDate = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+            if (!isNaN(pdDate.getTime())) {
+              daysPassed_h = pdDate.getDate();
+              daysInMonth_h = new Date(pdDate.getFullYear(), pdDate.getMonth() + 1, 0).getDate();
+            }
+          }
+          if (daysPassed_h <= 0) daysPassed_h = 1;
+          
+          let scoreRev_h = tTG_h > 0 ? Math.min(100, Math.max(0, ((tDT_h / daysPassed_h) * daysInMonth_h / tTG_h) * 100)) : 0;
+          
+          let cntDK_h = 0, totalTD_h = 0;
+          hTD.forEach(row => {
+            let target = parseVnNumber(getKey(row, "target", "mục tiêu"));
+            if (target > 0) {
+              let sl = parseVnNumber(getKey(row, "số lượng", "quantity"));
+              let dt = parseVnNumber(getKey(row, "doanh thu"));
+              let thucHien = sl === 0 ? dt : sl;
+              let htDuKien = ((thucHien / daysPassed_h) * daysInMonth_h) / target;
+              totalTD_h++;
+              if (htDuKien >= 1.0) cntDK_h++;
+            }
+          });
+          let scoreContest_h = totalTD_h > 0 ? (cntDK_h / totalTD_h) * 100 : 0;
+          let scoreStaff_h = 80; 
+          
+          let totalScore_h = Math.round(scoreRev_h * 0.5 + scoreContest_h * 0.3 + scoreStaff_h * 0.2);
+          trendDataScores.push(totalScore_h);
+        } catch (dayErr) {
+          console.error("Lỗi tính toán lịch sử ngày:", dayErr);
+        }
+      });
+
+      const cTheme = getChartThemeColors();
+      const options = {
+        series: [{ name: 'Điểm sức khỏe', data: trendDataScores }],
+        chart: {
+          type: 'line',
+          height: 170,
+          fontFamily: 'Nunito, sans-serif',
+          toolbar: { show: false },
+          background: 'transparent'
+        },
+        stroke: { width: 3, curve: 'smooth' },
+        colors: ['#3b82f6'],
+        markers: { size: 4, colors: ['#ffffff'], strokeColors: '#3b82f6', strokeWidth: 2 },
+        xaxis: {
+          categories: trendLabels,
+          labels: { style: { colors: cTheme.foreColor, fontWeight: 800 } },
+          axisBorder: { color: cTheme.gridColor },
+          axisTicks: { color: cTheme.gridColor }
+        },
+        yaxis: {
+          min: 0,
+          max: 100,
+          labels: { style: { colors: cTheme.foreColor, fontWeight: 800 } }
+        },
+        grid: {
+          borderColor: cTheme.gridColor
+        },
+        tooltip: {
+          enabled: true,
+          y: { formatter: (val) => `${val} điểm` }
+        }
+      };
+
+      if (trendChart) trendChart.destroy();
+      trendChart = new ApexCharts(document.querySelector("#chart-health-trend"), options);
+      trendChart.render();
+    }
+
+    function renderMonthsChart(configData, currentMonthTarget, currentMonthActual, currentMonthNum) {
+      let monthlyTargets = Array(12).fill(0);
+      let monthlyActuals = Array(12).fill(0);
+      
+      if (configData && configData.length > 0) {
+        configData.forEach(c => {
+          let target = parseVnNumber(getKey(c, "target", "target tháng", "mục tiêu tháng", "kế hoạch"));
+          let thucHien = parseVnNumber(getKey(c, "thực hiện", "dt thực hiện", "doanh thu thực hiện"));
+          let thang = parseVnNumber(getKey(c, "Tháng", "tháng", "thang"));
+          
+          if (thang >= 1 && thang <= 12) {
+            monthlyTargets[thang - 1] = target;
+            monthlyActuals[thang - 1] = thucHien;
+          }
+        });
+      }
+      
+      if (currentMonthNum >= 1 && currentMonthNum <= 12) {
+        monthlyTargets[currentMonthNum - 1] = currentMonthTarget;
+        monthlyActuals[currentMonthNum - 1] = currentMonthActual;
+      }
+
+      const cTheme = getChartThemeColors();
+      const options = {
+        series: [
+          { name: 'Kế hoạch', data: monthlyTargets.map(v => Math.round(v)) },
+          { name: 'Thực tế', data: monthlyActuals.map(v => Math.round(v)) }
+        ],
+        chart: {
+          type: 'bar',
+          height: 190,
+          fontFamily: 'Nunito, sans-serif',
+          toolbar: { show: false },
+          background: 'transparent'
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '55%',
+            borderRadius: 2
+          }
+        },
+        dataLabels: { enabled: false },
+        stroke: { show: true, width: 2, colors: ['transparent'] },
+        xaxis: {
+          categories: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+          labels: { style: { colors: cTheme.foreColor, fontWeight: 800 } },
+          axisBorder: { color: cTheme.gridColor },
+          axisTicks: { color: cTheme.gridColor }
+        },
+        yaxis: {
+          labels: { style: { colors: cTheme.foreColor, fontWeight: 800 } }
+        },
+        grid: {
+          borderColor: cTheme.gridColor
+        },
+        colors: cTheme.barColors,
+        legend: {
+          show: true,
+          position: 'top',
+          fontFamily: 'Nunito, sans-serif',
+          fontWeight: 800,
+          labels: { colors: cTheme.foreColor }
+        },
+        fill: { opacity: 1 },
+        tooltip: {
+          y: { formatter: (val) => `${val.toLocaleString('vi-VN')} TR` }
+        }
+      };
+
+      if (barChart) barChart.destroy();
+      barChart = new ApexCharts(document.querySelector("#chart-months-bar"), options);
+      barChart.render();
+    }
+
+
+    // CAPTURE DASHBOARD
+    function downloadURI(uri, name) {
+      let link = document.createElement("a");
+      link.download = name;
+      link.href = uri;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    document.getElementById('btnDownloadCurrent').addEventListener('click', async function() {
+      this.disabled = true;
+      let btnText = this.innerText;
+      this.innerText = "⏳ Đang chụp...";
+      
+      // Temporarily hide scrollbars for full rendering in html-to-image
+      document.body.classList.add('rendering-canvas');
+      
+      // Let layout expand briefly before capture
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
+      let filename = `BaoCao_SucKhoe_Savico_${globalDateString.replace(/\//g, '-')}.png`;
+      let captureArea = document.querySelector('.dashboard-container');
+      
+      try {
+        let dataUrl = await htmlToImage.toPng(captureArea, { 
+          pixelRatio: 2, 
+          cacheBust: true,
+          backgroundColor: themeBg 
+        });
+        downloadURI(dataUrl, filename);
+      } catch (e) {
+        console.error("Lỗi chụp ảnh sức khỏe:", e);
+      } finally {
+        document.body.classList.remove('rendering-canvas');
+        this.innerText = btnText;
+        this.disabled = false;
+      }
+    });
+
+    // Initialization
+    window.onload = async () => {
+      await initHistory();
+      await loadData();
+    };
+  </script>
+</body>
+</html>

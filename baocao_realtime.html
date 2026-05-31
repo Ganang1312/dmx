@@ -1,40 +1,42 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <meta property="og:title" content="Dashboard Cụm Savico">
+    <meta name="description" content="Dashboard Báo Cáo Cụm Savico">
   <meta charset="UTF-8">
   <title>Realtime Dashboard - Cụm Savico</title>
   <script src="shared_config.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="html-to-image.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800;900&display=swap');
     
-    body { font-family: 'Nunito', sans-serif; background: #e9ecef; display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; }
+    body { font-family: 'Nunito', sans-serif; background: var(--bg-body); display: flex; flex-direction: column; align-items: center; padding: 20px; margin: 0; color: var(--text-main); transition: background-color 0.3s, color 0.3s; }
     
     .report-box { 
-      background: #ffffff; width: 950px; padding: 30px; border-radius: 16px; 
-      border: 1px solid #ced4da; position: relative; overflow: hidden; margin-bottom: 20px;
+      background: var(--bg-panel); width: 950px; padding: 30px; border-radius: 20px; 
+      border: none; box-shadow: var(--neumorphic-outset); position: relative; overflow: hidden; margin-bottom: 20px; transition: background-color 0.3s, box-shadow 0.3s;
     }
 
     /* HEADER */
-    .header-title { text-align: center; color: #1e272e; font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
+    .header-title { text-align: center; color: var(--text-main); font-family: 'Montserrat', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase; margin-bottom: 5px; }
     .date-text { text-align: center; font-weight: 800; color: #f39c12; font-size: 18px; margin-bottom: 20px; text-transform: uppercase;}
     
-    .compare-bar-wrap { width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; background: #ffffff; padding: 15px 20px; border-radius: 12px; border: 2px solid #ced4da; box-sizing: border-box; }
-    .cb-row { display: flex; align-items: center; gap: 15px; font-size: 20px; font-weight: 900; color: #2d3436; }
-    .cb-label { width: 480px; display:flex; justify-content: space-between; align-items: center; white-space: nowrap; flex-shrink: 0; }
-    .cb-track { flex: 1; height: 20px; background: #f1f2f6; border-radius: 10px; overflow: hidden; position: relative; }
+    .compare-bar-wrap { width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; background: var(--bg-panel); padding: 15px 20px; border-radius: 16px; border: none; box-shadow: var(--neumorphic-outset); box-sizing: border-box; transition: background-color 0.3s, box-shadow 0.3s; }
+    .cb-row { display: flex; align-items: center; gap: 15px; font-size: 20px; font-weight: 900; color: var(--text-main); }
+    .cb-label { width: 480px; display:flex; justify-content: space-between; align-items: center; white-space: nowrap; flex-shrink: 0; color: var(--text-main); }
+    .cb-track { flex: 1; height: 20px; background: var(--bg-body); border-radius: 10px; overflow: hidden; position: relative; box-shadow: var(--neumorphic-inset); }
     .cb-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
 
     /* 1. HEALTH BAR */
-    .status-bar { display: flex; align-items: stretch; border: 2px solid #7f8c8d; border-radius: 10px; margin-bottom: 25px; overflow: hidden; background: white;}
+    .status-bar { display: flex; align-items: stretch; border: none; border-radius: 16px; margin-bottom: 25px; overflow: hidden; background: var(--bg-panel); box-shadow: var(--neumorphic-outset); transition: background-color 0.3s, box-shadow 0.3s;}
     .sb-item { display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 12px 5px; flex: 1; position: relative;}
-    .sb-item:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 2px; background: #7f8c8d; }
+    .sb-item:not(:last-child)::after { content: ''; position: absolute; right: 0; top: 15%; height: 70%; width: 2px; background: rgba(148, 163, 184, 0.15); }
     
     .sb-left { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 12px; flex: 1.3; padding: 10px 15px; }
-    .sb-left-icon { font-size: 32px; background: white; width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 12px; border: 1.5px solid #7f8c8d; }
+    .sb-left-icon { font-size: 32px; background: var(--bg-body); width: 50px; height: 50px; display: flex; justify-content: center; align-items: center; border-radius: 12px; border: none; box-shadow: var(--neumorphic-inset); }
     
-    .sb-label { font-size: 12px; font-weight: 900; color: #475569; text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;}
-    .sb-val { font-size: 24px; font-weight: 900; color: #1e272e; line-height: 1; text-align: center; }
+    .sb-label { font-size: 12px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center;}
+    .sb-val { font-size: 24px; font-weight: 900; color: var(--text-main); line-height: 1; text-align: center; }
 
     /* SECTION TITLES */
     .sec-title { display: flex; align-items: center; font-family: 'Montserrat', sans-serif; font-size: 22px; font-weight: 900; color: #00A1E4; margin: 25px 0 10px 0; text-transform: uppercase; }
@@ -42,110 +44,486 @@
 
     /* KPI CARDS */
     .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-    .card { background: #ffffff; padding: 12px 6px; text-align: center; border: 2px solid #7f8c8d; border-radius: 12px; }
-    .card-title { font-size: 13px; font-weight: 900; color: #475569; margin-bottom: 5px; text-transform: uppercase; }
-    .card-val { font-size: 34px; font-family: 'Montserrat', sans-serif; font-weight: 900; line-height: 1.1; margin: 0; }
-    .card-sub { font-size: 11px; font-weight: 800; color: #636e72; margin-top: 6px; display: block; }
-    
-    .highlight-target { 
-        background-color: #ffffff; color: #1e272e; padding: 3px 0px; border-radius: 6px; 
-        border: 1.5px solid #cbd5e1; font-weight: 800; display: block; margin: 0 auto;
-        text-align: center; width: 90%; box-shadow: none; 
+    .card {
+        background: var(--bg-panel);
+        padding: 18px 12px;
+        text-align: center;
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--neumorphic-outset);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
     }
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(163, 177, 198, 0.45);
+    }
+    [data-theme="dark"] .card:hover {
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
+    }
+    .card-title {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        text-transform: uppercase;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+        letter-spacing: 0.5px;
+        transition: color 0.3s ease;
+    }
+    .card-val {
+        font-size: 34px;
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 900;
+        color: var(--text-main);
+        line-height: 1.1;
+        margin: 0;
+    }
+    .card-sub {
+        font-size: 13px;
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-top: 8px;
+        display: block;
+    }
+    
+    .highlight-target {
+        background-color: var(--bg-panel);
+        color: var(--text-main);
+        padding: 6px 12px;
+        border-radius: 12px;
+        border: none;
+        box-shadow: var(--neumorphic-inset);
+        font-weight: 800;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        text-align: center;
+        width: 85%;
+        min-height: 24px;
+    }
+
+    /* 5 Accent colors for Realtime KPI Cards */
+    .card.card-1 { border-left: 3px solid #0284c7; } /* 💰 THỰC HIỆN */
+    .card.card-2 { border-left: 3px solid #e11d48; } /* ⏳ CÒN LẠI */
+    .card.card-3 { border-left: 3px solid #16a34a; } /* 🎯 MỤC TIÊU */
+    .card.card-4 { border-left: 3px solid #ea580c; } /* 💳 TRẢ GÓP */
+    .card.card-5 { border-left: 3px solid #d97706; } /* 🏆 THI ĐUA ĐẠT */
+
+    .card.card-1:hover .card-title { color: #0284c7; }
+    .card.card-2:hover .card-title { color: #e11d48; }
+    .card.card-3:hover .card-title { color: #16a34a; }
+    .card.card-4:hover .card-title { color: #ea580c; }
+    .card.card-5:hover .card-title { color: #d97706; }
     
     /* BẢNG CHUNG (CẢ 2 BẢNG SẼ DÙNG CHUNG CẤU TRÚC NÀY) */
     .td-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .table-container { border: 2px solid #94a3b8; border-radius: 8px; overflow: hidden; background: #fff; margin-top: 10px;}
-    table { width: 100%; border-collapse: collapse; background: #fff; table-layout: fixed;}
+    .table-container { border: none; border-radius: 16px; overflow: hidden; background: var(--bg-panel); box-shadow: var(--neumorphic-inset); margin-top: 10px; padding: 12px;}
+    table { width: 100%; border-collapse: collapse; background: transparent; table-layout: fixed;}
     
     /* Tiêu đề cột to, nét dọc đậm */
-    th { background: #f1f5f9; color: #1e3a8a; padding: 14px 4px; font-size: 15px; font-weight: 900; border-bottom: 2px solid #94a3b8; border-right: 2px solid #94a3b8; text-align: center; text-transform: uppercase; }
-    th:last-child { border-right: none; }
+    th { background: rgba(148, 163, 184, 0.08); color: var(--text-main); padding: 14px 4px; font-size: 15px; font-weight: 900; border-bottom: 2px solid var(--border-table) !important; border-right: 1.5px solid var(--border-table) !important; text-align: center; text-transform: uppercase; }
+    th:last-child { border-right: none !important; }
     
     /* Thu hẹp padding, chữ to */
-    td { position: relative; padding: 6px 4px; text-align: center; font-size: 26px; font-weight: 900; color: #2d3436; border-bottom: 2px solid #94a3b8; border-right: 2px solid #94a3b8; vertical-align: middle; }
-    td:last-child { border-right: none; }
-    tr:last-child td { border-bottom: none; }
+    td { position: relative; padding: 6px 4px; text-align: center; font-size: 26px; font-weight: 900; color: var(--text-main); border-bottom: 1.5px solid var(--border-table) !important; border-right: 1.5px solid var(--border-table) !important; vertical-align: middle; }
+    td:last-child { border-right: none !important; }
+    tr:last-child td { border-bottom: none !important; }
     
     .text-left { text-align: left; padding-left: 15px !important; font-size: 20px !important; white-space: normal; line-height: 1.3; }
 
     /* Progress UI */
     .td-prog-container { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 100%; padding: 0 5px; box-sizing: border-box;}
-    .td-prog-bar-bg { width: 90%; height: 8px; background: #f1f5f9; border-radius: 4px; overflow: hidden; border: 1px solid #cbd5e1; }
+    .td-prog-bar-bg { width: 90%; height: 8px; background: var(--bg-body); border-radius: 4px; overflow: hidden; border: none; box-shadow: var(--neumorphic-inset); }
     .td-prog-bar-fill { height: 100%; border-radius: 4px; }
+    
+    /* Cell Progress Background */
+    .cell-prog-wrap {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border-radius: 10px;
+        background: rgba(148, 163, 184, 0.04);
+        border: 1px solid rgba(148, 163, 184, 0.12);
+        box-shadow: var(--neumorphic-inset);
+    }
+    .cell-prog-bg {
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        z-index: 0;
+        opacity: 0.12;
+        border-radius: 8px 0 0 8px;
+    }
+    .cell-val {
+        position: relative;
+        z-index: 1;
+    }
 
     /* Donut SVG style */
     .donut-wrapper { position: relative; width: 44px; height: 44px; display: inline-flex; justify-content: center; align-items: center; }
     .circular-chart { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
-    .circle-bg { fill: none; stroke: #e2e8f0; stroke-width: 4; }
-    .circle { fill: none; stroke-width: 4; stroke-linecap: round; stroke: #2563eb; }
-    .donut-inner { position: relative; z-index: 1; font-weight: 900; font-size: 11px; color: #1e272e; }
+    .circle-bg { fill: none; stroke: var(--bg-body); stroke-width: 4; }
+    .circle { fill: none; stroke-width: 4.5; stroke-linecap: round; stroke: #0ea5e9; }
+    .donut-inner { position: relative; z-index: 1; font-weight: 900; font-size: 11px; color: var(--text-main); }
 
-    .stt-pill { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 18px; border: 1px solid rgba(0,0,0,0.1); }
+    .stt-pill { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: 900; font-size: 18px; border: none; box-shadow: var(--neumorphic-outset); }
     .stt-green { background: #dcfce7; color: #16a34a; }
     .stt-blue { background: #dbeafe; color: #2563eb; }
     .stt-orange { background: #ffedd5; color: #ea580c; }
     .stt-red { background: #ffe4e6; color: #dc2626; }
 
-    .footer { text-align: center; margin-top: 30px; font-size: 14px; color: #475569; font-weight: 900; text-transform: uppercase; }
+    .footer { text-align: center; margin-top: 30px; font-size: 14px; color: var(--text-muted); font-weight: 900; text-transform: uppercase; }
     
     /* FIX FONT NÚT BẤM VỀ NUNITO ĐỂ KHÔNG BỊ LỖI TIẾNG VIỆT */
-    .btn-send { background: #f39c12; color: white; border: none; padding: 18px 40px; font-size: 20px; border-radius: 12px; cursor: pointer; font-weight: 900; margin-bottom: 40px; font-family: 'Nunito', sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
-    
-    .top-actions { display: flex; gap: 10px; margin: 20px auto; justify-content: center; max-width: 1010px; width: 100%; flex-wrap: wrap; box-sizing: border-box;}
-    /* TOP ACTIONS REFINEMENT */
-    .btn-action {
-      background: white; border: 2px solid #cbd5e1; color: #475569; 
-      flex: 1; min-width: 130px; height: 60px; 
-      padding: 5px; font-size: 13px; border-radius: 8px; font-weight: 800;
-      cursor: pointer; display: flex; align-items: center; justify-content: center; 
-      text-align: center; gap: 5px; font-family: 'Nunito', sans-serif;
-      line-height: 1.3; transition: all 0.2s;
-    }
-    .btn-action:hover { background: #f8fafc; border-color: #94a3b8; transform: translateY(-1px); }
-
-    /* COMMENT SECTION STYLES (ĐÃ ĐỒNG BỘ VỚI REPORT-BOX) */
+    .btn-send { background: var(--teal-gradient); color: white; border: none; padding: 18px 40px; font-size: 20px; border-radius: 12px; cursor: pointer; font-weight: 900; margin-bottom: 40px; font-family: 'Nunito', sans-serif; box-shadow: var(--neumorphic-outset); transition: transform 0.2s, box-shadow 0.2s;}
+        /* UNIFIED CONTROL CENTER PANEL */
+        .control-panel {
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 16px 20px;
+            box-shadow: var(--neumorphic-outset);
+            max-width: 1010px;
+            width: 100%;
+            margin: 20px auto;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+        .cp-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .cp-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .cp-label {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cp-divider {
+            height: 1px;
+            background: rgba(148, 163, 184, 0.12);
+            width: 100%;
+        }
+        .control-panel select {
+            border: none;
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-family: 'Inter', 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 12px;
+            outline: none;
+            background: var(--bg-body);
+            color: var(--text-main);
+            box-shadow: var(--neumorphic-inset);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cp-btn {
+            background: var(--bg-panel);
+            border: none;
+            color: var(--text-main);
+            padding: 8px 14px;
+            font-size: 11px;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-family: 'Inter', 'Nunito', sans-serif;
+            box-shadow: var(--neumorphic-outset);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .cp-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(148, 163, 184, 0.15);
+        }
+        .cp-btn:active {
+            box-shadow: var(--neumorphic-inset);
+            transform: translateY(1px);
+        }
+        .cp-btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--neumorphic-outset);
+        }
+        .cp-btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+        }
+        .cp-btn-success {
+            color: #10b981;
+        }
+        .cp-btn-warning {
+            color: #f39c12;
+        }
+        .cp-btn-purple {
+            color: #9b59b6;
+        }
+        .cp-btn-coral {
+            color: #f43f5e;
+        }    /* COMMENT SECTION STYLES (ĐÃ ĐỒNG BỘ VỚI REPORT-BOX) */
     .comment-container { 
         font-family: 'Nunito', sans-serif; text-align: left; 
-        margin-top: 0; /* Sát với phần trên */
+        margin-top: 0; 
     }
-    .comment-header { padding: 0 0 15px 0; border-bottom: 1px dashed #cbd5e1; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-    .comment-title { font-size: 16px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+    .comment-header { padding: 0 0 15px 0; border-bottom: 1px dashed rgba(148, 163, 184, 0.15); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+    .comment-title { font-size: 16px; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
     .btn-copy-small { background: #2563eb; color: white; border: none; padding: 6px 15px; border-radius: 6px; font-weight: 700; cursor: pointer; transition: all 0.2s; font-size: 13px; display: flex; align-items: center; gap: 5px; }
     .btn-copy-small:hover { background: #1d4ed8; }
     .comment-body { padding: 0; background: transparent; }
-    #commentBox { width: 100%; min-height: 150px; padding: 15px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; color: #1e293b; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 600; line-height: 1.6; white-space: pre-wrap; margin: 0; outline: none; box-sizing: border-box; }
+    #commentBox { width: 100%; min-height: 150px; padding: 15px; border: none; border-radius: 12px; background: var(--bg-body); color: var(--text-main); font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 600; line-height: 1.6; white-space: pre-wrap; margin: 0; outline: none; box-shadow: var(--neumorphic-inset); box-sizing: border-box; }
     /* DỰ KIẾN KẾT QUẢ CARDS */
-    .td-card-group { border: 2px solid #20c997; border-radius: 12px; background: #eefcf6; padding: 15px; margin-bottom: 20px; }
-    .td-card-group.not-done { border-color: #ffb8b8; background: #fff5f5; }
-    .td-card-group-title { font-size: 18px; font-weight: 900; color: #00b894; margin-bottom: 15px; text-transform: uppercase; border-bottom: 2px solid #20c997; padding-bottom: 8px; }
-    .td-card-group.not-done .td-card-group-title { color: #ff7675; border-bottom-color: #ffb8b8; }
+    .td-card-group { border: none; border-radius: 16px; background: var(--bg-panel); padding: 15px; margin-bottom: 20px; box-shadow: var(--neumorphic-outset); border-left: 5px solid #10b981; }
+    .td-card-group.not-done { border: none; border-radius: 16px; background: var(--bg-panel); padding: 15px; margin-bottom: 20px; box-shadow: var(--neumorphic-outset); border-left: 5px solid #ef4444; }
+    .td-card-group-title { font-size: 18px; font-weight: 900; color: #00b894; margin-bottom: 15px; text-transform: uppercase; border-bottom: 2px solid rgba(148, 163, 184, 0.15); padding-bottom: 8px; }
+    .td-card-group.not-done .td-card-group-title { color: #ff7675; border-bottom-color: rgba(148, 163, 184, 0.15); }
     
     .td-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    .td-card { background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
-    .td-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 12px; min-height: 76px; }
-    .td-card-stt { background: #f39c12; color: white; border-radius: 8px; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 18px; flex-shrink: 0;}
-    .td-card-name { font-size: 18px; font-weight: 800; color: #2d3436; line-height: 1.2; flex: 1; text-transform: uppercase; }
+    .td-card { background: var(--bg-panel); border: none; border-radius: 16px; padding: 16px; box-shadow: var(--neumorphic-outset); display: flex; flex-direction: column; }
+    .td-card-top { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px dashed rgba(148, 163, 184, 0.15); padding-bottom: 12px; min-height: 76px; }
+    .td-card-stt { background: var(--bg-body); color: var(--text-main); border-radius: 8px; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 18px; flex-shrink: 0; box-shadow: var(--neumorphic-inset); }
+    .td-card-name { font-size: 18px; font-weight: 800; color: var(--text-main); line-height: 1.2; flex: 1; text-transform: uppercase; }
     
     .td-card-mid { display: flex; gap: 16px; align-items: center; }
     .td-card-circle-wrap { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
-    .td-card-circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 6; }
+    .td-card-circle-bg { fill: none; stroke: var(--bg-body); stroke-width: 6; }
     .td-card-circle-fill { fill: none; stroke-width: 6; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; }
-    .td-card-circle-text { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: 900; color: #1e293b; }
+    .td-card-circle-text { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; font-size: 22px; font-weight: 900; color: var(--text-main); }
     
     .td-card-stats { flex: 1; display: flex; flex-direction: column; gap: 8px; }
     .td-card-stat-row { display: flex; justify-content: space-between; align-items: center; }
-    .td-card-stat-label { color: #64748b; font-weight: 700; font-size: 14px; }
-    .td-card-stat-val { font-weight: 900; color: #1e293b; }
+    .td-card-stat-label { color: var(--text-muted); font-weight: 700; font-size: 14px; }
+    .td-card-stat-val { font-weight: 900; color: var(--text-main); }
     .td-card-stat-val.blue { color: #0ea5e9; font-size: 26px !important; }
     .td-card-stat-val.red { color: #ef4444; font-size: 20px !important; }
     
-    .td-card-bottom { margin-top: auto; background: #e0f2fe; border-left: 5px solid #0284c7; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-radius: 0 6px 6px 0; }
+    .td-card-bottom { margin-top: auto; background: var(--bg-body); border-left: 5px solid #0284c7; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; border-radius: 0 12px 12px 0; box-shadow: var(--neumorphic-inset); }
     .td-card-bottom-label { font-size: 14px; font-weight: 900; color: #0284c7; }
     .td-card-bottom-val { font-size: 22px; font-weight: 900; color: #0284c7; }
+
+        :root {
+            --bg-body: #eef2f7;
+            --bg-panel: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: transparent;
+            --neumorphic-outset: 0 0 20px rgba(163, 177, 198, 0.45), 0 4px 8px rgba(163, 177, 198, 0.2);
+            --neumorphic-inset: inset 0 0 10px rgba(163, 177, 198, 0.35), inset 0 2px 4px rgba(163, 177, 198, 0.15);
+            --border-table: rgba(148, 163, 184, 0.35);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #1e222b;
+            --bg-panel: #1e222b;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: transparent;
+            --neumorphic-outset: 0 0 20px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+            --neumorphic-inset: inset 0 0 10px rgba(0, 0, 0, 0.45), inset 0 2px 4px rgba(0, 0, 0, 0.25);
+            --border-table: rgba(156, 163, 175, 0.35);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+        .skeleton {
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+            background-color: var(--bg-body) !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .skeleton-title {
+            height: 24px;
+            margin-bottom: 12px;
+            width: 60%;
+            background-color: rgba(148, 163, 184, 0.2);
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+            width: 100%;
+            background-color: rgba(148, 163, 184, 0.15);
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* TAB NAVIGATION SYSTEM - PREMIUM MODULAR SEGMENTED CONTROLS */
+        .top-nav-container {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin: 15px auto 25px auto;
+            max-width: 1010px;
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--bg-panel);
+            border-radius: 20px;
+            box-shadow: var(--neumorphic-outset);
+            padding: 8px 12px;
+            gap: 6px;
+            position: relative;
+            font-family: 'Inter', 'Nunito', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .top-nav-container a {
+            text-decoration: none;
+            padding: 10px 18px;
+            font-weight: 800;
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 12px;
+            position: relative;
+            letter-spacing: 0.3px;
+        }
+        .top-nav-container a:hover {
+            color: var(--text-main);
+            background: rgba(148, 163, 184, 0.08);
+            transform: translateY(-1px);
+        }
+        .top-nav-container a.active-tab {
+            color: white !important;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            font-weight: 900 !important;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+        .top-nav-container a.active-tab::after {
+            display: none !important;
+        }
+        #btnReloadTop,
+        #btnThemeTop,
+        #theme-icon-btn {
+            position: absolute !important;
+            height: 38px;
+            padding: 0 16px !important;
+            border-radius: 12px !important;
+            font-weight: 800 !important;
+            font-size: 11px !important;
+            letter-spacing: 0.3px;
+            font-family: 'Inter', 'Nunito', sans-serif !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: var(--neumorphic-outset) !important;
+            border: none !important;
+            cursor: pointer !important;
+            background: var(--bg-panel) !important;
+            color: var(--text-main) !important;
+            transition: all 0.2s ease !important;
+        }
+        #btnReloadTop {
+            right: 68px !important;
+        }
+        #btnThemeTop,
+        #theme-icon-btn {
+            right: 12px !important;
+            width: 44px !important;
+            padding: 0 !important;
+        }
+        #btnReloadTop:hover,
+        #btnThemeTop:hover,
+        #theme-icon-btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 10px rgba(148, 163, 184, 0.15) !important;
+        }
+        #btnReloadTop:active,
+        #btnThemeTop:active,
+        #theme-icon-btn:active {
+            transform: translateY(1px) !important;
+            box-shadow: var(--neumorphic-inset) !important;
+        }
+
+        /* Dark mode overrides */
+        [data-theme="dark"] {
+            --bg-body: #121824;
+            --bg-panel: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: transparent;
+            --neumorphic-outset: 9px 9px 16px #0b0f17, -9px -9px 16px #27354d;
+            --neumorphic-inset: inset 4px 4px 8px #0b0f17, inset -4px -4px 8px #27354d;
+        }
+        [data-theme="dark"] body {
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+        [data-theme="dark"] .stt-pill {
+            box-shadow: none !important;
+        }
+        [data-theme="dark"] #rtInputModalBox {
+            background-color: var(--bg-panel) !important;
+            color: var(--text-main) !important;
+            box-shadow: var(--neumorphic-outset) !important;
+            border: none !important;
+        }
+        [data-theme="dark"] #rtModalTextarea {
+            background-color: var(--bg-body) !important;
+            color: var(--text-main) !important;
+            box-shadow: var(--neumorphic-inset) !important;
+            border: none !important;
+        }
+        [data-theme="dark"] select,
+        [data-theme="dark"] input {
+            background-color: var(--bg-body) !important;
+            color: var(--text-main) !important;
+            box-shadow: var(--neumorphic-inset) !important;
+            border: none !important;
+        }
   </style>
 </head>
 <body>
+    <!-- TOP ACTIONS (NAVIGATION) -->
+    <div class="top-nav-container" data-html2canvas-ignore="true">
+      <a href="baocao_luyke.html">📊 LŨY KẾ</a>
+      <a href="baocao_nhanvien.html">👥 NHÂN VIÊN</a>
+      <a href="baocao_realtime.html" class="active-tab">⚡ REALTIME</a>
+      <a href="baocao_suckhoe.html">🏥 SỨC KHỎE</a>
+      <button onclick="clearGasCacheAndReload()" style="position: absolute; right: 48px; padding: 8px 14px; font-weight: 800; font-size: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; border: none; background: var(--bg-panel); color: var(--text-main); font-family: 'Inter', sans-serif; box-shadow: var(--neumorphic-outset);" id="btnReloadTop">
+        <span>🔄 Làm mới</span>
+      </button>
+      
+      <button onclick="toggleTheme()" style="position: absolute; right: 0; padding: 8px 14px; font-weight: 800; font-size: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; border: none; background: var(--bg-panel); color: var(--text-main); font-family: 'Inter', sans-serif; box-shadow: var(--neumorphic-outset);" id="theme-icon-btn">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
 
   <!-- Modal Nhập liệu NV Realtime -->
   <div id="rtInputModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
@@ -161,14 +539,21 @@
       </div>
   </div>
 
-  <div class="top-actions" data-html2canvas-ignore="true">
-      <button class="btn-action" id="btnDownloadSplit">📸 TẢI ẢNH TÁCH (LƯU MÁY)</button>
-      <button class="btn-action" id="btnDownloadFull">📸 TẢI ẢNH TOÀN TRANG</button>
-      <button class="btn-action" onclick="copyComment()" style="background: #2563eb; color: white; border-color: #2563eb;">📋 SAO CHÉP NHẬN XÉT</button>
-      <span style="margin: 0 15px; color: #cbd5e1;">|</span>
-      <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 ĐỔ SỐ LŨY KẾ</button>
-      <button class="btn-action" onclick="openRtModal()" style="border-color:#f39c12; color:#f39c12;">📈 ĐỔ SỐ REALTIME</button>
-      <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 ĐỔ SỐ NHÂN VIÊN</button>
+  <div class="control-panel" data-html2canvas-ignore="true">
+      <div class="cp-row">
+          <div class="cp-group">
+              <span class="cp-label">📸 HÀNH ĐỘNG:</span>
+              <button class="cp-btn" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
+              <button class="cp-btn" id="btnDownloadFull">📸 CHỤP FULL</button>
+              <button class="cp-btn cp-btn-success" onclick="copyComment(this)">📋 SAO CHÉP NHẬN XÉT</button>
+          </div>
+          <div class="cp-group">
+              <span class="cp-label">🔗 ĐỔ SỐ (BI):</span>
+              <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 LŨY KẾ</button>
+              <button class="cp-btn cp-btn-warning" onclick="openRtModal()">📈 REALTIME</button>
+              <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')">🧑‍💻 NHÂN VIÊN</button>
+          </div>
+      </div>
   </div>
 
   <div id="report-container" style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -192,16 +577,16 @@
 
         <div class="sec-title"><span>1</span> DOANH THU TRONG NGÀY</div>
         <div class="grid-5">
-          <div class="card"><div class="card-title">💰 THỰC HIỆN</div><div class="card-val" id="c-dt-th" style="color: #0984e3;">0</div><div class="card-sub" id="c-dt-th-sub"></div></div>
-          <div class="card"><div class="card-title">⏳ CÒN LẠI</div><div class="card-val" id="c-con-lai" style="color: #ef4444;">0</div><div class="card-sub">TRIỆU ĐỒNG</div></div>
-          <div class="card"><div class="card-title">🎯 MỤC TIÊU</div><div class="card-val" id="c-mt-ngay-card" style="color: #10b981;">0</div><div class="card-sub">TRIỆU ĐỒNG</div></div>
-          <div class="card"><div class="card-title">💳 TRẢ GÓP</div><div class="card-val" id="c-tc-rt" style="color: #d63031;">0%</div><div class="card-sub" id="c-tc-rt-sub"><div class="highlight-target">DT: 0 TR</div></div></div>
-          <div class="card"><div class="card-title">🏆 THI ĐUA ĐẠT</div><div class="card-val" id="c-nd-rt" style="color: #10b981;">0</div><div class="card-sub" id="c-nd-rt-sub"><div class="highlight-target">/ 0 NHÓM</div></div></div>
+          <div class="card card-1"><div class="card-title">💰 THỰC HIỆN</div><div class="card-val" id="c-dt-th" style="color: #0284c7;">0</div><div class="card-sub" id="c-dt-th-sub"><div class="highlight-target">% ĐẠT: 0%</div></div></div>
+          <div class="card card-2"><div class="card-title">⏳ CÒN LẠI</div><div class="card-val" id="c-con-lai" style="color: #e11d48;">0</div><div class="card-sub"><div class="highlight-target">TRIỆU ĐỒNG</div></div></div>
+          <div class="card card-3"><div class="card-title">🎯 MỤC TIÊU</div><div class="card-val" id="c-mt-ngay-card" style="color: #16a34a;">0</div><div class="card-sub"><div class="highlight-target">TRIỆU ĐỒNG</div></div></div>
+          <div class="card card-4"><div class="card-title">💳 TRẢ GÓP</div><div class="card-val" id="c-tc-rt" style="color: #ea580c;">0%</div><div class="card-sub" id="c-tc-rt-sub"><div class="highlight-target">DT: 0 TR</div></div></div>
+          <div class="card card-5"><div class="card-title">🏆 THI ĐUA ĐẠT</div><div class="card-val" id="c-nd-rt" style="color: #d97706;">0</div><div class="card-sub" id="c-nd-rt-sub"><div class="highlight-target">/ 0 NHÓM</div></div></div>
         </div>
 
-        <div id="nv-chart-container" style="display:none; width:100%; margin-top:25px;">
-            <div class="sec-title" style="margin: 0 0 15px 0; font-size:18px; color:#f39c12;"><span style="background:#f39c12; width:28px; height:28px; font-size:14px;">📊</span> DOANH THU NHÂN VIÊN</div>
-            <div id="nv-chart-wrapper" style="display:flex; flex-direction:column; gap:12px;"></div>
+        <div id="nv-chart-container" style="display:none; width:100%; margin-top:25px; background: var(--bg-panel); padding: 22px 24px; border-radius: 20px; box-shadow: var(--neumorphic-outset); box-sizing: border-box; transition: background-color 0.3s, box-shadow 0.3s;">
+            <div class="sec-title" style="margin: 0 0 20px 0; font-size:18px; color:#f39c12;"><span style="background:#f39c12; width:28px; height:28px; font-size:14px;">📊</span> DOANH THU NHÂN VIÊN</div>
+            <div id="nv-chart-wrapper" style="display:flex; flex-direction:column; gap:16px;"></div>
         </div>
 
         <div class="sec-title" style="margin: 20px 0 0 0;"><span>2</span> CHI TIẾT DOANH THU</div>
@@ -396,13 +781,77 @@
         openBILink('bcdtnh', 1, 'realtime_manual');
     }
 
+    function renderRealtimeSkeletons() {
+        const tableSkeleton = `
+            <div style="padding: 20px;">
+                <div class="skeleton skeleton-title"></div>
+                <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px; width: 100%;"></div>
+                <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px; width: 100%;"></div>
+                <div class="skeleton skeleton-text" style="height: 30px; width: 100%;"></div>
+            </div>
+        `;
+        const container1 = document.getElementById('table-bi');
+        if (container1) container1.innerHTML = tableSkeleton;
+
+        const container2 = document.getElementById('table-thidua');
+        if (container2) container2.innerHTML = tableSkeleton;
+
+        const cardSkeleton = Array(4).fill(0).map(() => `
+            <div class="td-card skeleton" style="min-height: 180px; border-radius: 12px; background: var(--bg-panel); padding: 16px;">
+                <div class="skeleton-title" style="width: 60%; height: 20px;"></div>
+                <div class="skeleton-text" style="width: 80%; height: 14px; margin-top: 10px;"></div>
+                <div class="skeleton-text" style="width: 100%; height: 10px; margin-top: 20px;"></div>
+                <div class="skeleton-text" style="width: 50%; height: 10px; margin-top: 8px;"></div>
+            </div>
+        `).join('');
+        const container3 = document.getElementById('thidua-cards-container');
+        if (container3) {
+            container3.innerHTML = `<div class="td-cards" style="grid-template-columns: repeat(2, 1fr);">${cardSkeleton}</div>`;
+        }
+
+        const container4 = document.getElementById('nv-chart-wrapper');
+        if (container4) {
+            container4.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px;">
+                    ${Array(8).fill(0).map(() => `
+                        <div class="skeleton" style="height: 120px; border-radius: 8px; background: var(--bg-panel); padding: 12px;">
+                            <div class="skeleton-title" style="width: 70%; height: 16px;"></div>
+                            <div class="skeleton-text" style="width: 90%; height: 12px; margin-top: 10px;"></div>
+                            <div class="skeleton-text" style="width: 50%; height: 12px; margin-top: 8px;"></div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        const container5 = document.getElementById('realtime-summary-box');
+        if (container5) {
+            container5.innerHTML = `
+                <div style="padding: 10px;">
+                    <div class="skeleton-title" style="width: 40%; height: 20px;"></div>
+                    <div class="skeleton-text" style="width: 100%; height: 14px; margin-top: 10px;"></div>
+                    <div class="skeleton-text" style="width: 95%; height: 14px;"></div>
+                    <div class="skeleton-text" style="width: 80%; height: 14px;"></div>
+                </div>
+            `;
+        }
+    }
+
     async function loadData() {
       try {
-        localStorage.removeItem("BC_CACHE_REALTIME");
-        localStorage.removeItem("BC_CACHE_REALTIME_TIME");
+        renderRealtimeSkeletons();
         setHTML("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
         const res = await fetch(GAS_URL + "?sheets=Data_BI,Data_ThiDua,Config_ThiDua,Data_Realtime_BI,Data_Realtime_ThiDua,Data_Realtime_NV");
+        const fromCache = res.headers.get('X-From-Cache') === 'true';
         const allData = await res.json();
+
+        if (fromCache) {
+            setHTML("cache-status", `(⚡ Dữ liệu lưu cục bộ)`);
+        } else {
+            const updateTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toLocaleDateString('vi-VN');
+            setText('current-date', updateTime);
+            setHTML("cache-status", `(Vừa cập nhật mới)`);
+        }
 
         const dataBI = allData["Data_BI"] || [];
         const dataThiDua = allData["Data_ThiDua"] || [];
@@ -600,6 +1049,24 @@
             let c = getColorClass(i.htTarget);
             let pTyTrong = Math.round(i.tyTrongTC * 100);
             
+            let colorWeight = "#64748b";
+            let bgWeight = "rgba(100, 116, 139, 0.06)";
+            let borderWeight = "rgba(100, 116, 139, 0.15)";
+            let tyTrongVal = i.tyTrongTC;
+            if (tyTrongVal >= 0.20) {
+                colorWeight = "#2563eb";
+                bgWeight = "rgba(37, 99, 235, 0.06)";
+                borderWeight = "rgba(37, 99, 235, 0.15)";
+            } else if (tyTrongVal >= 0.10) {
+                colorWeight = "#0ea5e9";
+                bgWeight = "rgba(14, 165, 233, 0.06)";
+                borderWeight = "rgba(14, 165, 233, 0.15)";
+            } else if (tyTrongVal >= 0.05) {
+                colorWeight = "#10b981";
+                bgWeight = "rgba(16, 185, 129, 0.06)";
+                borderWeight = "rgba(16, 185, 129, 0.15)";
+            }
+
             let sttPillClassBI = '';
             if (i.htTarget >= 1) sttPillClassBI = 'stt-green';
             else if (i.htTarget >= 0.8) sttPillClassBI = 'stt-blue';
@@ -610,9 +1077,13 @@
                 <td><div class="stt-pill ${sttPillClassBI}">${sttBI++}</div></td>
                 <td class="text-left"><span style="margin-right:8px;">${getEmoji(i.nganhHang)}</span> ${i.nganhHang.replace("NNH ","")}</td>
                 <td>${i.sl.toLocaleString('vi-VN')}</td>
-                <td style="color:#00A1E4;">
-                    <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(i.htTarget*100, 100)}%; background:${c}; opacity:0.15; z-index:0;"></div>
-                    <span style="position:relative; z-index:1;">${formatMoney(i.dtqd)}</span>
+                <td style="padding: 4px 6px;">
+                    <div class="cell-prog-wrap">
+                        <div class="cell-prog-bg" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c}; border-radius: 8px ${i.htTarget >= 1 ? '8px 8px 8px' : '0 0 8px'};"></div>
+                        <div class="cell-val" style="display:flex; flex-direction:column; padding: 6px 0; justify-content:center; align-items:center;">
+                            <span style="color: var(--text-main); font-size: 20px; font-weight: 900; font-family: 'Montserrat', sans-serif;">${formatMoney(i.dtqd)}</span>
+                        </div>
+                    </div>
                 </td>
                 <td style="color:#475569;">${formatMoney(i.targetDay)}</td>
                 <td>
@@ -623,25 +1094,24 @@
                 </td>
                 <td>${formatMoney(i.dtTC)}</td>
                 <td>
-                    <div class="donut-wrapper">
-                        <svg viewBox="0 0 36 36" class="circular-chart"><path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/><path class="circle" stroke-dasharray="${pTyTrong}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"/></svg>
-                        <span class="donut-inner">${pTyTrong}%</span>
-                    </div>
+                    <span style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 10px; font-size: 20px; font-weight: 900; color: ${colorWeight}; background: ${bgWeight}; border: 1px solid ${borderWeight}; box-shadow: var(--neumorphic-inset);">
+                        ${pTyTrong}%
+                    </span>
                 </td>
             </tr>`;
         }
         
         let totalHTCol2 = rt_tTarget > 0 ? rt_tDT / rt_tTarget : 0;
         let totalTCCol2 = rt_tDT > 0 ? rt_tTC / rt_tDT : 0;
-        htmlBI += `<tr style="background: #fffbdf; border-top: 3px solid #f1c40f;">
+        htmlBI += `<tr style="background: rgba(14, 165, 233, 0.08); font-weight: 900; border-top: 2px solid rgba(148, 163, 184, 0.3);">
             <td style="font-size: 20px;">⭐</td>
-            <td class="text-left" style="color:#d63031;">TỔNG CỘNG</td>
-            <td style="color:#d63031;">${rt_tSL.toLocaleString('vi-VN')}</td>
-            <td style="color:#d63031;">${formatMoney(rt_tDT)}</td>
-            <td style="color:#d63031;">${formatMoney(rt_tTarget)}</td>
-            <td style="color:${getColorClass(totalHTCol2)};">${formatPercent(totalHTCol2)}</td>
-            <td style="color:#d63031;">${formatMoney(rt_tTC)}</td>
-            <td style="color:#d63031; padding: 10px 0;">${formatPercent(totalTCCol2)}</td>
+            <td class="text-left" style="color:var(--text-main); font-weight: 900;">TỔNG CỘNG</td>
+            <td style="color:var(--text-main); font-weight: 900;">${rt_tSL.toLocaleString('vi-VN')}</td>
+            <td style="color:var(--text-main); font-size: 20px; font-weight: 900;">${formatMoney(rt_tDT)}</td>
+            <td style="color:var(--text-main); font-weight: 900;">${formatMoney(rt_tTarget)}</td>
+            <td style="color:${getColorClass(totalHTCol2)}; font-weight: 900;">${formatPercent(totalHTCol2)}</td>
+            <td style="color:var(--text-main); font-weight: 900;">${formatMoney(rt_tTC)}</td>
+            <td style="color:var(--text-main); font-weight: 900; padding: 10px 0;">${formatPercent(totalTCCol2)}</td>
         </tr>`;
         
         setHTML("table-bi", htmlBI);
@@ -846,20 +1316,22 @@
                 if (barWidth < 1) barWidth = 1;
 
                 htmlNV += `
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 530px; max-width: 68%; flex-shrink: 0; text-align: left; display: flex; align-items: center; overflow: hidden; white-space: nowrap;">
-                        <div style="font-size: 20px; font-weight: 800; color: #1e293b; margin-right: 8px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; width: 185px;">
-                            ${iconHtml} <span>${nv.tenNV}</span>
+                <div style="display: flex; align-items: center; gap: 12px; padding: 6px 0;">
+                    <div style="width: 530px; max-width: 65%; flex-shrink: 0; text-align: left; display: flex; align-items: center; overflow: hidden; white-space: nowrap;">
+                        <div style="font-size: 19px; font-weight: 800; color: var(--text-main); margin-right: 12px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; width: 190px;">
+                            ${iconHtml} <span style="overflow: hidden; text-overflow: ellipsis;">${nv.tenNV}</span>
                         </div>
-                        <div style="font-size: 15px; color: #64748b; font-weight: 700; display: grid; grid-template-columns: 130px 80px 85px; gap: 4px; padding-top: 2px;">
+                        <div style="font-size: 15px; color: var(--text-muted); font-weight: 700; display: grid; grid-template-columns: 135px 85px 85px; gap: 6px; padding-top: 2px;">
                             <span>🎯 <span style="color: #0ea5e9; font-weight: 900;">${dtTr}</span> / ${targetTr}tr</span>
-                            <span>⏳ ${clDisplay}</span>
-                            <span>🔥 ${percentText}%</span>
+                            <span>⏳ <span style="${ht >= 1 ? 'color: #10b981; font-weight: 900;' : ''}">${clDisplay}</span></span>
+                            <span>🔥 <span style="font-weight: 900; color: var(--text-main);">${percentText}%</span></span>
                         </div>
                     </div>
-                    <div style="flex: 1; display: flex; align-items: center; gap: 8px;">
-                        <div style="width: ${barWidth}%; background: ${barColor}; height: 26px; border-radius: 6px; transition: width 0.5s ease;"></div>
-                        <div style="font-weight: 900; font-size: 20px; color: #1e293b; white-space: nowrap;">${dtTr}tr</div>
+                    <div style="flex: 1; display: flex; align-items: center; gap: 12px;">
+                        <div style="flex: 1; background: var(--bg-body); height: 16px; border-radius: 8px; box-shadow: var(--neumorphic-inset); overflow: hidden; display: flex; align-items: center; padding: 0;">
+                            <div style="width: ${barWidth}%; background: ${barColor}; height: 100%; border-radius: 8px; transition: width 0.5s ease;"></div>
+                        </div>
+                        <div style="font-weight: 900; font-size: 19px; color: var(--text-main); white-space: nowrap; width: 75px; text-align: right;">${dtTr}tr</div>
                     </div>
                 </div>`;
                 sttNV++;
@@ -937,18 +1409,47 @@
 
     document.getElementById('btnDownloadSplit').addEventListener('click', async function() {
         this.disabled = true;
-        let c1 = await html2canvas(document.getElementById('part1'), { scale: 2.5 });
-        downloadURI(c1.toDataURL("image/png"), "1_DoanhThu_RT.png");
-        let c2 = await html2canvas(document.getElementById('part2'), { scale: 2.5 });
-        downloadURI(c2.toDataURL("image/png"), "2_ThiDua_RT.png");
-        this.disabled = false;
+        try {
+            const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
+            
+            let dataUrl1 = await htmlToImage.toPng(document.getElementById('part1'), {
+                pixelRatio: 2.5,
+                cacheBust: true,
+                backgroundColor: themeBg
+            });
+            downloadURI(dataUrl1, "1_DoanhThu_RT.png");
+
+            let dataUrl2 = await htmlToImage.toPng(document.getElementById('part2'), {
+                pixelRatio: 2.5,
+                cacheBust: true,
+                backgroundColor: themeBg
+            });
+            downloadURI(dataUrl2, "2_ThiDua_RT.png");
+        } catch (e) {
+            console.error("Lỗi chụp ảnh:", e);
+        } finally {
+            this.disabled = false;
+        }
     });
 
     document.getElementById('btnDownloadFull').addEventListener('click', async function() {
         this.disabled = true;
-        let c = await html2canvas(document.getElementById('report-container'), { scale: 2.5, backgroundColor: "#e9ecef" });
-        downloadURI(c.toDataURL("image/png"), "BaoCao_Realtime_ToanTrang.png");
-        this.disabled = false;
+        try {
+            const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
+            
+            let dataUrl = await htmlToImage.toPng(document.getElementById('report-container'), {
+                pixelRatio: 2.5,
+                cacheBust: true,
+                backgroundColor: themeBg
+            });
+            downloadURI(dataUrl, "BaoCao_Realtime_ToanTrang.png");
+        } catch (e) {
+            console.error("Lỗi chụp toàn trang:", e);
+        } finally {
+            this.disabled = false;
+        }
     });
 
     function downloadURI(uri, name) {
@@ -960,25 +1461,21 @@
         const text = document.getElementById('commentBox').innerText;
         try {
             await navigator.clipboard.writeText(text);
-            
-            // Xử lý nút bấm được click (có thể là nút ở top hoặc nút ở khung nhận xét)
             let btn = clickedBtn;
             if (!btn) {
-                const btns = document.querySelectorAll('.btn-action');
-                for(let b of btns) { if(b.innerText.includes("SAO CHÉP")) { btn = b; break; } }
+                btn = document.getElementById('btnCopyCommentTop') || document.getElementById('btnCopyComment');
             }
-            
-            if(btn) {
+            if (btn) {
                 const originalText = btn.innerHTML;
-                const originalBg = btn.style.background || "#0ea5e9";
+                const originalBg = btn.style.background;
+                const originalColor = btn.style.color;
                 btn.innerHTML = "✅ ĐÃ SAO CHÉP!";
-                btn.style.background = "#059669";
-                if (btn.classList.contains('btn-action')) btn.style.borderColor = "#059669";
-                
+                btn.style.background = "#10b981";
+                btn.style.color = "#ffffff";
                 setTimeout(() => {
                     btn.innerHTML = originalText;
                     btn.style.background = originalBg;
-                    if (btn.classList.contains('btn-action')) btn.style.borderColor = "#2563eb";
+                    btn.style.color = originalColor;
                 }, 2000);
             }
         } catch (err) {

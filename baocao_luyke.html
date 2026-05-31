@@ -2,13 +2,73 @@
 <html lang="vi">
 
 <head>
+    <meta property="og:title" content="Dashboard Cụm Savico">
+    <meta name="description" content="Dashboard Báo Cáo Cụm Savico">
     <meta charset="UTF-8">
     <title>Lũy Kế Dashboard - Cụm Savico</title>
     <script src="shared_config.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="html-to-image.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Montserrat:wght@600;800;900&family=Nunito:wght@600;700;800;900&display=swap');
+
+        :root {
+            --bg-body: #eef2f7;
+            --bg-panel: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: transparent;
+            --neumorphic-outset: 0 0 20px rgba(163, 177, 198, 0.45), 0 4px 8px rgba(163, 177, 198, 0.2);
+            --neumorphic-inset: inset 0 0 10px rgba(163, 177, 198, 0.35), inset 0 2px 4px rgba(163, 177, 198, 0.15);
+            
+            --primary-gradient: linear-gradient(135deg, #0ea5e9, #0284c7);
+            --teal-gradient: linear-gradient(135deg, #10b981, #059669);
+            --coral-gradient: linear-gradient(135deg, #ff8a9f, #f43f5e);
+            
+            --bg-badge-stable: rgba(14, 165, 233, 0.15);
+            --color-badge-stable: #0284c7;
+            --border-table: rgba(148, 163, 184, 0.35);
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #1e222b;
+            --bg-panel: #1e222b;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-color: transparent;
+            --neumorphic-outset: 0 0 20px rgba(0, 0, 0, 0.55), 0 4px 8px rgba(0, 0, 0, 0.35);
+            --neumorphic-inset: inset 0 0 10px rgba(0, 0, 0, 0.45), inset 0 2px 4px rgba(0, 0, 0, 0.25);
+            
+            --bg-badge-stable: rgba(56, 189, 248, 0.15);
+            --border-table: rgba(156, 163, 175, 0.35);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .4; }
+        }
+        .skeleton {
+            animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite !important;
+            background-color: var(--bg-body) !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        .skeleton-title {
+            height: 24px;
+            margin-bottom: 12px;
+            width: 60%;
+            background-color: rgba(148, 163, 184, 0.2);
+            border-radius: 6px;
+            display: inline-block;
+        }
+        .skeleton-text {
+            height: 16px;
+            margin-bottom: 8px;
+            width: 100%;
+            background-color: rgba(148, 163, 184, 0.15);
+            border-radius: 4px;
+            display: inline-block;
+        }
 
         #chart-proportion .apexcharts-datalabel-rect,
         #chart-proportion .apexcharts-datalabels rect {
@@ -17,30 +77,34 @@
         }
 
         body {
-            font-family: 'Nunito', sans-serif;
-            background: #e9ecef;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
             margin: 0;
+            transition: background 0.3s, color 0.3s;
         }
 
         .report-box {
-            background: #ffffff;
+            background: var(--bg-panel);
             width: 950px;
             padding: 30px;
-            border-radius: 16px;
-            border: 1px solid #ced4da;
+            border-radius: 24px;
+            border: none;
+            box-shadow: var(--neumorphic-outset);
             position: relative;
             overflow: hidden;
             margin-bottom: 20px;
+            transition: background 0.3s, box-shadow 0.3s;
         }
 
         /* HEADER */
         .header-title {
             text-align: center;
-            color: #1e272e;
+            color: var(--text-main);
             font-family: 'Montserrat', sans-serif;
             font-size: 36px;
             font-weight: 900;
@@ -51,7 +115,7 @@
         .date-text {
             text-align: center;
             font-weight: 800;
-            color: #00A1E4;
+            color: #0ea5e9;
             font-size: 16px;
             margin-bottom: 20px;
             text-transform: uppercase;
@@ -61,11 +125,13 @@
         .status-bar {
             display: flex;
             align-items: stretch;
-            border: 2px solid #1e272e;
-            border-radius: 10px;
+            border: none;
+            border-radius: 20px;
             margin-bottom: 25px;
             overflow: hidden;
-            background: white;
+            background: var(--bg-panel);
+            box-shadow: var(--neumorphic-inset);
+            padding: 6px;
         }
 
         .sb-item {
@@ -84,8 +150,9 @@
             right: 0;
             top: 15%;
             height: 70%;
-            width: 2px;
-            background: #1e272e;
+            width: 1px;
+            background: var(--text-muted);
+            opacity: 0.2;
         }
 
         .sb-left {
@@ -100,32 +167,38 @@
 
         .sb-left-icon {
             font-size: 32px;
-            background: white;
+            background: var(--bg-panel);
             width: 50px;
             height: 50px;
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 12px;
-            border: 2px solid #1e272e;
+            border-radius: 14px;
+            border: none;
+            box-shadow: var(--neumorphic-outset);
         }
 
         .sb-right {
-            background: #fff0f2;
+            background: var(--coral-gradient);
+            border-radius: 14px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 4px;
-            color: #d63031;
+            color: #ffffff !important;
             flex: 0.9;
             padding: 10px;
+            box-shadow: var(--neumorphic-outset);
+        }
+        .sb-right .sb-label, .sb-right .sb-val {
+            color: #ffffff !important;
         }
 
         .sb-label {
             font-size: 11px;
-            font-weight: 900;
-            color: #475569;
+            font-weight: 800;
+            color: var(--text-muted);
             text-transform: uppercase;
             margin-bottom: 4px;
             display: flex;
@@ -137,7 +210,7 @@
         .sb-val {
             font-size: 24px;
             font-weight: 900;
-            color: #1e272e;
+            color: var(--text-main);
             line-height: 1;
             text-align: center;
         }
@@ -149,13 +222,13 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 22px;
             font-weight: 900;
-            color: #00A1E4;
+            color: var(--text-highlight);
             margin: 25px 0 10px 0;
             text-transform: uppercase;
         }
 
         .sec-title span {
-            background: #00A1E4;
+            background: var(--primary-gradient);
             color: white;
             width: 34px;
             height: 34px;
@@ -171,19 +244,28 @@
         .grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            row-gap: 16px;
+            gap: 16px;
+            row-gap: 20px;
         }
         .card {
-
-            background: #ffffff;
-            padding: 12px 6px;
+            background: var(--bg-panel);
+            padding: 18px 12px;
             text-align: center;
-            border: 2px solid #1e272e;
-            border-radius: 12px;
+            border: none;
+            border-radius: 20px;
+            box-shadow: var(--neumorphic-outset);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(163, 177, 198, 0.45);
+        }
+        [data-theme="dark"] .card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.55);
         }
 
         .delta-badge {
@@ -200,26 +282,51 @@
         .delta-badge.pos { background: #dcfce7; color: #16a34a; }
         .delta-badge.neg { background: #fee2e2; color: #dc2626; }
         
+        .card .delta-badge {
+            margin-left: 0;
+            margin-top: 4px;
+        }
+        
         body.hide-delta .delta-badge { display: none !important; }
-
-
 
         .card-title {
             font-size: 13px;
-            font-weight: 900;
-            color: #475569;
-            margin-bottom: 6px;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 12px;
             text-transform: uppercase;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 6px;
+            letter-spacing: 0.5px;
+            transition: color 0.3s ease;
         }
+
+        /* 8 Accent colors for KPI Cards */
+        .card.card-1 { border-left: 3px solid #e11d48; }
+        .card.card-2 { border-left: 3px solid #0d9488; }
+        .card.card-3 { border-left: 3px solid #0284c7; }
+        .card.card-4 { border-left: 3px solid #16a34a; }
+        .card.card-5 { border-left: 3px solid #0891b2; }
+        .card.card-6 { border-left: 3px solid #f43f5e; }
+        .card.card-7 { border-left: 3px solid #ea580c; }
+        .card.card-8 { border-left: 3px solid #d97706; }
+
+        .card.card-1:hover .card-title { color: #e11d48; }
+        .card.card-2:hover .card-title { color: #0d9488; }
+        .card.card-3:hover .card-title { color: #0284c7; }
+        .card.card-4:hover .card-title { color: #16a34a; }
+        .card.card-5:hover .card-title { color: #0891b2; }
+        .card.card-6:hover .card-title { color: #f43f5e; }
+        .card.card-7:hover .card-title { color: #ea580c; }
+        .card.card-8:hover .card-title { color: #d97706; }
 
         .card-val {
             font-size: 34px;
             font-family: 'Montserrat', sans-serif;
             font-weight: 900;
+            color: var(--text-main);
             line-height: 1.1;
             margin: 0;
         }
@@ -227,83 +334,85 @@
         .card-sub {
             font-size: 13px;
             font-weight: 800;
-            color: #636e72;
+            color: var(--text-muted);
             margin-top: 8px;
             display: block;
         }
 
         .highlight-target {
-            background-color: #ffffff;
-            color: #1e272e;
-            padding: 4px 0px;
-            border-radius: 8px;
-            border: 2px solid #cbd5e1;
+            background-color: var(--bg-panel);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--neumorphic-inset);
             font-weight: 800;
-            display: flex;
+            display: inline-flex;
             justify-content: center;
             align-items: center;
             margin: 0 auto;
             text-align: center;
             width: 85%;
-            box-shadow: none;
             min-height: 24px;
         }
 
         /* BẢNG CHUNG (Áp dụng cho cả Doanh Thu và Thi Đua) - Nét dọc ngang đen đậm */
         .table-container {
-            border: 2px solid #1e272e;
-            border-radius: 8px;
+            border: none;
+            border-radius: 20px;
             overflow: hidden;
-            background: #fff;
+            background: var(--bg-panel);
             margin-top: 10px;
+            box-shadow: var(--neumorphic-outset);
+            padding: 6px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            background: #fff;
+            background: var(--bg-panel);
             table-layout: fixed;
         }
 
         th {
-            background: #f1f5f9;
-            color: #1e3a8a;
-            padding: 12px 2px;
+            background: var(--bg-panel);
+            color: var(--text-main);
+            padding: 14px 4px;
             font-size: 14px;
-            font-weight: 900;
-            border-bottom: 2px solid #1e272e;
-            border-right: 2px solid #1e272e;
+            font-weight: 800;
+            border-bottom: 2px solid var(--border-table) !important;
+            border-right: 1.5px solid var(--border-table) !important;
             text-align: center;
             text-transform: uppercase;
         }
 
         th:last-child {
-            border-right: none;
+            border-right: none !important;
         }
 
         td {
             position: relative;
-            padding: 6px 2px;
+            padding: 8px 4px;
             text-align: center;
             font-size: 24px;
-            font-weight: 900;
-            color: #2d3436;
-            border-bottom: 2px solid #1e272e;
-            border-right: 2px solid #1e272e;
+            font-weight: 800;
+            color: var(--text-main);
+            border-bottom: 1.5px solid var(--border-table) !important;
+            border-right: 1.5px solid var(--border-table) !important;
             vertical-align: middle;
         }
 
         td:last-child {
-            border-right: none;
+            border-right: none !important;
         }
 
         tr:last-child td {
-            border-bottom: none;
+            border-bottom: none !important;
         }
 
         .text-left {
             text-align: left;
-            padding-left: 8px !important;
+            padding-left: 12px !important;
             font-size: 19px !important;
             white-space: normal;
             line-height: 1.3;
@@ -323,10 +432,11 @@
         .td-prog-bar-bg {
             width: 90%;
             height: 8px;
-            background: #f1f5f9;
+            background: var(--bg-body);
             border-radius: 4px;
             overflow: hidden;
-            border: 1px solid #cbd5e1;
+            border: none;
+            box-shadow: var(--neumorphic-inset);
         }
 
         .td-prog-bar-fill {
@@ -339,12 +449,15 @@
             position: relative;
             width: 100%;
             height: 100%;
-            min-height: 55px;
+            min-height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            border-radius: 4px;
+            border-radius: 10px;
+            background: rgba(148, 163, 184, 0.04);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            box-shadow: var(--neumorphic-inset);
         }
 
         .cell-prog-bg {
@@ -353,7 +466,8 @@
             top: 0;
             bottom: 0;
             z-index: 0;
-            opacity: 0.15;
+            opacity: 0.12;
+            border-radius: 8px 0 0 8px;
         }
 
         .cell-val {
@@ -382,15 +496,15 @@
 
         .circle-bg {
             fill: none;
-            stroke: #e2e8f0;
+            stroke: var(--bg-body);
             stroke-width: 4;
         }
 
         .circle {
             fill: none;
-            stroke-width: 4;
+            stroke-width: 4.5;
             stroke-linecap: round;
-            stroke: #2563eb;
+            stroke: #0ea5e9;
         }
 
         .donut-inner {
@@ -398,7 +512,7 @@
             z-index: 1;
             font-weight: 900;
             font-size: 11px;
-            color: #1e272e;
+            color: var(--text-main);
         }
 
         /* Pill Trạng thái Cột STT */
@@ -435,37 +549,37 @@
             color: #dc2626;
         }
 
-        /* BẢNG TODO (VIỆC CẦN LÀM HÔM NAY) - NÉT CHIA VÀ KHUNG ĐỀU MÀU ĐEN ĐẬM */
+        /* BẢNG TODO (VIỆC CẦN LÀM HÔM NAY) */
         .todo-board {
-            border: 3px solid #1e272e;
-            border-radius: 8px;
+            border: none;
+            border-radius: 16px;
             overflow: hidden;
             margin-bottom: 20px;
-            background: #fff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            background: var(--bg-panel);
+            box-shadow: var(--neumorphic-outset);
             display: none;
         }
 
         .todo-header {
-            background: #ffc107;
+            background: var(--teal-gradient);
             padding: 12px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 3px solid #1e272e;
+            border-bottom: none;
         }
 
         .todo-header-left {
             font-size: 18px;
             font-weight: 900;
-            color: #b71c1c;
+            color: #ffffff;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .todo-header-right {
-            background: #d32f2f;
+            background: rgba(255, 255, 255, 0.2);
             color: white;
             padding: 6px 14px;
             border-radius: 12px;
@@ -478,27 +592,27 @@
             grid-template-columns: 1fr 1fr;
             grid-template-rows: auto auto auto;
             grid-auto-flow: column;
-            gap: 8px;
-            padding: 10px;
-            background: #f8fafc;
+            gap: 12px;
+            padding: 15px;
+            background: var(--bg-panel);
         }
 
         .todo-item {
             display: flex;
             flex-direction: column;
             padding: 12px;
-            border: 2px solid #1e272e;
-            background: #ffffff;
-            border-radius: 8px;
+            border: none;
+            background: var(--bg-panel);
+            border-radius: 16px;
             gap: 10px;
-            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.06);
+            box-shadow: var(--neumorphic-outset);
         }
 
         .todo-top {
             display: flex;
             align-items: center;
             gap: 8px;
-            border-bottom: 2px dashed #1e272e;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
             padding-bottom: 8px;
         }
 
@@ -531,7 +645,7 @@
         .todo-name {
             font-size: 14px;
             font-weight: 900;
-            color: #d32f2f;
+            color: var(--text-main);
             text-transform: uppercase;
             line-height: 1.4;
         }
@@ -549,19 +663,21 @@
             align-items: center;
             justify-content: center;
             padding: 8px 4px;
-            background: #f8fafc;
-            border-radius: 6px;
-            border: 1px solid #1e272e;
+            background: var(--bg-body);
+            border-radius: 8px;
+            border: none;
+            box-shadow: var(--neumorphic-inset);
         }
 
         .todo-stat-box.highlight {
-            background: #fff1f2;
-            border-color: #d32f2f;
+            background: var(--bg-body);
+            box-shadow: var(--neumorphic-inset);
+            border-left: 4px solid #ef4444;
         }
 
         .todo-stat-lbl {
             font-size: 11px;
-            color: #64748b;
+            color: var(--text-muted);
             font-weight: 800;
             margin-bottom: 4px;
             text-transform: uppercase;
@@ -570,13 +686,13 @@
         }
 
         .todo-stat-box.highlight .todo-stat-lbl {
-            color: #b71c1c;
+            color: #ef4444;
         }
 
         .todo-stat-val {
             font-size: 18px;
             font-weight: 900;
-            color: #1e272e;
+            color: var(--text-main);
             display: flex;
             align-items: baseline;
             gap: 2px;
@@ -584,7 +700,7 @@
         }
 
         .todo-stat-box.highlight .todo-stat-val {
-            color: #e53935;
+            color: #ef4444;
             font-size: 20px;
         }
 
@@ -603,23 +719,24 @@
         }
 
         .td-main-box {
-            border: 3px solid #1e272e;
-            border-radius: 12px;
-            background: #fff;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            border: none;
+            border-radius: 16px;
+            background: var(--bg-panel);
+            box-shadow: var(--neumorphic-outset);
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            border-left: 5px solid #00A1E4;
         }
 
         .td-main-box-title {
-            background: #f1f5f9;
+            background: var(--bg-panel);
             padding: 12px 10px;
             text-align: center;
             font-size: 15px;
             font-weight: 900;
-            color: #1e3a8a;
-            border-bottom: 3px solid #1e272e;
+            color: var(--text-main);
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -631,7 +748,7 @@
             justify-content: space-around;
             flex: 1;
             align-items: center;
-            background: #f8fafc;
+            background: var(--bg-panel);
         }
 
         .td-sum-card-new {
@@ -640,11 +757,12 @@
             align-items: center;
             justify-content: center;
             flex: 1;
-            background: #fff;
+            background: var(--bg-panel);
             padding: 10px 4px;
-            border-radius: 8px;
-            border: 2px solid #1e272e;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            border-radius: 12px;
+            border: none;
+            box-shadow: var(--neumorphic-inset);
+            border-left: 3px solid #00A1E4;
         }
 
         .td-sum-card-title-new {
@@ -653,7 +771,7 @@
             gap: 4px;
             font-size: 11px;
             font-weight: 800;
-            color: #475569;
+            color: var(--text-muted);
             margin-bottom: 6px;
             text-transform: uppercase;
         }
@@ -662,48 +780,53 @@
             font-size: 26px;
             font-weight: 900;
             line-height: 1;
+            color: var(--text-main);
         }
 
         /* Giao diện riêng cho khối Trọng điểm (Ưu tiên) */
         .td-main-box.priority {
-            border-color: #d32f2f;
+            box-shadow: var(--neumorphic-outset);
+            border-left: 5px solid #ef4444;
+            border-radius: 16px;
         }
 
         .td-main-box.priority .td-main-box-title {
-            background: #d32f2f;
-            color: #ffffff;
-            border-bottom-color: #b71c1c;
+            background: rgba(239, 68, 68, 0.05);
+            color: #ef4444;
+            border-bottom: 1px dashed rgba(239, 68, 68, 0.15);
         }
 
         .td-main-box.priority .td-sub-cards {
-            background: #fff1f2;
+            background: var(--bg-panel);
         }
 
         .td-main-box.priority .td-sum-card-new {
-            border-color: #ef4444;
+            border-left: 3px solid #ef4444;
         }
 
         .footer {
             text-align: center;
             margin-top: 25px;
             font-size: 14px;
-            color: #636e72;
+            color: var(--text-muted);
             font-weight: bold;
             text-transform: uppercase;
         }
 
         /* CARDS CSS TỪ REALTIME */
         .td-card-group {
-            border: 2px solid #20c997;
-            border-radius: 12px;
-            background: #eefcf6;
+            border: none;
+            border-radius: 16px;
+            background: var(--bg-panel);
             padding: 15px;
             margin-bottom: 20px;
+            box-shadow: var(--neumorphic-outset);
+            border-left: 5px solid #10b981;
         }
 
         .td-card-group.not-done {
-            border-color: #ffb8b8;
-            background: #fff5f5;
+            border-left: 5px solid #ef4444;
+            border-radius: 16px;
         }
 
         .td-card-group-title {
@@ -712,13 +835,13 @@
             color: #00b894;
             margin-bottom: 15px;
             text-transform: uppercase;
-            border-bottom: 2px solid #20c997;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
             padding-bottom: 8px;
         }
 
         .td-card-group.not-done .td-card-group-title {
             color: #ff7675;
-            border-bottom-color: #ffb8b8;
+            border-bottom-color: rgba(148, 163, 184, 0.15);
         }
 
         .td-cards {
@@ -728,11 +851,11 @@
         }
 
         .td-card {
-            background: white;
-            border: 1px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+            background: var(--bg-panel);
+            border: none;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: var(--neumorphic-outset);
             display: flex;
             flex-direction: column;
         }
@@ -740,30 +863,32 @@
         .td-card-top {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             margin-bottom: 12px;
-            border-bottom: 1px dashed #e2e8f0;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.15);
             padding-bottom: 8px;
+            min-height: 52px;
         }
 
         .td-card-stt {
-            background: #f39c12;
-            color: white;
+            background: var(--bg-body);
+            color: var(--text-main);
             border-radius: 8px;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: 900;
-            font-size: 15px;
+            font-size: 16px;
             flex-shrink: 0;
+            box-shadow: var(--neumorphic-inset);
         }
 
         .td-card-name {
             font-size: 14px;
             font-weight: 800;
-            color: #2d3436;
+            color: var(--text-main);
             line-height: 1.3;
             flex: 1;
             text-transform: uppercase;
@@ -784,7 +909,7 @@
 
         .td-card-circle-bg {
             fill: none;
-            stroke: #f1f5f9;
+            stroke: var(--bg-body);
             stroke-width: 6;
         }
 
@@ -804,7 +929,7 @@
             align-items: center;
             font-size: 15px;
             font-weight: 900;
-            color: #1e293b;
+            color: var(--text-main);
         }
 
         .td-card-stats {
@@ -824,7 +949,7 @@
         }
 
         .td-card-stat-label {
-            color: #64748b;
+            color: var(--text-muted);
             font-weight: 700;
             font-size: 11px;
             white-space: nowrap;
@@ -832,7 +957,7 @@
 
         .td-card-stat-val {
             font-weight: 900;
-            color: #1e293b;
+            color: var(--text-main);
             font-size: 13px;
             white-space: nowrap;
             text-align: right;
@@ -848,8 +973,8 @@
 
         .td-card-bottom {
             margin-top: auto;
-            background: #e0f2fe;
-            border-left: 5px solid #0284c7;
+            background: var(--bg-badge-stable);
+            border-left: 5px solid var(--color-badge-stable);
             padding: 6px 8px;
             display: flex;
             justify-content: space-between;
@@ -860,80 +985,155 @@
         .td-card-bottom-label {
             font-size: 11px;
             font-weight: 900;
-            color: #0284c7;
+            color: var(--color-badge-stable);
             text-transform: uppercase;
         }
 
         .td-card-bottom-val {
             font-size: 16px;
             font-weight: 900;
-            color: #0284c7;
+            color: var(--color-badge-stable);
         }
 
         /* FIX FONT NÚT BẤM (CHUYỂN SANG NUNITO TRÁNH LỖI DẤU NẶNG) */
         .btn-send {
-            background: #00A1E4;
+            background: var(--primary-gradient);
             color: #ffffff;
             border: none;
             padding: 15px 30px;
             font-size: 18px;
-            border-radius: 8px;
+            border-radius: 12px;
             cursor: pointer;
-            font-weight: 900;
-            margin-bottom: 30px;
-            font-family: 'Nunito', sans-serif;
-        }
-
-        .top-actions {
-            display: flex;
-            gap: 8px;
-            margin: 20px auto;
-            justify-content: center;
-            max-width: 1012px;
-            width: 100%;
-            flex-wrap: nowrap;
-            box-sizing: border-box;
-            padding: 0;
-        }
-
-        .btn-action {
-            background: white;
-            border: 2px solid #cbd5e1;
-            color: #475569;
-            flex: 1;
-            min-width: 85px;
-            height: 50px;
-            padding: 4px;
-            font-size: 11px;
-            border-radius: 8px;
             font-weight: 800;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            gap: 4px;
-            font-family: 'Nunito', sans-serif;
-            line-height: 1.2;
+            margin-bottom: 30px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: var(--neumorphic-outset);
             transition: all 0.2s;
         }
-
-        .btn-action:hover {
-            background: #f8fafc;
-            border-color: #94a3b8;
+        .btn-send:hover {
             transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(148, 163, 184, 0.15);
+        }
+        .btn-send:active {
+            transform: translateY(1px);
+            box-shadow: var(--neumorphic-inset);
+        }
+
+        /* UNIFIED CONTROL CENTER PANEL */
+        .control-panel {
+            background: var(--bg-panel);
+            border-radius: 20px;
+            padding: 16px 20px;
+            box-shadow: var(--neumorphic-outset);
+            max-width: 1010px;
+            width: 100%;
+            margin: 20px auto;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: all 0.3s ease;
+        }
+        .cp-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .cp-group {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .cp-label {
+            font-size: 11px;
+            font-weight: 900;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .cp-divider {
+            height: 1px;
+            background: rgba(148, 163, 184, 0.12);
+            width: 100%;
+        }
+        .control-panel select {
+            border: none;
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-family: 'Inter', 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 12px;
+            outline: none;
+            background: var(--bg-body);
+            color: var(--text-main);
+            box-shadow: var(--neumorphic-inset);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cp-btn {
+            background: var(--bg-panel);
+            border: none;
+            color: var(--text-main);
+            padding: 8px 14px;
+            font-size: 11px;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-family: 'Inter', 'Nunito', sans-serif;
+            box-shadow: var(--neumorphic-outset);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .cp-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(148, 163, 184, 0.15);
+        }
+        .cp-btn:active {
+            box-shadow: var(--neumorphic-inset);
+            transform: translateY(1px);
+        }
+        .cp-btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: var(--neumorphic-outset);
+        }
+        .cp-btn-primary:hover {
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.25);
+        }
+        .cp-btn-success {
+            color: #10b981;
+        }
+        .cp-btn-warning {
+            color: #f39c12;
+        }
+        .cp-btn-purple {
+            color: #9b59b6;
+        }
+        .cp-btn-coral {
+            color: #f43f5e;
         }
 
         /* COMMENT SECTION STYLES (ĐỒNG BỘ REALTIME) */
         .comment-container {
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Inter', sans-serif;
             text-align: left;
             margin-top: 0;
         }
 
         .comment-header {
             padding: 0 0 15px 0;
-            border-bottom: 1px dashed #cbd5e1;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.12);
             margin-bottom: 15px;
             display: flex;
             justify-content: space-between;
@@ -943,29 +1143,33 @@
         .comment-title {
             font-size: 16px;
             font-weight: 800;
-            color: #1e293b;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
         .btn-copy-small {
-            background: #2563eb;
+            background: var(--teal-gradient);
             color: white;
             border: none;
-            padding: 6px 15px;
-            border-radius: 6px;
-            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
             font-size: 13px;
             display: flex;
             align-items: center;
             gap: 5px;
+            box-shadow: var(--neumorphic-outset);
         }
 
         .btn-copy-small:hover {
-            background: #1d4ed8;
+            box-shadow: 0 4px 12px rgba(148, 163, 184, 0.15);
+        }
+        .btn-copy-small:active {
+            box-shadow: var(--neumorphic-inset);
         }
 
         .comment-body {
@@ -977,11 +1181,11 @@
             width: 100%;
             min-height: 150px;
             padding: 15px;
-            border: 1px dashed #cbd5e1;
-            border-radius: 8px;
-            background: #f8fafc;
-            color: #1e293b;
-            font-family: 'Nunito', sans-serif;
+            border: none;
+            border-radius: 16px;
+            background: var(--bg-panel);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
             font-size: 15px;
             font-weight: 600;
             line-height: 1.6;
@@ -989,44 +1193,162 @@
             margin: 0;
             outline: none;
             box-sizing: border-box;
+            box-shadow: var(--neumorphic-inset);
         }
-    
-        .delta-badge {
-            font-size: 11px; font-weight: 900; padding: 2px 4px; border-radius: 4px; margin-left: 6px; display: inline-block; white-space: nowrap;
-        }
-        .delta-badge.pos { background: #dcfce7; color: #16a34a; }
-        .delta-badge.neg { background: #fee2e2; color: #dc2626; }
 
+        /* TAB NAVIGATION SYSTEM - PREMIUM MODULAR SEGMENTED CONTROLS */
+        .top-nav-container {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin: 15px auto 25px auto;
+            max-width: 1010px;
+            width: 100%;
+            box-sizing: border-box;
+            background: var(--bg-panel);
+            border-radius: 20px;
+            box-shadow: var(--neumorphic-outset);
+            padding: 8px 12px;
+            gap: 6px;
+            position: relative;
+            font-family: 'Inter', 'Nunito', sans-serif;
+            transition: all 0.3s ease;
+        }
+        .top-nav-container a {
+            text-decoration: none;
+            padding: 10px 18px;
+            font-weight: 800;
+            font-size: 12px;
+            color: var(--text-muted);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-radius: 12px;
+            position: relative;
+            letter-spacing: 0.3px;
+        }
+        .top-nav-container a:hover {
+            color: var(--text-main);
+            background: rgba(148, 163, 184, 0.08);
+            transform: translateY(-1px);
+        }
+        .top-nav-container a.active-tab {
+            color: white !important;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            font-weight: 900 !important;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+        }
+        .top-nav-container a.active-tab::after {
+            display: none !important;
+        }
+        #btnReloadTop,
+        #btnThemeTop,
+        #theme-icon-btn {
+            position: absolute !important;
+            height: 38px;
+            padding: 0 16px !important;
+            border-radius: 12px !important;
+            font-weight: 800 !important;
+            font-size: 11px !important;
+            letter-spacing: 0.3px;
+            font-family: 'Inter', 'Nunito', sans-serif !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-shadow: var(--neumorphic-outset) !important;
+            border: none !important;
+            cursor: pointer !important;
+            background: var(--bg-panel) !important;
+            color: var(--text-main) !important;
+            transition: all 0.2s ease !important;
+        }
+        #btnReloadTop {
+            right: 68px !important;
+        }
+        #btnThemeTop,
+        #theme-icon-btn {
+            right: 12px !important;
+            width: 44px !important;
+            padding: 0 !important;
+        }
+        #btnReloadTop:hover,
+        #btnThemeTop:hover,
+        #theme-icon-btn:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 10px rgba(148, 163, 184, 0.15) !important;
+        }
+        #btnReloadTop:active,
+        #btnThemeTop:active,
+        #theme-icon-btn:active {
+            transform: translateY(1px) !important;
+            box-shadow: var(--neumorphic-inset) !important;
+        }
+
+        /* Dark mode overrides */
+        [data-theme="dark"] select,
+        [data-theme="dark"] input {
+            background-color: var(--bg-panel) !important;
+            color: var(--text-main) !important;
+            border-color: rgba(255, 255, 255, 0.12) !important;
+        }
+        [data-theme="dark"] #btnReloadTop,
+        [data-theme="dark"] #btnThemeTop {
+            background: var(--bg-panel) !important;
+            border: none !important;
+            color: var(--text-main) !important;
+            box-shadow: var(--neumorphic-outset) !important;
+        }
+        [data-theme="dark"] #catChartModalBox,
+        [data-theme="dark"] #revenueDetailsModalBox {
+            background: var(--bg-panel) !important;
+            color: var(--text-main) !important;
+        }
     </style>
 </head>
 
 <body>
+    <div class="top-nav-container" data-html2canvas-ignore="true">
+      <a href="baocao_luyke.html" class="active-tab active-luyke">📊 LŨY KẾ</a>
+      <a href="baocao_nhanvien.html">👥 NHÂN VIÊN</a>
+      <a href="baocao_realtime.html">⚡ REALTIME</a>
+      <a href="baocao_suckhoe.html">🏥 SỨC KHỎE</a>
+      
+      <button onclick="clearGasCacheAndReload()" style="position: absolute; right: 48px; padding: 8px 14px; font-weight: 800; font-size: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; border: none; background: var(--bg-panel); color: var(--text-main); font-family: 'Inter', sans-serif; box-shadow: var(--neumorphic-outset);" id="btnReloadTop">
+        <span>🔄 Làm mới</span>
+      </button>
+      
+      <button onclick="toggleTheme()" style="position: absolute; right: 0; padding: 8px 14px; font-weight: 800; font-size: 12px; border-radius: 10px; cursor: pointer; transition: all 0.2s; border: none; background: var(--bg-panel); color: var(--text-main); font-family: 'Inter', sans-serif; box-shadow: var(--neumorphic-outset);" id="btnThemeTop">
+        <span id="theme-icon">🌙</span>
+      </button>
+    </div>
+
     <!-- Modal Biểu đồ số bán Ngành Hàng -->
     <div id="catChartModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
-        <div style="background:#fff; width: 850px; max-width:95%; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.3); transform: translateY(-20px); transition:transform 0.3s ease;" id="catChartModalBox">
-            <div style="background:#0ea5e9; color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:18px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+        <div style="background:var(--bg-panel); width: 850px; max-width:95%; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:var(--neumorphic-outset); transform: translateY(-20px); transition:transform 0.3s ease;" id="catChartModalBox">
+            <div style="background:var(--primary-gradient); color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:18px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
                 <span>📈 Biểu đồ số bán: <span id="ccm-title" style="color: #fef08a;"></span></span>
                 <button onclick="closeCatChartModal()" style="background:none; border:none; color:white; font-size:32px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
             </div>
-            <div style="padding:20px;">
-                <div style="display:flex; flex-direction:row; gap:8px; margin-bottom:14px;">
-                    <div style="flex:1; background:#f8fafc; border:2px solid #1e272e; border-radius:10px; padding:8px 4px; text-align:center;">
-                        <div style="font-size:11px; font-weight:900; color:#475569; text-transform:uppercase; margin-bottom:4px;">🎯 MỤC TIÊU</div>
-                        <div id="ccm-target" style="color:#475569; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0</div>
+            <div style="padding:20px; background: var(--bg-panel);">
+                <div style="display:flex; flex-direction:row; gap:12px; margin-bottom:18px;">
+                    <div style="flex:1; background:var(--bg-panel); border:none; border-radius:12px; padding:10px 4px; text-align:center; box-shadow: var(--neumorphic-inset); border-left: 3px solid #64748b;">
+                        <div style="font-size:11px; font-weight:900; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">🎯 MỤC TIÊU</div>
+                        <div id="ccm-target" style="color:var(--text-main); font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0</div>
                     </div>
-                    <div style="flex:1; background:#eff6ff; border:2px solid #2563eb; border-radius:10px; padding:8px 4px; text-align:center;">
+                    <div style="flex:1; background:var(--bg-panel); border:none; border-radius:12px; padding:10px 4px; text-align:center; box-shadow: var(--neumorphic-inset); border-left: 3px solid #2563eb;">
                         <div style="font-size:11px; font-weight:900; color:#2563eb; text-transform:uppercase; margin-bottom:4px;">📈 LŨY KẾ</div>
                         <div id="ccm-thuchien" style="color:#2563eb; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0</div>
                     </div>
-                    <div style="flex:1; background:#f0fdf4; border:2px solid #10b981; border-radius:10px; padding:8px 4px; text-align:center;">
+                    <div style="flex:1; background:var(--bg-panel); border:none; border-radius:12px; padding:10px 4px; text-align:center; box-shadow: var(--neumorphic-inset); border-left: 3px solid #10b981;">
                         <div style="font-size:11px; font-weight:900; color:#10b981; text-transform:uppercase; margin-bottom:4px;">⚡ % HT</div>
-                        <div id="ccm-ht" style="font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0%</div>
+                        <div id="ccm-ht" style="color:#10b981; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0%</div>
                     </div>
-                    <div style="flex:1; background:#fefce8; border:2px solid #f59e0b; border-radius:10px; padding:8px 4px; text-align:center;">
+                    <div style="flex:1; background:var(--bg-panel); border:none; border-radius:12px; padding:10px 4px; text-align:center; box-shadow: var(--neumorphic-inset); border-left: 3px solid #f59e0b;">
                         <div style="font-size:11px; font-weight:900; color:#d97706; text-transform:uppercase; margin-bottom:4px;">🚀 % DỰ KIẾN</div>
-                        <div id="ccm-dk" style="font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0%</div>
+                        <div id="ccm-dk" style="color:#d97706; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0%</div>
                     </div>
-                    <div style="flex:1; background:#fff1f2; border:2px solid #ef4444; border-radius:10px; padding:8px 4px; text-align:center;">
+                    <div style="flex:1; background:var(--bg-panel); border:none; border-radius:12px; padding:10px 4px; text-align:center; box-shadow: var(--neumorphic-inset); border-left: 3px solid #ef4444;">
                         <div style="font-size:11px; font-weight:900; color:#ef4444; text-transform:uppercase; margin-bottom:4px;">📅 MT NGÀY</div>
                         <div id="ccm-mtngay" style="color:#ef4444; font-size:22px; font-weight:900; font-family:'Montserrat',sans-serif;">0</div>
                     </div>
@@ -1038,21 +1360,21 @@
 
     <!-- Modal Chi tiết Doanh thu (Tỷ trọng & Tăng trưởng) -->
     <div id="revenueDetailsModal" data-html2canvas-ignore="true" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:10000; justify-content:center; align-items:center; opacity:0; transition:opacity 0.3s ease;">
-        <div style="background:#fff; width: 1100px; max-width:95%; max-height: 90vh; border-radius:12px; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 10px 25px rgba(0,0,0,0.3); transform: translateY(-20px); transition:transform 0.3s ease;" id="revenueDetailsModalBox">
-            <div style="background:#2563eb; color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:18px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
+        <div style="background:var(--bg-panel); width: 1100px; max-width:95%; max-height: 90vh; border-radius:16px; display:flex; flex-direction:column; overflow:hidden; box-shadow:var(--neumorphic-outset); transform: translateY(-20px); transition:transform 0.3s ease;" id="revenueDetailsModalBox">
+            <div style="background:var(--primary-gradient); color:white; padding:15px 20px; font-family: 'Montserrat', sans-serif; font-weight:900; font-size:18px; display:flex; justify-content:space-between; align-items:center; text-transform:uppercase;">
                 <span>📈 Phân tích Tỷ trọng & Tăng trưởng Ngành hàng</span>
                 <button onclick="closeRevenueDetailsModal()" style="background:none; border:none; color:white; font-size:32px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
             </div>
-            <div style="padding:20px; overflow-y:auto; flex: 1; background: #f8fafc;">
+            <div style="padding:20px; overflow-y:auto; flex: 1; background: var(--bg-body);">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; align-items: stretch;">
                     <!-- Cột 1: Biểu đồ tròn Tỷ Trọng -->
-                    <div style="background:white; border:2px solid #cbd5e1; border-radius:12px; padding:15px 15px 10px; display:flex; flex-direction:column; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-                        <div style="font-size:14px; font-weight:900; color:#1e293b; text-transform:uppercase; margin-bottom:15px; text-align:center; min-height:40px; display:flex; align-items:center; justify-content:center;">📊 TỶ TRỌNG DOANH THU CÁC NGÀNH HÀNG</div>
+                    <div style="background:var(--bg-panel); border:none; border-radius:16px; padding:18px; display:flex; flex-direction:column; box-shadow: var(--neumorphic-outset);">
+                        <div style="font-size:14px; font-weight:900; color:var(--text-main); text-transform:uppercase; margin-bottom:15px; text-align:center; min-height:40px; display:flex; align-items:center; justify-content:center;">📊 TỶ TRỌNG DOANH THU CÁC NGÀNH HÀNG</div>
                         <div id="chart-proportion" style="width: 100%; flex: 1; display: flex; justify-content: center; align-items: center;"></div>
                     </div>
                     <!-- Cột 2: Biểu đồ cột Tăng Trưởng (Ngang) -->
-                    <div style="background:white; border:2px solid #cbd5e1; border-radius:12px; padding:15px 15px 10px; display:flex; flex-direction:column; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
-                        <div style="font-size:14px; font-weight:900; color:#1e293b; text-transform:uppercase; margin-bottom:15px; text-align:center; min-height:40px; display:flex; align-items:center; justify-content:center;">📈 TĂNG TRƯỞNG DOANH THU SO VỚI CÙNG KỲ</div>
+                    <div style="background:var(--bg-panel); border:none; border-radius:16px; padding:18px; display:flex; flex-direction:column; box-shadow: var(--neumorphic-outset);">
+                        <div style="font-size:14px; font-weight:900; color:var(--text-main); text-transform:uppercase; margin-bottom:15px; text-align:center; min-height:40px; display:flex; align-items:center; justify-content:center;">📈 TĂNG TRƯỞNG DOANH THU SO VỚI CÙNG KỲ</div>
                         <div id="chart-growth" style="width: 100%; flex: 1;"></div>
                     </div>
                 </div>
@@ -1060,24 +1382,40 @@
         </div>
     </div>
 
-            <div class="top-actions" data-html2canvas-ignore="true" style="display:flex; justify-content:center; align-items:center; margin: 20px auto 15px auto; max-width: 950px; width: 100%; box-sizing: border-box; flex-wrap: wrap; gap: 8px;">
-        <button class="btn-action" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
-        <button class="btn-action" id="btnDownloadFull">📸 CHỤP FULL</button>
-        <button class="btn-action" id="btnCopyCommentTop" onclick="copyComment(this)" style="background:#2563eb; color:white; border:none;">📋 NHẬN XÉT</button>
-        <button class="btn-action" id="btnToggleTodo" onclick="toggleTodoBoard()" style="border-color:#10b981; color:#10b981;">🎯 VIỆC CẦN LÀM</button>
-        <button class="btn-action" onclick="openBILink('bcdtnh', 2, 'luyke_manual')" style="border-color:#00A1E4; color:#00A1E4;">📊 LŨY KẾ</button>
-        <button class="btn-action" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')" style="border-color:#9b59b6; color:#9b59b6;">🧑‍💻 NHÂN VIÊN</button>
-        <button class="btn-action" onclick="openBILink('bcdtnh', 1, 'realtime_manual')" style="border-color:#f39c12; color:#f39c12;">📈 REALTIME</button>
-    </div>
-    <div style="display:flex; justify-content:center; align-items:center; gap:8px; margin: 0 auto 20px auto; max-width: 950px; width: 100%; box-sizing: border-box; font-size: 13px;" data-html2canvas-ignore="true">
-        <div style="background:#fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px 12px; display:flex; align-items:center; gap:8px; font-weight:800; color:#475569;">
-            <span style="color:#64748b;">📅 XEM NGÀY:</span>
-            <select id="compDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
-            <span style="color:#64748b;">SO VỚI:</span>
-            <select id="baseDateSel" onchange="loadData()" style="border:1px solid #cbd5e1; border-radius:4px; padding:4px 8px; font-family:'Nunito'; font-weight:bold; outline:none; max-width:200px;"></select>
+    <div class="control-panel" data-html2canvas-ignore="true">
+        <!-- Row 1: Filters & Display Controls -->
+        <div class="cp-row">
+            <div class="cp-group">
+                <span class="cp-label">📅 LỌC DỮ LIỆU:</span>
+                <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-right: 4px;">XEM NGÀY:</span>
+                <select id="compDateSel" onchange="loadData()"></select>
+                <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-left: 8px; margin-right: 4px;">SO VỚI:</span>
+                <select id="baseDateSel" onchange="loadData()"></select>
+            </div>
+            <div class="cp-group">
+                <button onclick="window.toggleDelta()" id="btnToggleDelta" class="cp-btn cp-btn-primary">👀 ẨN/HIỆN CHÊNH LỆCH</button>
+                <button onclick="window.toggleCharts()" id="btnToggleCharts" class="cp-btn cp-btn-primary" style="background: var(--teal-gradient);">📊 HIỆN BIỂU ĐỒ</button>
+            </div>
         </div>
-        <button onclick="window.toggleDelta()" id="btnToggleDelta" style="background:#8b5cf6; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);">👀 ẨN/HIỆN</button>
-        <button onclick="window.toggleCharts()" id="btnToggleCharts" style="background:#0ea5e9; color:white; border:none; border-radius:6px; padding:6px 15px; font-weight:900; font-family:'Nunito'; cursor:pointer; font-size: 12px; white-space: nowrap; box-shadow: 0 2px 4px rgba(14, 165, 233, 0.2);">📊 HIỆN BIỂU ĐỒ</button>
+        
+        <div class="cp-divider"></div>
+        
+        <!-- Row 2: Captures & BI Links -->
+        <div class="cp-row">
+            <div class="cp-group">
+                <span class="cp-label">📸 HÀNH ĐỘNG:</span>
+                <button class="cp-btn" id="btnDownloadSplit">📸 CHỤP TÁCH</button>
+                <button class="cp-btn" id="btnDownloadFull">📸 CHỤP FULL</button>
+                <button class="cp-btn cp-btn-success" id="btnCopyCommentTop" onclick="copyComment(this)">📋 SAO CHÉP NHẬN XÉT</button>
+                <button class="cp-btn cp-btn-success" id="btnToggleTodo" onclick="toggleTodoBoard()">🎯 VIỆC CẦN LÀM</button>
+            </div>
+            <div class="cp-group">
+                <span class="cp-label">🔗 ĐỔ SỐ (BI):</span>
+                <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 LŨY KẾ</button>
+                <button class="cp-btn cp-btn-warning" onclick="openBILink('bcdtnh', 1, 'realtime_manual')">📈 REALTIME</button>
+                <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')">🧑‍💻 NHÂN VIÊN</button>
+            </div>
+        </div>
     </div>
     <div id="report-container"
         style="display:flex; flex-direction:column; align-items:center; background: transparent;">
@@ -1086,44 +1424,44 @@
             <!-- THANH TRẠNG THÁI (Đánh giá dự kiến) -->
             <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 15px;">
                 <div id="top-status-badge"
-                    style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 50px; background: #eff6ff; border: 2px solid #1d4ed8; font-weight: 900; font-size: 14px; color: #1d4ed8; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-transform: uppercase;">
+                    style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border-radius: 50px; background: var(--bg-badge-stable); border: none; font-weight: 900; font-size: 14px; color: var(--color-badge-stable); box-shadow: var(--neumorphic-outset); text-transform: uppercase;">
                     <span id="top-status-icon" style="font-size: 16px;">🛡️</span>
                     <span>TÌNH TRẠNG SIÊU THỊ: <span id="top-status-text">ỔN ĐỊNH</span></span>
                 </div>
             </div>
 
             <div class="header-title">BÁO CÁO LŨY KẾ CỤM SAVICO</div>
-            <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span> <span id="cache-status" style="text-transform: none; font-size: 13px; color: #64748b; font-weight: normal; margin-left: 10px;"></span></div>
+            <div class="date-text">🗓️ HẾT NGÀY: <span id="current-date"></span> <span id="cache-status" style="text-transform: none; font-size: 13px; color: var(--text-muted); font-weight: normal; margin-left: 10px;"></span></div>
 
             <!-- THANH TIẾN ĐỘ TỔNG QUAN -->
             <div
-                style="width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 10px; padding: 0 5px; box-sizing: border-box;">
+                style="width: 100%; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; background: var(--bg-panel); padding: 15px 20px; border-radius: 16px; border: none; box-shadow: var(--neumorphic-outset); box-sizing: border-box;">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
-                        style="width: 150px; font-size: 13px; font-weight: 900; color: #475569; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                        style="width: 150px; font-size: 13px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
                         <i style="font-size: 16px;">📅</i> DỰ KIẾN HT NĂM
                     </div>
                     <div
-                        style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; border: 2px solid #1e272e; overflow: hidden; position: relative;">
-                        <div id="bar-year-fill" style="height: 100%; background: #8b5cf6; width: 0%;"></div>
+                        style="flex: 1; height: 16px; background: var(--bg-body); border-radius: 8px; border: none; overflow: hidden; position: relative; box-shadow: var(--neumorphic-inset);">
+                        <div id="bar-year-fill" style="height: 100%; background: var(--primary-gradient); width: 0%;"></div>
                         <div id="bar-year-remaining"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e272e; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff; pointer-events: none;">
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e293b; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 1px 2px rgba(0,0,0,0.15); pointer-events: none;">
                         </div>
                     </div>
                     <div id="bar-year-text"
-                        style="width: 60px; text-align: right; font-size: 16px; font-weight: 900; color: #8b5cf6;">0%
+                        style="width: 60px; text-align: right; font-size: 16px; font-weight: 900; color: #0ea5e9;">0%
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
-                        style="width: 150px; font-size: 13px; font-weight: 900; color: #475569; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                        style="width: 150px; font-size: 13px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
                         <i style="font-size: 16px;">⏱️</i> TIẾN ĐỘ NGÀY
                     </div>
                     <div
-                        style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; border: 2px solid #1e272e; overflow: hidden; position: relative;">
+                        style="flex: 1; height: 16px; background: var(--bg-body); border-radius: 8px; border: none; overflow: hidden; position: relative; box-shadow: var(--neumorphic-inset);">
                         <div id="bar-time-fill" style="height: 100%; background: #f59e0b; width: 0%;"></div>
                         <div id="bar-time-remaining"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e272e; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff; pointer-events: none;">
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e293b; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 1px 2px rgba(0,0,0,0.15); pointer-events: none;">
                         </div>
                     </div>
                     <div id="bar-time-text"
@@ -1132,14 +1470,14 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div
-                        style="width: 150px; font-size: 13px; font-weight: 900; color: #475569; text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
+                        style="width: 150px; font-size: 13px; font-weight: 900; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 6px;">
                         <i style="font-size: 16px;">💰</i> HOÀN THÀNH DT
                     </div>
                     <div
-                        style="flex: 1; height: 16px; background: #f1f5f9; border-radius: 8px; border: 2px solid #1e272e; overflow: hidden; position: relative;">
-                        <div id="bar-rev-fill" style="height: 100%; background: #10b981; width: 0%;"></div>
+                        style="flex: 1; height: 16px; background: var(--bg-body); border-radius: 8px; border: none; overflow: hidden; position: relative; box-shadow: var(--neumorphic-inset);">
+                        <div id="bar-rev-fill" style="height: 100%; background: var(--teal-gradient); width: 0%;"></div>
                         <div id="bar-rev-remaining"
-                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e272e; text-shadow: 1px 1px 0px #fff, -1px -1px 0px #fff, 1px -1px 0px #fff, -1px 1px 0px #fff; pointer-events: none;">
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 900; color: #1e293b; text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 1px 2px rgba(0,0,0,0.15); pointer-events: none;">
                         </div>
                     </div>
                     <div id="bar-rev-text"
@@ -1152,58 +1490,84 @@
 
             <div class="sec-title"><span>1</span> DOANH THU & THI ĐUA</div>
             <div class="grid-4">
-                <div class="card">
+                <div class="card card-1">
                     <div class="card-title">💰 DOANH THU LŨY KẾ</div>
-                    <div class="card-val" id="c-dt" style="color: #d63031;">0</div>
-                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-dt-delta"></div>
-                    <div class="card-sub">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <div style="display: flex; align-items: baseline; justify-content: center; gap: 2px;">
+                            <span class="card-val" id="c-dt" style="color: #d63031;">0</span>
+                            <span style="font-size: 16px; color: var(--text-muted); font-weight: 800;">/<span id="c-tg-val" style="color: #0ea5e9; font-weight: 900;">0</span></span>
+                        </div>
+                        <span id="c-dt-delta" style="display: inline-flex; align-items: center;"></span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
                         <div class="highlight-target" id="c-dt-sub">CÒN LẠI: 0 TR</div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="card-title">🎯 TARGET THÁNG</div>
-                    <div class="card-val" id="c-tg" style="color: #0984e3;">0</div>
-                    <div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG</div>
-                </div>
-                <div class="card">
+                <div class="card card-2">
                     <div class="card-title">⚡ % HT TARGET</div>
-                    <div class="card-val" id="c-ht" style="color: #10b981;">0%</div>
-                    <div class="card-sub" style="font-weight:900; margin-top: 13px;">TIẾN ĐỘ THÁNG</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <span class="card-val" id="c-ht" style="color: #10b981;">0%</span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
+                        <div class="highlight-target">TIẾN ĐỘ THÁNG</div>
+                    </div>
                 </div>
-                <div class="card">
+                <div class="card card-3">
                     <div class="card-title">📈 DỰ KIẾN THÁNG</div>
-                    <div class="card-val" id="c-dk" style="color: #00A1E4;">0</div>
-                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-dk-delta"></div>
-                    <div class="card-sub">
-                        <div class="highlight-target" id="c-dk-sub">%HT D.KIẾN: 0%</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <span class="card-val" id="c-dk" style="color: #00A1E4;">0</span>
+                        <span id="c-dk-delta" style="display: inline-flex; align-items: center;"></span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
+                        <div class="highlight-target">TRIỆU ĐỒNG</div>
+                    </div>
+                </div>
+                <div class="card card-4">
+                    <div class="card-title">🎯 % HT DỰ KIẾN</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <span class="card-val" id="c-htdk" style="color: #10b981;">0%</span>
+                        <span id="c-htdk-delta" style="display: inline-flex; align-items: center;"></span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
+                        <div class="highlight-target" id="c-htdk-sub">TIẾN ĐỘ DỰ KIẾN</div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card card-5">
                     <div class="card-title">⏱️ MỤC TIÊU NGÀY</div>
-                    <div class="card-val" id="c-mt-ngay-card" style="color: #00A1E4;">0</div>
-                    <div class="card-sub" style="font-weight:900; margin-top: 13px;">TRIỆU ĐỒNG/NGÀY</div>
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <span class="card-val" id="c-mt-ngay-card" style="color: #00A1E4;">0</span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
+                        <div class="highlight-target">TRIỆU ĐỒNG/NGÀY</div>
+                    </div>
                 </div>
-                <div class="card">
+                <div class="card card-6">
                     <div class="card-title">📊 +/- CÙNG KỲ</div>
-                    <div class="card-val" id="c-ck" style="color: #d63031;">0%</div>
-                    <div class="card-sub">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <span class="card-val" id="c-ck" style="color: #d63031;">0%</span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
                         <div class="highlight-target" id="c-ck-sub">(0 TR)</div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="card card-7">
                     <div class="card-title">💳 % TRẢ CHẬM</div>
-                    <div class="card-val" id="c-tc" style="color: #f59e0b;">0%</div>
-                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-tc-delta"></div>
-                    <div class="card-sub">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <span class="card-val" id="c-tc" style="color: #f59e0b;">0%</span>
+                        <span id="c-tc-delta" style="display: inline-flex; align-items: center;"></span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
                         <div class="highlight-target" id="c-tc-sub">0 TR</div>
                     </div>
                 </div>
-                <div class="card">
+                <div class="card card-8">
                     <div class="card-title">⭐ NH DỰ KIẾN ĐẠT</div>
-                    <div class="card-val" id="c-nh-dk" style="color: #00A1E4;">0</div>
-                    <div style="font-size: 12px; height: 16px; margin-top: 4px; display: flex; justify-content: center; align-items: center;" id="c-nh-dk-delta"></div>
-                    <div class="card-sub">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50px; margin: 4px 0; width: 100%;">
+                        <span class="card-val" id="c-nh-dk" style="color: #00A1E4;">0</span>
+                        <span id="c-nh-dk-delta" style="display: inline-flex; align-items: center;"></span>
+                    </div>
+                    <div class="card-sub" style="margin-top: 6px;">
                         <div class="highlight-target" id="c-nh-vd-sub">ĐÃ VỀ ĐÍCH: 0</div>
                     </div>
                 </div>
@@ -2020,25 +2384,81 @@
             return "📦";
         }
 
+        function renderLuyKeSkeletons() {
+            const dtCardHTML = Array(4).fill(0).map(() => `
+                <div class="card skeleton">
+                    <div class="skeleton-title" style="margin: 0 auto 10px auto;"></div>
+                    <div class="skeleton-text" style="height: 36px; width: 80%; margin: 0 auto 10px auto;"></div>
+                    <div class="skeleton-text" style="height: 24px; width: 60%; margin: 0 auto 10px auto;"></div>
+                    <div class="skeleton-text" style="height: 24px; width: 90%; margin: 0 auto;"></div>
+                </div>
+            `).join('');
+            const el1 = document.getElementById('dt-card-group');
+            if (el1) el1.innerHTML = dtCardHTML;
+
+            const tdCardHTML = Array(8).fill(0).map(() => `
+                <div class="card skeleton" style="min-height: 120px;">
+                    <div class="skeleton-title" style="margin: 0 auto 10px auto;"></div>
+                    <div class="skeleton-text" style="height: 28px; width: 70%; margin: 0 auto 8px auto;"></div>
+                    <div class="skeleton-text" style="height: 20px; width: 80%; margin: 0 auto 8px auto;"></div>
+                    <div class="skeleton-text" style="height: 20px; width: 50%; margin: 0 auto;"></div>
+                </div>
+            `).join('');
+            const el2 = document.getElementById('thidua-card-group');
+            if (el2) el2.innerHTML = tdCardHTML;
+
+            const tableHTML = `
+                <div style="padding: 20px;">
+                    <div class="skeleton skeleton-title"></div>
+                    <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px;"></div>
+                    <div class="skeleton skeleton-text" style="height: 30px;"></div>
+                </div>
+            `;
+            const el3 = document.getElementById('dt-table-container');
+            if (el3) el3.innerHTML = tableHTML;
+            const el4 = document.getElementById('thidua-table-container');
+            if (el4) el4.innerHTML = tableHTML;
+
+            const chartHTML = `
+                <div class="skeleton" style="width: 100%; height: 250px; border-radius: 12px;"></div>
+            `;
+            const el5 = document.getElementById('chart-proportion');
+            if (el5) el5.innerHTML = chartHTML;
+            const el6 = document.getElementById('chart-growth');
+            if (el6) el6.innerHTML = chartHTML;
+        }
+
         async function loadData() {
             try {
                 const setHTML_safe = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
-                await initHistory();
+                
+                // Render Skeletons immediately
+                renderLuyKeSkeletons();
+                setHTML_safe("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
+
+                // Start fetches in parallel
+                const historyPromise = initHistory();
+                const mainFetchPromise = fetch(GAS_URL + "?sheets=Config_ThiDua,Data_BI,Data_ThiDua");
+
+                await historyPromise;
                 
                 let baseVal = document.getElementById('baseDateSel') ? document.getElementById('baseDateSel').value : 'auto';
                 let compVal = document.getElementById('compDateSel') ? document.getElementById('compDateSel').value : 'current';
 
                 let dataBI, dataThiDua, configData;
 
-                // Xử lý nạp dữ liệu cấu hình và dữ liệu hiện tại
-                localStorage.removeItem("BC_CACHE_LUYKE");
-                localStorage.removeItem("BC_CACHE_LUYKE_TIME");
-                setHTML_safe("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
-                const res = await fetch(GAS_URL + "?sheets=Config_ThiDua,Data_BI,Data_ThiDua");
+                const res = await mainFetchPromise;
+                const fromCache = res.headers.get('X-From-Cache') === 'true';
                 const currentData = await res.json();
                 
-                let updateTime = new Date().toLocaleTimeString('vi-VN') + " - " + new Date().toLocaleDateString('vi-VN');
-                setHTML_safe("cache-status", `(Vừa cập nhật mới lúc: ${updateTime})`);
+                if (fromCache) {
+                    setHTML_safe("cache-status", `(⚡ Dữ liệu lưu cục bộ)`);
+                } else {
+                    let updateTime = new Date().toLocaleTimeString('vi-VN') + " - " + new Date().toLocaleDateString('vi-VN');
+                    setHTML_safe("cache-status", `(Vừa cập nhật mới lúc: ${updateTime})`);
+                }
 
                 configData = currentData["Config_ThiDua"] || [];
 
@@ -2422,7 +2842,7 @@
 
                 setText("c-dt", formatMoney(tDT));
                 setHTML("c-dt-delta", window.formatDelta(tDT - base_tDT, false));
-                setText("c-tg", formatMoney(tTG));
+                setText("c-tg-val", formatMoney(tTG));
                 setText("c-ht", formatPercent(totalHT));
                 setColor("c-ht", getColorClass(totalHT));
 
@@ -2433,10 +2853,14 @@
                 setHTML("c-dt-sub", `CÒN LẠI: <span style="color:${colorConLai}; font-weight:900;">${formatMoney(Math.max(0, tTG - tDT))} TR</span>`);
                 setHTML("c-dk-delta", window.formatDelta(totalDKThang - base_totalDKThang, false));
                 setText("c-dk", formatMoney(totalDKThang));
+                
                 let diffPercentDK = (totalDKThang / tTG)*100 - base_htDK_percent*100;
                 if(isNaN(diffPercentDK)) diffPercentDK = 0;
-                let dkPercentHTML = ` <span class="delta-badge ${diffPercentDK >= 0 ? 'pos' : 'neg'}">${diffPercentDK >= 0 ? '▲ +' : '▼ '}${Math.round(diffPercentDK)}%</span>`;
-                setHTML("c-dk-sub", `%HT D.KIẾN: <span style="color:${colorDKThang}; font-weight:900;">${formatPercent(totalDKThang / tTG)}</span>${dkPercentHTML}`);
+                let dkPercentHTML = `<span class="delta-badge ${diffPercentDK >= 0 ? 'pos' : 'neg'}">${diffPercentDK >= 0 ? '▲ +' : '▼ '}${Math.round(diffPercentDK)}%</span>`;
+                
+                setText("c-htdk", formatPercent(totalDKThang / tTG));
+                setColor("c-htdk", colorDKThang);
+                setHTML("c-htdk-delta", dkPercentHTML);
                 
                 let diffTC = totalTyLeTC*100 - base_totalTyLeTC*100;
                 if(isNaN(diffTC)) diffTC = 0;
@@ -2462,6 +2886,23 @@
                 let sttBI = 1;
                 for (let item of parsedBI) {
                     let tyTrong = tDT > 0 ? (item.dt / tDT) : 0;
+                    let colorWeight = "#64748b";
+                    let bgWeight = "rgba(100, 116, 139, 0.06)";
+                    let borderWeight = "rgba(100, 116, 139, 0.15)";
+                    if (tyTrong >= 0.20) {
+                        colorWeight = "#2563eb";
+                        bgWeight = "rgba(37, 99, 235, 0.06)";
+                        borderWeight = "rgba(37, 99, 235, 0.15)";
+                    } else if (tyTrong >= 0.10) {
+                        colorWeight = "#0ea5e9";
+                        bgWeight = "rgba(14, 165, 233, 0.06)";
+                        borderWeight = "rgba(14, 165, 233, 0.15)";
+                    } else if (tyTrong >= 0.05) {
+                        colorWeight = "#10b981";
+                        bgWeight = "rgba(16, 185, 129, 0.06)";
+                        borderWeight = "rgba(16, 185, 129, 0.15)";
+                    }
+
                     let cHT = getColorClass(item.htTarget);
                     let name = shortName(item.nganhHang);
                     let fSizeBI = name.length > 45 ? "13px" : (name.length > 30 ? "15px" : "18px");
@@ -2482,19 +2923,19 @@
                     else sttPillClassBI = 'stt-red';
 
                     htmlBI += `
-          <tr>
+          <tr style="height: 65px;">
               <td><div class="stt-pill ${sttPillClassBI}">${sttBI++}</div></td>
-              <td class="text-left">
-                  <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: ${fSizeBI} !important; line-height: 1.3;">
+              <td class="text-left" style="font-size:${fSizeBI} !important;">
+                  <div style="display:flex; align-items:center;">
                       <span style="margin-right:8px;">${industryEmoji}</span> ${name} ${window.formatDelta(item.deltaDT, false)}
                   </div>
               </td>
-              <td style="padding: 0;">
+              <td style="padding: 4px 6px;">
                   <div class="cell-prog-wrap">
-                      <div class="cell-prog-bg" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT};"></div>
-                      <div class="cell-val" style="display:flex; flex-direction:column; padding: 4px 0;">
-                          <span style="color:#00A1E4; font-size: 26px; font-weight: 900;">${formatMoney(item.dt)}</span>
-                          <span style="color:#636e72; font-size: 16px; font-weight: 800;">/ ${formatMoney(item.tg)}</span>
+                      <div class="cell-prog-bg" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT}; border-radius: 8px ${item.htTarget >= 1 ? '8px 8px 8px' : '0 0 8px'};"></div>
+                      <div class="cell-val" style="display:flex; flex-direction:column; padding: 6px 0; gap: 2px;">
+                          <span style="color: var(--text-main); font-size: 20px; font-weight: 900; font-family: 'Montserrat', sans-serif;">${formatMoney(item.dt)}</span>
+                          <span style="color: var(--text-muted); font-size: 13px; font-weight: 800;">/ ${formatMoney(item.tg)}</span>
                       </div>
                   </div>
               </td>
@@ -2514,13 +2955,9 @@
                   <div style="font-size:13px; color:${cCK}; font-weight:700;">(${strChenhLech} TR)</div>
               </td>
               <td>
-                  <div class="donut-wrapper" style="margin: 0 auto;">
-                      <svg viewBox="0 0 36 36" class="circular-chart" xmlns="http://www.w3.org/2000/svg">
-                          <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                          <path class="circle" stroke-dasharray="${Math.min(tyTrong * 100, 100)}, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                      </svg>
-                      <span class="donut-inner">${Math.round(tyTrong * 100)}%</span>
-                  </div>
+                  <span style="display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; border-radius: 10px; font-size: 20px; font-weight: 900; color: ${colorWeight}; background: ${bgWeight}; border: 1px solid ${borderWeight}; box-shadow: var(--neumorphic-inset);">
+                      ${Math.round(tyTrong * 100)}%
+                  </span>
               </td>
           </tr>`;
                 }
@@ -2532,21 +2969,21 @@
                 let totalConLai = Math.max(0, tTG - tDT);
 
                 htmlBI += `
-        <tr style="background: #fffbdf; border-top: 3px solid #1e272e;">
+        <tr style="background: rgba(14, 165, 233, 0.08); font-weight: 900; border-top: 2px solid rgba(148, 163, 184, 0.3);">
             <td style="font-size: 20px;">⭐</td>
-            <td class="text-left" style="color:#d63031;">TỔNG CỘNG</td>
-            <td style="font-size:24px; color:#d63031;">${formatMoney(tDT)} <span style="font-size:18px;">/ ${formatMoney(tTG)}</span></td>
+            <td class="text-left" style="color:var(--text-main); font-weight: 900;">TỔNG CỘNG</td>
+            <td style="font-size:20px; color:var(--text-main); font-weight: 900;">${formatMoney(tDT)} <span style="font-size:14px; color:var(--text-muted); font-weight:800;">/ ${formatMoney(tTG)}</span></td>
             <td>
-                ${totalConLai > 0 ? `<div style="color:#ef4444; font-size:22px;">${formatMoney(mucTieuNgayAll)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
+                ${totalConLai > 0 ? `<div style="color:#ef4444; font-size:22px; font-weight: 900;">${formatMoney(mucTieuNgayAll)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
             </td>
-            <td style="color:${totalHTColor};">${formatPercent(totalHT)}</td>
+            <td style="color:${totalHTColor}; font-weight: 900;">${formatPercent(totalHT)}</td>
             <td>
-                <div style="color:${totalCKColor}; display:flex; align-items:center; justify-content:center; gap:4px; font-size:22px;">
+                <div style="color:${totalCKColor}; display:flex; align-items:center; justify-content:center; gap:4px; font-size:22px; font-weight: 900;">
                     ${totalCK >= 0 ? '↑' : '↓'} ${totalCK > 0 ? '+' : ''}${formatPercent(totalCK)}
                 </div>
-                <div style="font-size:13px; color:${totalCKColor}; font-weight:700;">(${strTotalChenhLech} TR)</div>
+                <div style="font-size:13px; color:${totalCKColor}; font-weight:800;">(${strTotalChenhLech} TR)</div>
             </td>
-            <td style="color:#0d47a1;">100%</td>
+            <td style="color:#0ea5e9; font-weight: 900;">100%</td>
         </tr>`;
                 setHTML("board-bi", htmlBI);
                 window.parsedBI = parsedBI;
@@ -2637,17 +3074,26 @@
                 
                 <td class="text-left" style="${nameStyle}; cursor:pointer; vertical-align: middle;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">
                     <div style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: ${shortName(item.nganhHang).length > 45 ? '13px' : (shortName(item.nganhHang).length > 30 ? '15px' : '18px')} !important; line-height: 1.3;">
-                        <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}
+                        <span style="margin-right:8px;">${iconEmoji}</span> ${shortName(item.nganhHang)} <span style="font-size:12px; color:var(--text-muted); font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}
+                    </div>
+                    <div class="td-card-progress-monthly" style="width: 100%; margin-top: 6px;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 3px;">
+                            <span>📅 LK: ${formatMoney(item.thucHien)}/${formatMoney(item.target)}</span>
+                            <span style="color: ${cHT}; font-weight: 900;">(${formatPercent(item.htTarget)})</span>
+                        </div>
+                        <div style="width: 100%; height: 6px; background: var(--bg-body); border-radius: 3px; overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.12); box-sizing: border-box;">
+                            <div style="width: ${Math.min(item.htTarget * 100, 100)}%; height: 100%; background: ${cHT}; border-radius: 3px;"></div>
+                        </div>
                     </div>
                 </td>
                 
-                <td style="color: #475569; font-size: 21px;">${mtNgayDisplay}</td>
-                <td style="color: #475569; font-size: 21px;">${formatMoney(item.target)}</td>
+                <td style="color: var(--text-main); font-size: 21px;">${mtNgayDisplay}</td>
+                <td style="color: var(--text-main); font-size: 21px;">${formatMoney(item.target)}</td>
                 
                 <td style="padding:0;">
                     <div class="cell-prog-wrap">
-                        <div class="cell-prog-bg" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT};"></div>
-                        <span class="cell-val" style="color:#2563eb; font-size: 22px;">${formatMoney(item.thucHien)}</span>
+                        <div class="cell-prog-bg" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT}; opacity: 0.15;"></div>
+                        <span class="cell-val" style="color:#0ea5e9; font-size: 22px; position: relative; z-index: 1;">${formatMoney(item.thucHien)}</span>
                     </div>
                 </td>
                 
@@ -2675,44 +3121,55 @@
                     let fSizeCard = sName.length > 40 ? "10px" : (sName.length > 25 ? "12px" : "13px");
                     let nameHtml = `<div style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; font-size: ${fSizeCard}; line-height: 1.3; ${nameStyle}; cursor:pointer;" onclick="showCategoryDailyChart('${item.nganhHang}', ${item.thucHien}, ${item.target}, ${item.htTarget}, ${item.htDuKien}, ${item.mtNgay}, ${item.isSL}, ${item.deltaThucHien})">${sName} <span style="font-size:11px; color:#7f8c8d; font-weight:900;">(${item.isSL ? "SL" : "DT"})</span> ${window.formatDelta(item.deltaThucHien, item.isSL)}</div>`;
                     let conLaiDisplayCard = item.htTarget >= 1 ? '<span style="font-size:16px;">🏆 Đã đạt</span>' : formatMoney(conLai);
-                    let dash = 2 * Math.PI * 38;
+                    let dash = 2 * Math.PI * 29;
                     let offset = dash - (Math.min(item.htDuKien, 1) * dash);
                     let percentCircle = Math.round(item.htDuKien * 100);
 
                     let cardHtml = `
-            <div class="td-card">
-                <div class="td-card-top">
-                    <div class="td-card-stt">${sttTD - 1}</div>
-                    <div class="td-card-name">${nameHtml}</div>
-                </div>
-                <div class="td-card-mid">
-                    <div class="td-card-circle-wrap">
-                        <svg viewBox="0 0 84 84" class="td-card-circle-bg"><circle cx="42" cy="42" r="38"></circle></svg>
-                        <svg viewBox="0 0 84 84" class="td-card-circle-fill" style="position:absolute; top:0; left:0; stroke:${cHTDK}; stroke-dasharray:${dash}; stroke-dashoffset:${offset};"><circle cx="42" cy="42" r="38"></circle></svg>
-                        <div class="td-card-circle-text">${percentCircle}%</div>
+            <div class="td-card" style="padding: 12px; background: var(--bg-panel); border: 1px solid rgba(148, 163, 184, 0.12); box-shadow: var(--neumorphic-outset); border-radius: 16px; display: flex; flex-direction: column;">
+                <div class="td-card-top" style="display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-bottom: 8px; border-bottom: 1px dashed rgba(148, 163, 184, 0.15); padding-bottom: 8px; min-height: 90px; justify-content: flex-start; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+                        <div class="td-card-stt" style="background: var(--bg-body); color: var(--text-main); border-radius: 8px; width: 30px; height: 30px; display: flex; justify-content: center; align-items: center; font-weight: 900; font-size: 15px; flex-shrink: 0; box-shadow: var(--neumorphic-inset);">${sttTD - 1}</div>
+                        <div class="td-card-name" style="font-size: ${fSizeCard}; flex: 1;">${nameHtml}</div>
                     </div>
-                    <div class="td-card-stats">
-                        <div class="td-card-stat-row">
-                            <span class="td-card-stat-label">Target:</span>
-                            <span class="td-card-stat-val">${formatMoney(item.target)}</span>
+                    <div class="td-card-progress-monthly" style="width: 100%; margin-top: auto;">
+                        <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 3px;">
+                            <span>LK: ${formatMoney(item.thucHien)}/${formatMoney(item.target)}</span>
+                            <span style="color: ${cHT}; font-weight: 900;">(${formatPercent(item.htTarget)})</span>
                         </div>
-                        <div class="td-card-stat-row">
-                            <span class="td-card-stat-label">Thực hiện:</span>
-                            <span class="td-card-stat-val blue">${formatMoney(item.thucHien)}</span>
-                        </div>
-                        <div class="td-card-stat-row">
-                            <span class="td-card-stat-label">% HT:</span>
-                            <span class="td-card-stat-val">${formatPercent(item.htTarget)}</span>
-                        </div>
-                        <div class="td-card-stat-row">
-                            <span class="td-card-stat-label">Còn lại:</span>
-                            <span class="td-card-stat-val red">${conLaiDisplayCard}</span>
+                        <div style="width: 100%; height: 6px; background: var(--bg-body); border-radius: 3px; overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.12); box-sizing: border-box;">
+                            <div style="width: ${Math.min(item.htTarget * 100, 100)}%; height: 100%; background: ${cHT}; border-radius: 3px;"></div>
                         </div>
                     </div>
                 </div>
-                <div class="td-card-bottom">
-                    <span class="td-card-bottom-label">MỤC TIÊU NGÀY</span>
-                    <span class="td-card-bottom-val">${mtNgayFormat}</span>
+                <div class="td-card-mid" style="display: flex; gap: 8px; align-items: center;">
+                    <div class="td-card-circle-wrap" style="position: relative; width: 65px; height: 65px; flex-shrink: 0;">
+                        <svg viewBox="0 0 65 65" class="td-card-circle-bg" style="fill: none; stroke: var(--bg-body); stroke-width: 5;"><circle cx="32.5" cy="32.5" r="29"></circle></svg>
+                        <svg viewBox="0 0 65 65" class="td-card-circle-fill" style="position:absolute; top:0; left:0; stroke:${cHTDK}; stroke-dasharray:${dash}; stroke-dashoffset:${offset}; fill: none; stroke-width: 5; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%;"><circle cx="32.5" cy="32.5" r="29"></circle></svg>
+                        <div class="td-card-circle-text" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; font-size: 15px; font-weight: 900; color: var(--text-main);">${percentCircle}%</div>
+                    </div>
+                    <div class="td-card-stats" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                        <div class="td-card-stat-row" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="td-card-stat-label" style="color: var(--text-muted); font-weight: 700; font-size: 11px;">Target:</span>
+                            <span class="td-card-stat-val" style="font-weight: 900; color: var(--text-main); font-size: 13px;">${formatMoney(item.target)}</span>
+                        </div>
+                        <div class="td-card-stat-row" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="td-card-stat-label" style="color: var(--text-muted); font-weight: 700; font-size: 11px;">Thực hiện:</span>
+                            <span class="td-card-stat-val blue" style="font-weight: 900; color: #0ea5e9; font-size: 16px !important;">${formatMoney(item.thucHien)}</span>
+                        </div>
+                        <div class="td-card-stat-row" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="td-card-stat-label" style="color: var(--text-muted); font-weight: 700; font-size: 11px;">% HT:</span>
+                            <span class="td-card-stat-val" style="font-weight: 900; color: var(--text-main); font-size: 13px;">${formatPercent(item.htTarget)}</span>
+                        </div>
+                        <div class="td-card-stat-row" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="td-card-stat-label" style="color: var(--text-muted); font-weight: 700; font-size: 11px;">Còn lại:</span>
+                            <span class="td-card-stat-val red" style="font-weight: 900; color: #ef4444; font-size: 14px !important;">${conLaiDisplayCard}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="td-card-bottom" style="margin-top: auto; background: var(--bg-body); border-left: 5px solid #0ea5e9; padding: 6px 8px; display: flex; justify-content: space-between; align-items: center; border-radius: 0 12px 12px 0; box-shadow: var(--neumorphic-inset);">
+                    <span class="td-card-bottom-label" style="font-size: 11px; font-weight: 900; color: #0ea5e9;">MỤC TIÊU NGÀY</span>
+                    <span class="td-card-bottom-val" style="font-size: 16px; font-weight: 900; color: #0ea5e9;">${mtNgayFormat}</span>
                 </div>
             </div>`;
 
@@ -2843,10 +3300,7 @@
                     msg += todoList.map((item, idx) => {
                         let conLai = Math.max(0, item.tg - item.dt);
                         let doanhThuUocTinh = (item.htTarget >= 1) ? (item.dt / daysPassed) : (conLai / daysRemaining);
-                        let avgPrice = (item.sl > 0 && item.dt > 0) ? (item.dt / item.sl) : 0;
-                        let slCanBan = avgPrice > 0 ? Math.ceil(doanhThuUocTinh / avgPrice) : 0;
-                        let textSL = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} SP (~${formatMoney(doanhThuUocTinh)} TR)` : `~${formatMoney(doanhThuUocTinh)} TR`;
-                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ${textSL}/ngày`;
+                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ~${formatMoney(doanhThuUocTinh)} TR/ngày`;
                     }).join('\n') + `\n`;
                 }
 
@@ -2855,15 +3309,9 @@
                     msg += `✅ Tuyệt vời, tất cả ngành hàng thi đua đã về đích!`;
                 } else {
                     msg += todoThiDuaList.map((item, idx) => {
-                        let mtValue = "";
-                        if (item.isSL) {
-                            mtValue = `${Math.ceil(item.mtNgay).toLocaleString('vi-VN')} SP`;
-                        } else {
-                            let giaTriTB = item.thucHien / daysPassed;
-                            let slCanBan = giaTriTB > 0 ? Math.ceil(item.mtNgay / giaTriTB) : 0;
-                            mtValue = slCanBan > 0 ? `${slCanBan.toLocaleString('vi-VN')} SP (~${formatMoney(item.mtNgay)} TR)` : `~${formatMoney(item.mtNgay)} TR`;
-                        }
-                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ${mtValue}/ngày`;
+                        let unit = item.isSL ? "SP" : "TR";
+                        let mtValue = item.isSL ? Math.ceil(item.mtNgay) : formatMoney(item.mtNgay);
+                        return `${idx + 1}. ${shortName(item.nganhHang)} (${formatPercent(item.htTarget)}) - Cần: ${mtValue} ${unit}/ngày`;
                     }).join('\n');
                 }
 
@@ -3259,11 +3707,22 @@
                 btn.innerText = "⏳ Đang tải ảnh...";
                 btn.disabled = true;
                 try {
-                    let canvas1 = await html2canvas(document.getElementById('part1'), { scale: 2.5, useCORS: true });
-                    downloadURI(canvas1.toDataURL("image/png"), "1_DoanhThu_LK.png");
+                    const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                    const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
+                    
+                    let dataUrl1 = await htmlToImage.toPng(document.getElementById('part1'), {
+                        pixelRatio: 2.5,
+                        cacheBust: true,
+                        backgroundColor: themeBg
+                    });
+                    downloadURI(dataUrl1, "1_DoanhThu_LK.png");
 
-                    let canvas2 = await html2canvas(document.getElementById('part2'), { scale: 2.5, useCORS: true });
-                    downloadURI(canvas2.toDataURL("image/png"), "2_ThiDua_LK.png");
+                    let dataUrl2 = await htmlToImage.toPng(document.getElementById('part2'), {
+                        pixelRatio: 2.5,
+                        cacheBust: true,
+                        backgroundColor: themeBg
+                    });
+                    downloadURI(dataUrl2, "2_ThiDua_LK.png");
                 } catch (e) {
                     alert("Lỗi chụp ảnh: " + e);
                 } finally {
@@ -3282,12 +3741,15 @@
                 btn.innerText = "⏳ Đang tải toàn trang...";
                 btn.disabled = true;
                 try {
-                    let canvas = await html2canvas(document.getElementById('report-container'), {
-                        scale: 2.5,
-                        useCORS: true,
-                        backgroundColor: "#e9ecef"
+                    const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                    const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
+                    
+                    let dataUrl = await htmlToImage.toPng(document.getElementById('report-container'), {
+                        pixelRatio: 2.5,
+                        cacheBust: true,
+                        backgroundColor: themeBg
                     });
-                    downloadURI(canvas.toDataURL("image/png"), "BaoCao_LuyKe_ToanTrang.png");
+                    downloadURI(dataUrl, "BaoCao_LuyKe_ToanTrang.png");
                 } catch (e) {
                     alert("Lỗi chụp toàn trang: " + e);
                 } finally {
@@ -3297,25 +3759,27 @@
             });
         }
 
-        // --- SỰ KIỆN: CHỤP TÁCH VÀ GỬI TELEGRAM ---
+        // --- ĐÃ KHÔI PHỤC NHẬN XÉT CƠ BẢN ---
+
         async function copyComment(clickedBtn) {
             const text = document.getElementById('commentBox').innerText;
             try {
                 await navigator.clipboard.writeText(text);
                 let btn = clickedBtn;
                 if (!btn) {
-                    const btns = document.querySelectorAll('.btn-action');
-                    for (let b of btns) { if (b.innerText.includes("SAO CHÉP")) { btn = b; break; } }
+                    btn = document.getElementById('btnCopyCommentTop') || document.getElementById('btnCopyComment');
                 }
                 if (btn) {
                     const originalText = btn.innerHTML;
+                    const originalBg = btn.style.background;
+                    const originalColor = btn.style.color;
                     btn.innerHTML = "✅ ĐÃ SAO CHÉP!";
-                    btn.style.background = "#059669";
-                    if (btn.classList.contains('btn-action')) btn.style.borderColor = "#059669";
+                    btn.style.background = "#10b981";
+                    btn.style.color = "#ffffff";
                     setTimeout(() => {
                         btn.innerHTML = originalText;
-                        btn.style.background = "#2563eb";
-                        if (btn.classList.contains('btn-action')) btn.style.borderColor = "#2563eb";
+                        btn.style.background = originalBg;
+                        btn.style.color = originalColor;
                     }, 2000);
                 }
             } catch (err) { alert("Lỗi: " + err); }
@@ -3324,14 +3788,14 @@
 
         // --- KHU VỰC NHẬN XÉT ---
         const commentBoxHtml = `
-        <div id="comment-section" class="report-box" style="margin-top: 30px; border-top: 4px solid #00A1E4; background: #f8fafc;" data-html2canvas-ignore="true">
+        <div id="comment-section" class="report-box" style="margin-top: 30px;" data-html2canvas-ignore="true">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="margin:0; color: #1e293b; font-size: 18px;">💡 NHẬN XÉT HỆ THỐNG</h3>
-                <button id="btnCopyComment" style="background: #00A1E4; color: white; border: none; padding: 8px 15px; border-radius: 6px; cursor: pointer; font-weight: bold;">📋 SAO CHÉP</button>
+                <h3 style="margin:0; font-size: 18px;">💡 NHẬN XÉT HỆ THỐNG</h3>
+                <button id="btnCopyComment" class="btn-copy-small">📋 SAO CHÉP</button>
             </div>
-            <div id="commentBox" style="white-space: pre-wrap; line-height: 1.6; color: #334155; font-size: 15px; text-align: left;">Đang khởi tạo nhận xét...</div>
+            <div id="commentBox" style="white-space: pre-wrap; line-height: 1.6; font-size: 15px; text-align: left;">Đang khởi tạo nhận xét...</div>
         </div>
-    `;
+        `;
         document.getElementById('report-container').insertAdjacentHTML('beforeend', commentBoxHtml);
 
         document.getElementById('btnCopyComment').addEventListener('click', () => {
@@ -3342,7 +3806,7 @@
                 btn.style.background = "#10b981";
                 setTimeout(() => {
                     btn.innerText = "📋 SAO CHÉP";
-                    btn.style.background = "#00A1E4";
+                    btn.style.background = "";
                 }, 2000);
             });
         });
