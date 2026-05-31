@@ -33,8 +33,9 @@ const CONFIG = {
 function openBILink(tab, rt, autoRunMode) {
     const returnUrl = encodeURIComponent(window.location.href);
     const url = `${CONFIG.BASE_URL}?id=${CONFIG.AREA_ID}&tab=${tab}&rt=${rt}&dm=1&autoRun=${autoRunMode}&returnUrl=${returnUrl}`;
-    window.open(url, '_blank');
+    window.location.href = url;
 }
+
 
 // Bộ nhớ đệm dự phòng trong RAM nếu localStorage bị trình duyệt chặn (như khi chạy file://)
 const memoryCache = {};

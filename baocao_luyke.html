@@ -1117,8 +1117,8 @@
         .cp-btn-warning {
             color: #f39c12;
         }
-        .cp-btn-purple {
-            color: #9b59b6;
+        .cp-btn-teal {
+            color: #0d9488;
         }
         .cp-btn-coral {
             color: #f43f5e;
@@ -1387,9 +1387,9 @@
         <div class="cp-row">
             <div class="cp-group">
                 <span class="cp-label">📅 LỌC DỮ LIỆU:</span>
-                <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-right: 4px;">XEM NGÀY:</span>
+                <label for="compDateSel" style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-right: 4px;">XEM NGÀY:</label>
                 <select id="compDateSel" onchange="loadData()"></select>
-                <span style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-left: 8px; margin-right: 4px;">SO VỚI:</span>
+                <label for="baseDateSel" style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-left: 8px; margin-right: 4px;">SO VỚI:</label>
                 <select id="baseDateSel" onchange="loadData()"></select>
             </div>
             <div class="cp-group">
@@ -1411,9 +1411,9 @@
             </div>
             <div class="cp-group">
                 <span class="cp-label">🔗 ĐỔ SỐ (BI):</span>
-                <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 LŨY KẾ</button>
+                <button class="cp-btn cp-btn-teal" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 LŨY KẾ</button>
                 <button class="cp-btn cp-btn-warning" onclick="openBILink('bcdtnh', 1, 'realtime_manual')">📈 REALTIME</button>
-                <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')">🧑‍💻 NHÂN VIÊN</button>
+                <button class="cp-btn cp-btn-teal" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')">🧑‍💻 NHÂN VIÊN</button>
             </div>
         </div>
     </div>
@@ -2385,41 +2385,46 @@
         }
 
         function renderLuyKeSkeletons() {
-            const dtCardHTML = Array(4).fill(0).map(() => `
-                <div class="card skeleton">
-                    <div class="skeleton-title" style="margin: 0 auto 10px auto;"></div>
-                    <div class="skeleton-text" style="height: 36px; width: 80%; margin: 0 auto 10px auto;"></div>
-                    <div class="skeleton-text" style="height: 24px; width: 60%; margin: 0 auto 10px auto;"></div>
-                    <div class="skeleton-text" style="height: 24px; width: 90%; margin: 0 auto;"></div>
-                </div>
-            `).join('');
-            const el1 = document.getElementById('dt-card-group');
-            if (el1) el1.innerHTML = dtCardHTML;
+            // Render BI table skeleton inside board-bi
+            const elBI = document.getElementById('board-bi');
+            if (elBI) {
+                elBI.innerHTML = Array(5).fill(0).map(() => `
+                    <tr>
+                        <td colspan="7" style="padding: 15px;">
+                            <div class="skeleton skeleton-text" style="height: 25px; width: 100%;"></div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
 
-            const tdCardHTML = Array(8).fill(0).map(() => `
-                <div class="card skeleton" style="min-height: 120px;">
-                    <div class="skeleton-title" style="margin: 0 auto 10px auto;"></div>
-                    <div class="skeleton-text" style="height: 28px; width: 70%; margin: 0 auto 8px auto;"></div>
-                    <div class="skeleton-text" style="height: 20px; width: 80%; margin: 0 auto 8px auto;"></div>
-                    <div class="skeleton-text" style="height: 20px; width: 50%; margin: 0 auto;"></div>
-                </div>
-            `).join('');
-            const el2 = document.getElementById('thidua-card-group');
-            if (el2) el2.innerHTML = tdCardHTML;
+            // Render Thi đua table skeleton inside table-thidua
+            const elTDTable = document.getElementById('table-thidua');
+            if (elTDTable) {
+                elTDTable.innerHTML = Array(5).fill(0).map(() => `
+                    <tr>
+                        <td colspan="8" style="padding: 15px;">
+                            <div class="skeleton skeleton-text" style="height: 25px; width: 100%;"></div>
+                        </td>
+                    </tr>
+                `).join('');
+            }
 
-            const tableHTML = `
-                <div style="padding: 20px;">
-                    <div class="skeleton skeleton-title"></div>
-                    <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 30px; margin-bottom: 12px;"></div>
-                    <div class="skeleton skeleton-text" style="height: 30px;"></div>
-                </div>
-            `;
-            const el3 = document.getElementById('dt-table-container');
-            if (el3) el3.innerHTML = tableHTML;
-            const el4 = document.getElementById('thidua-table-container');
-            if (el4) el4.innerHTML = tableHTML;
+            // Render Thi đua cards skeleton inside thidua-cards-container
+            const elTDCards = document.getElementById('thidua-cards-container');
+            if (elTDCards) {
+                elTDCards.innerHTML = `
+                    <div class="td-cards">
+                        ${Array(8).fill(0).map(() => `
+                            <div class="td-card skeleton" style="min-height: 120px; padding: 12px; background: var(--bg-panel); border: 1px solid rgba(148, 163, 184, 0.12); box-shadow: var(--neumorphic-outset); border-radius: 16px;">
+                                <div class="skeleton-title" style="margin: 0 auto 10px auto; height: 16px; width: 60%;"></div>
+                                <div class="skeleton-text" style="height: 20px; width: 70%; margin: 0 auto 8px auto;"></div>
+                                <div class="skeleton-text" style="height: 16px; width: 80%; margin: 0 auto 8px auto;"></div>
+                                <div class="skeleton-text" style="height: 16px; width: 50%; margin: 0 auto;"></div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
 
             const chartHTML = `
                 <div class="skeleton" style="width: 100%; height: 250px; border-radius: 12px;"></div>
@@ -2429,6 +2434,7 @@
             const el6 = document.getElementById('chart-growth');
             if (el6) el6.innerHTML = chartHTML;
         }
+
 
         async function loadData() {
             try {
@@ -2942,10 +2948,12 @@
               <td>
                   ${conLai > 0 ? `<div style="color: #ef4444; font-size: 22px;">${formatMoney(mtNgayThucTeNganh)}</div>` : `<div style="font-size: 28px;">🏆</div>`}
               </td>
-              <td style="padding: 0 4px;">
-                  <div class="td-prog-container">
-                      <span style="color:${cHT}; font-size: 24px;">${formatPercent(item.htTarget)}</span>
-                      <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT};"></div></div>
+              <td style="padding: 4px 6px;">
+                  <div class="cell-prog-wrap">
+                      <div class="cell-prog-bg" style="width:${Math.min(item.htTarget * 100, 100)}%; background:${cHT}; border-radius: 8px ${item.htTarget >= 1 ? '8px 8px 8px' : '0 0 8px'};"></div>
+                      <div class="cell-val" style="display:flex; flex-direction:column; padding: 6px 0; justify-content:center; align-items:center;">
+                          <span style="color: ${cHT}; font-size: 20px; font-weight: 900; font-family: 'Montserrat', sans-serif;">${formatPercent(item.htTarget)}</span>
+                      </div>
                   </div>
               </td>
               <td>

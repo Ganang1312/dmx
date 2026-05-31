@@ -173,6 +173,7 @@
         z-index: 1;
     }
 
+
     /* Donut SVG style */
     .donut-wrapper { position: relative; width: 44px; height: 44px; display: inline-flex; justify-content: center; align-items: center; }
     .circular-chart { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
@@ -288,8 +289,8 @@
         .cp-btn-warning {
             color: #f39c12;
         }
-        .cp-btn-purple {
-            color: #9b59b6;
+        .cp-btn-teal {
+            color: #0d9488;
         }
         .cp-btn-coral {
             color: #f43f5e;
@@ -533,6 +534,7 @@
               <button onclick="closeRtModal()" style="background:none; border:none; color:white; font-size:28px; cursor:pointer; line-height:1; padding:0; margin:0;">&times;</button>
           </div>
           <div style="padding:20px; display:flex; flex-direction:column; gap:15px;">
+              <label for="rtModalTextarea" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;">Dán dữ liệu nhân viên:</label>
               <textarea id="rtModalTextarea" rows="6" style="width:100%; box-sizing:border-box; padding:10px; border:2px solid #cbd5e1; border-radius:8px; font-family:'Nunito', sans-serif; font-size:14px; resize:vertical; outline:none;" placeholder="Ví dụ: 162055 - D.V.Huy 1 28,324,074..."></textarea>
               <button onclick="submitRtModal()" style="width:100%; background:#2563eb; color:white; padding:12px; font-size:16px; font-weight:900; border:none; border-radius:8px; cursor:pointer; font-family:'Nunito', sans-serif; box-shadow:0 4px 6px rgba(0,0,0,0.1);">XÁC NHẬN & CHẠY</button>
           </div>
@@ -549,9 +551,9 @@
           </div>
           <div class="cp-group">
               <span class="cp-label">🔗 ĐỔ SỐ (BI):</span>
-              <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 LŨY KẾ</button>
+              <button class="cp-btn cp-btn-teal" onclick="openBILink('bcdtnh', 2, 'luyke_manual')">📊 LŨY KẾ</button>
               <button class="cp-btn cp-btn-warning" onclick="openRtModal()">📈 REALTIME</button>
-              <button class="cp-btn cp-btn-purple" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')">🧑‍💻 NHÂN VIÊN</button>
+              <button class="cp-btn cp-btn-teal" onclick="openBILink('bcdtnv', 2, 'nhanvien_manual')">🧑‍💻 NHÂN VIÊN</button>
           </div>
       </div>
   </div>
@@ -1086,10 +1088,12 @@
                     </div>
                 </td>
                 <td style="color:#475569;">${formatMoney(i.targetDay)}</td>
-                <td>
-                    <div class="td-prog-container">
-                        <span style="color:${c};">${formatPercent(i.htTarget)}</span>
-                        <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c};"></div></div>
+                <td style="padding: 4px 6px;">
+                    <div class="cell-prog-wrap">
+                        <div class="cell-prog-bg" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c}; border-radius: 8px ${i.htTarget >= 1 ? '8px 8px 8px' : '0 0 8px'};"></div>
+                        <div class="cell-val" style="display:flex; flex-direction:column; padding: 6px 0; justify-content:center; align-items:center;">
+                            <span style="color: ${c}; font-size: 20px; font-weight: 900; font-family: 'Montserrat', sans-serif;">${formatPercent(i.htTarget)}</span>
+                        </div>
                     </div>
                 </td>
                 <td>${formatMoney(i.dtTC)}</td>
@@ -1142,16 +1146,18 @@
                     <div><span style="margin-right:8px;">${getEmoji(i.nganhHang)}</span> ${i.nganhHang} <span style="font-size:12px; color:#7f8c8d; font-weight:900;">(${i.isSL ? 'SL' : 'DT'})</span></div>
                     ${monthlyInfoHtml}
                 </td>
-                <td style="position:relative; color:#2563eb; padding:0;">
-                    <div style="position:absolute; left:0; top:0; bottom:0; width:${Math.min(i.htTarget*100, 100)}%; background:${c}; opacity:0.15; z-index:0;"></div>
-                    <span style="position:relative; z-index:1;">${formatMoney(i.thucHien)}</span>
+                <td style="padding:0;">
+                    <div class="cell-prog-wrap">
+                        <div class="cell-prog-bg" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c}; opacity: 0.15;"></div>
+                        <span class="cell-val" style="color:#0ea5e9; font-size: 22px; position: relative; z-index: 1;">${formatMoney(i.thucHien)}</span>
+                    </div>
                 </td>
                 <td style="color:#ef4444;">${conLaiDisplay}</td>
                 <td style="color:#475569;">${formatMoney(i.mtNgay)}</td>
-                <td>
-                    <div class="td-prog-container">
-                        <span style="color:${c};">${formatPercent(i.htTarget)}</span>
-                        <div class="td-prog-bar-bg"><div class="td-prog-bar-fill" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c};"></div></div>
+                <td style="padding:0;">
+                    <div class="cell-prog-wrap">
+                        <div class="cell-prog-bg" style="width:${Math.min(i.htTarget*100, 100)}%; background:${c}; opacity: 0.15;"></div>
+                        <span class="cell-val" style="color:${c}; font-size: 22px; position: relative; z-index: 1;">${formatPercent(i.htTarget)}</span>
                     </div>
                 </td>
             </tr>`;
