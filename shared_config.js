@@ -31,7 +31,8 @@ const CONFIG = {
 
 // Hàm hỗ trợ mở link BI tự động theo cấu hình
 function openBILink(tab, rt, autoRunMode) {
-    const url = `${CONFIG.BASE_URL}?id=${CONFIG.AREA_ID}&tab=${tab}&rt=${rt}&dm=1&autoRun=${autoRunMode}`;
+    const returnUrl = encodeURIComponent(window.location.href);
+    const url = `${CONFIG.BASE_URL}?id=${CONFIG.AREA_ID}&tab=${tab}&rt=${rt}&dm=1&autoRun=${autoRunMode}&returnUrl=${returnUrl}`;
     window.open(url, '_blank');
 }
 
@@ -40,6 +41,47 @@ const memoryCache = {};
 
 // Khôi phục cache từ window.name hoặc localStorage
 (function initCache() {
+    // Kiểm tra nếu URL có tham số fresh=true hoặc reload=true thì xóa cache ngay lập tức trước khi tải
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('fresh') === 'true' || urlParams.get('reload') === 'true') {
+            // 1. Xóa cache trong localStorage
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('gas_cache_')) {
+                    localStorage.removeItem(key);
+                }
+            }
+            
+            // 2. Xóa cache trong window.name
+            if (window.name && window.name.startsWith("GAS_CACHE_STORE:")) {
+                try {
+                    const jsonStr = window.name.substring("GAS_CACHE_STORE:".length);
+                    const data = JSON.parse(jsonStr);
+                    const newData = {};
+                    for (let k in data) {
+                        if (!k.startsWith('gas_cache_')) {
+                            newData[k] = data[k];
+                        }
+                    }
+                    window.name = "GAS_CACHE_STORE:" + JSON.stringify(newData);
+                } catch(e) {
+                    window.name = "";
+                }
+            }
+            
+            // 3. Xóa các tham số khỏi URL mà không load lại trang
+            urlParams.delete('fresh');
+            urlParams.delete('reload');
+            const newSearch = urlParams.toString();
+            const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '') + window.location.hash;
+            window.history.replaceState({}, '', newUrl);
+            console.log("🧹 Đã phát hiện yêu cầu làm mới dữ liệu. Đã xóa cache thành công.");
+        }
+    } catch (e) {
+        console.warn("Lỗi khi xử lý tham số làm mới URL:", e);
+    }
+
     // 1. Thử đọc từ window.name
     try {
         if (window.name && window.name.startsWith("GAS_CACHE_STORE:")) {
