@@ -95,7 +95,26 @@ window.addEventListener('message', (event) => {
 
 // Hàm hỗ trợ mở link BI tự động theo cấu hình
 function openBILink(tab, rt, autoRunMode) {
-    const returnUrl = encodeURIComponent(window.location.href);
+    let targetPage = "baocao_realtime.html";
+    if (autoRunMode.includes("luyke")) {
+        targetPage = "baocao_luyke.html";
+    } else if (autoRunMode.includes("nhanvien")) {
+        targetPage = "baocao_nhanvien.html";
+    } else if (autoRunMode.includes("realtime")) {
+        targetPage = "baocao_realtime.html";
+    }
+    
+    // Construct target URL relative to current directory
+    const currentHref = window.location.href;
+    let targetUrl = currentHref;
+    const lastSlashIdx = currentHref.lastIndexOf("/");
+    if (lastSlashIdx !== -1) {
+        targetUrl = currentHref.substring(0, lastSlashIdx + 1) + targetPage;
+    } else {
+        targetUrl = targetPage;
+    }
+    
+    const returnUrl = encodeURIComponent(targetUrl);
     const url = `${CONFIG.BASE_URL}?id=${CONFIG.AREA_ID}&tab=${tab}&rt=${rt}&dm=1&autoRun=${autoRunMode}&returnUrl=${returnUrl}`;
     window.location.href = url;
 }
