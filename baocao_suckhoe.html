@@ -841,6 +841,9 @@
         <button class="btn btn-blue" id="btnDownloadCurrent">
           📸 CHỤP MÀN HÌNH
         </button>
+        <button class="btn btn-primary" id="btnCopyCurrent">
+          📋 COPY ẢNH
+        </button>
         <button class="btn btn-primary" id="btnCopyComments" onclick="copyReportText()">
           📋 COPY NHẬN XÉT
         </button>
@@ -2230,6 +2233,55 @@
         document.body.classList.remove('rendering-canvas');
         this.innerText = btnText;
         this.disabled = false;
+      }
+    });
+
+    document.getElementById('btnCopyCurrent').addEventListener('click', async function() {
+      this.disabled = true;
+      let btnText = this.innerText;
+      this.innerText = "⏳ Đang copy...";
+      
+      document.body.classList.add('rendering-canvas');
+      
+      const noCaps = document.querySelectorAll('.no-capture, .section-copy-btn, [data-html2canvas-ignore="true"]');
+      const originalStyles = [];
+      noCaps.forEach((el) => {
+        originalStyles.push({ el: el, display: el.style.display });
+        el.style.display = 'none';
+      });
+      
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
+      let captureArea = document.querySelector('.dashboard-container');
+      
+      try {
+        let dataUrl = await htmlToImage.toPng(captureArea, { 
+          pixelRatio: 2.5, 
+          cacheBust: true,
+          backgroundColor: themeBg 
+        });
+        const success = await copyImageToClipboard(dataUrl);
+        if (success) {
+          this.innerText = "✅ Đã Copy Ảnh!";
+        } else {
+          this.innerText = "❌ Lỗi Copy";
+          alert("Trình duyệt không hỗ trợ sao chép ảnh trực tiếp. Vui lòng cấp quyền clipboard.");
+        }
+      } catch (e) {
+        console.error("Lỗi chụp ảnh sức khỏe:", e);
+        this.innerText = "❌ Lỗi";
+        alert("Lỗi khi chụp và sao chép ảnh: " + e.message);
+      } finally {
+        document.body.classList.remove('rendering-canvas');
+        originalStyles.forEach(item => {
+          item.el.style.display = item.display;
+        });
+        setTimeout(() => {
+          this.disabled = false;
+          this.innerText = btnText;
+        }, 2000);
       }
     });
 

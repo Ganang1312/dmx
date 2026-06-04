@@ -572,6 +572,7 @@
       
       <!-- PHẦN 1: TỔNG HỢP -->
       <div id="part1" class="report-box">
+        <button class="section-copy-btn no-capture" onclick="copySectionImage('part1', this)">📋 Copy Ảnh</button>
         <div class="header-title">BÁO CÁO NHÂN VIÊN SAVICO</div>
         <div class="date-text">🗓️ CẬP NHẬT: <span id="current-date"></span> <span id="cache-status" style="text-transform: none; font-size: 13px; color: #64748b; font-weight: normal; margin-left: 10px;"></span></div>
 
@@ -583,7 +584,8 @@
       </div>
 
       <!-- PHẦN 3: PHÂN TÍCH HIỆU SUẤT CHI TIẾT -->
-      <div id="part3" class="report-box" style="margin-top: 30px; width: 980px; background: transparent; box-shadow: none; border: none;">
+      <div id="part3" class="report-box" style="margin-top: 30px; width: 980px; background: transparent; box-shadow: none; border: none; position: relative;">
+          <button class="section-copy-btn no-capture" onclick="copySectionImage('part3', this)">📋 Copy Ảnh</button>
           <div class="header-title" style="margin-bottom: 20px;">PHÂN TÍCH CHI TIẾT HIỆU SUẤT CÁ NHÂN</div>
           <div id="performance-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%;">
               <!-- Grid các card hiệu suất sẽ được render ở đây -->

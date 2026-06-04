@@ -48,6 +48,27 @@ const CONFIG = {
     }
 })();
 
+// Nghe message từ extension content script để cập nhật AREA_ID trực tiếp
+window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SYNC_AREA_ID') {
+        const newId = event.data.areaId;
+        if (newId && newId !== "undefined" && newId !== "null") {
+            CONFIG.AREA_ID = newId.trim();
+            try { localStorage.setItem('gas_area_id', CONFIG.AREA_ID); } catch(e) {}
+            try {
+                let wName = window.name || "";
+                let cache = {};
+                if (wName.startsWith("GAS_CACHE_STORE:")) {
+                    cache = JSON.parse(wName.substring("GAS_CACHE_STORE:".length));
+                }
+                cache.gas_area_id = CONFIG.AREA_ID;
+                window.name = "GAS_CACHE_STORE:" + JSON.stringify(cache);
+            } catch(e) {}
+            console.log("⚡ Đã đồng bộ AREA_ID từ Extension:", CONFIG.AREA_ID);
+        }
+    }
+});
+
 // Khởi tạo theme ngay khi load script để tránh chớp màn hình (flash)
 (function() {
     let savedTheme = 'light';
@@ -345,3 +366,234 @@ window.addEventListener('DOMContentLoaded', () => {
         window.Apex = chartSettings;
     }
 });
+
+// Tự động inject CSS cho nút Copy Ảnh & Ẩn nút khi chụp
+(function injectStyles() {
+    const css = `
+        .section-copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 800;
+            border-radius: 8px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            z-index: 99;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            font-family: 'Nunito', sans-serif;
+        }
+        .section-copy-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(14, 165, 233, 0.3);
+        }
+        .section-copy-btn:active {
+            transform: translateY(1px);
+        }
+        [data-theme="dark"] .section-copy-btn {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+        }
+        body.rendering-canvas .no-capture,
+        body.rendering-canvas .section-copy-btn,
+        body.rendering-canvas [data-html2canvas-ignore="true"] {
+            display: none !important;
+        }
+    `;
+    const style = document.createElement('style');
+    style.appendChild(document.createTextNode(css));
+    document.head.appendChild(style);
+})();
+
+// Hàm sao chép ảnh vào clipboard từ data URL
+async function copyImageToClipboard(dataUrl) {
+    try {
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        await navigator.clipboard.write([
+            new ClipboardItem({
+                [blob.type]: blob
+            })
+        ]);
+        return true;
+    } catch (err) {
+        console.error("Lỗi sao chép ảnh:", err);
+        return false;
+    }
+}
+
+// Hàm chụp và sao chép ảnh của một phần (section) chỉ định
+async function copySectionImage(elementId, btnEl) {
+    if (btnEl) {
+        btnEl.disabled = true;
+        btnEl.innerHTML = "⏳ Đang chụp...";
+    }
+    
+    // Thêm class rendering-canvas để ẩn các nút và phần tử không cần thiết
+    document.body.classList.add('rendering-canvas');
+    
+    // Ẩn tạm thời các nút copy và phần tử no-capture bằng style trực tiếp đề phòng CSS chưa render kịp
+    const noCaps = document.querySelectorAll('.no-capture, .section-copy-btn, [data-html2canvas-ignore="true"]');
+    const originalStyles = [];
+    noCaps.forEach((el) => {
+        originalStyles.push({ el: el, display: el.style.display });
+        el.style.display = 'none';
+    });
+    
+    let el = document.getElementById(elementId);
+    if (!el && elementId.startsWith('.')) {
+        el = document.querySelector(elementId);
+    }
+    if (!el) {
+        console.error("Không tìm thấy element:", elementId);
+        document.body.classList.remove('rendering-canvas');
+        originalStyles.forEach(item => item.el.style.display = item.display);
+        if (btnEl) {
+            btnEl.disabled = false;
+            btnEl.innerHTML = "❌ Không tìm thấy";
+        }
+        return;
+    }
+
+    // Xử lý tiền xử lý đặc biệt cho các trường hợp cụ thể (ví dụ: baocao_nhanvien.html)
+    let originalWidth = null;
+    let restorePart3 = null;
+    const isNhanVienPage = window.location.pathname.includes('baocao_nhanvien.html') || window.location.href.includes('baocao_nhanvien.html');
+    
+    if (isNhanVienPage && elementId === 'part1') {
+        const tableScroll = el.querySelector('#thi-dua-tables-container > div');
+        originalWidth = el.style.width;
+        if (tableScroll) {
+            const table = tableScroll.querySelector('table');
+            if (table) {
+                el.style.width = (table.offsetWidth + 60) + "px";
+            }
+        }
+    } else if (isNhanVienPage && elementId === 'part3') {
+        const grid = document.getElementById('performance-grid');
+        if (grid) {
+            const origPart3Width = el.style.width;
+            const origGridDisplay = grid.style.display;
+            const origGridTemplateColumns = grid.style.gridTemplateColumns;
+            const origGridGap = grid.style.gap;
+            const origGridWidth = grid.style.width;
+            const origGridFlexDirection = grid.style.flexDirection;
+            const cards = Array.from(grid.querySelectorAll('.perf-card'));
+            const origCardStyles = cards.map(card => ({
+                card: card,
+                width: card.style.width,
+                flex: card.style.flex
+            }));
+            
+            let n = cards.length;
+            let rowSizes = [];
+            if (n <= 4) {
+                rowSizes = [n];
+            } else {
+                let q = Math.floor(n / 4);
+                let rem = n % 4;
+                if (rem === 0) rowSizes = Array(q).fill(4);
+                else if (rem === 3) rowSizes = Array(q).fill(4).concat([3]);
+                else if (rem === 2) rowSizes = (q === 1) ? [3, 3] : Array(q).fill(4).concat([2]);
+                else if (rem === 1) rowSizes = (q === 1) ? [3, 2] : (q === 2) ? [3, 3, 3] : Array(q - 2).fill(4).concat([3, 3, 3]);
+            }
+            
+            grid.style.display = 'flex';
+            grid.style.flexDirection = 'column';
+            grid.style.gap = '15px';
+            grid.style.width = '100%';
+            
+            let maxCardsInARow = Math.max(...rowSizes);
+            let tempContainerWidth = maxCardsInARow * 470 + (maxCardsInARow - 1) * 15;
+            el.style.width = tempContainerWidth + 'px';
+            
+            grid.innerHTML = '';
+            let cardIdx = 0;
+            rowSizes.forEach(size => {
+                let rowContainer = document.createElement('div');
+                rowContainer.style.display = 'flex';
+                rowContainer.style.gap = '15px';
+                rowContainer.style.justifyContent = 'center';
+                rowContainer.style.width = '100%';
+                for (let i = 0; i < size; i++) {
+                    if (cardIdx < cards.length) {
+                        let card = cards[cardIdx++];
+                        card.style.width = '470px';
+                        card.style.flex = '0 0 470px';
+                        rowContainer.appendChild(card);
+                    }
+                }
+                grid.appendChild(rowContainer);
+            });
+            
+            restorePart3 = () => {
+                grid.innerHTML = '';
+                origCardStyles.forEach(item => {
+                    item.card.style.width = item.width;
+                    item.card.style.flex = item.flex;
+                    grid.appendChild(item.card);
+                });
+                grid.style.display = origGridDisplay;
+                grid.style.gridTemplateColumns = origGridTemplateColumns;
+                grid.style.gap = origGridGap;
+                grid.style.width = origGridWidth;
+                grid.style.flexDirection = origGridFlexDirection;
+                el.style.width = origPart3Width;
+            };
+        }
+    }
+    
+    // Đợi 100ms để trình duyệt cập nhật lại layout trước khi render canvas
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    try {
+        const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+        const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
+        
+        let dataUrl = await htmlToImage.toPng(el, {
+            pixelRatio: 2.5,
+            cacheBust: true,
+            backgroundColor: themeBg
+        });
+        
+        const success = await copyImageToClipboard(dataUrl);
+        if (success) {
+            if (btnEl) btnEl.innerHTML = "✅ Đã Copy Ảnh!";
+        } else {
+            if (btnEl) btnEl.innerHTML = "❌ Lỗi Copy";
+            alert("Trình duyệt không hỗ trợ sao chép ảnh trực tiếp. Vui lòng cấp quyền clipboard.");
+        }
+    } catch (e) {
+        console.error("Lỗi chụp ảnh:", e);
+        if (btnEl) btnEl.innerHTML = "❌ Lỗi";
+        alert("Lỗi khi chụp và sao chép ảnh: " + e.message);
+    } finally {
+        // Phục hồi lại layout ban đầu
+        if (originalWidth !== null) {
+            el.style.width = originalWidth;
+        }
+        if (restorePart3 !== null) {
+            restorePart3();
+        }
+        
+        // Hiện lại các phần tử bị ẩn
+        document.body.classList.remove('rendering-canvas');
+        originalStyles.forEach(item => {
+            item.el.style.display = item.display;
+        });
+        
+        if (btnEl) {
+            setTimeout(() => {
+                btnEl.disabled = false;
+                btnEl.innerHTML = "📋 Copy Ảnh";
+            }, 2000);
+        }
+    }
+}
