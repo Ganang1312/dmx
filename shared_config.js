@@ -5,6 +5,49 @@ const CONFIG = {
     BASE_URL: "https://bi.thegioididong.com/sieu-thi-con"
 };
 
+// Tự động đồng bộ AREA_ID từ URL hoặc từ bộ nhớ lưu trữ (localStorage / window.name)
+(function syncAreaId() {
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        let idParam = urlParams.get('id');
+        
+        if (idParam) {
+            idParam = idParam.trim();
+            CONFIG.AREA_ID = idParam;
+            try { localStorage.setItem('gas_area_id', idParam); } catch(e) {}
+            try {
+                let wName = window.name || "";
+                let cache = {};
+                if (wName.startsWith("GAS_CACHE_STORE:")) {
+                    cache = JSON.parse(wName.substring("GAS_CACHE_STORE:".length));
+                }
+                cache.gas_area_id = idParam;
+                window.name = "GAS_CACHE_STORE:" + JSON.stringify(cache);
+            } catch(e) {}
+        } else {
+            let savedId = null;
+            try { savedId = localStorage.getItem('gas_area_id'); } catch(e) {}
+            
+            if (!savedId) {
+                try {
+                    let wName = window.name || "";
+                    if (wName.startsWith("GAS_CACHE_STORE:")) {
+                        const cache = JSON.parse(wName.substring("GAS_CACHE_STORE:".length));
+                        if (cache.gas_area_id) savedId = cache.gas_area_id;
+                    }
+                } catch(e) {}
+            }
+            
+            if (savedId) {
+                CONFIG.AREA_ID = savedId.trim();
+            }
+        }
+        console.log("📍 Cấu hình Area ID hiện tại:", CONFIG.AREA_ID);
+    } catch(e) {
+        console.warn("Lỗi khi đồng bộ AREA_ID:", e);
+    }
+})();
+
 // Khởi tạo theme ngay khi load script để tránh chớp màn hình (flash)
 (function() {
     let savedTheme = 'light';
@@ -175,6 +218,11 @@ function clearGasCacheAndReload() {
     function normalizeGasUrl(urlStr) {
         try {
             const url = new URL(urlStr, window.location.href);
+            // Loại bỏ các tham số cache-buster/làm mới để đồng bộ hóa khóa cache cục bộ
+            url.searchParams.delete('t');
+            url.searchParams.delete('fresh');
+            url.searchParams.delete('reload');
+            
             const sheetsParam = url.searchParams.get('sheets');
             if (sheetsParam) {
                 const sheets = sheetsParam.split(',')

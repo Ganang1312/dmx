@@ -774,7 +774,8 @@
         btn.style.background = "#0ea5e9";
         try {
             await fetch(GAS_URL, {
-                method: "POST", mode: "no-cors",
+                method: "POST",
+                headers: { "Content-Type": "text/plain" },
                 body: JSON.stringify({ sheetName: "Data_Realtime_NV", data: data })
             });
         } catch(e) {}
@@ -843,7 +844,7 @@
       try {
         renderRealtimeSkeletons();
         setHTML("cache-status", `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`);
-        const res = await fetch(GAS_URL + "?sheets=Data_BI,Data_ThiDua,Config_ThiDua,Data_Realtime_BI,Data_Realtime_ThiDua,Data_Realtime_NV");
+        const res = await fetch(GAS_URL + "?sheets=Data_BI,Data_ThiDua,Config_ThiDua,Data_Realtime_BI,Data_Realtime_ThiDua,Data_Realtime_NV&t=" + Date.now());
         const fromCache = res.headers.get('X-From-Cache') === 'true';
         const allData = await res.json();
 

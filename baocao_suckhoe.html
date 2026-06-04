@@ -1273,7 +1273,7 @@
         const cacheStatusEl = document.getElementById("cache-status");
         if (cacheStatusEl) cacheStatusEl.innerHTML = `(⏳ Đang tải dữ liệu trực tiếp từ Google Sheet...)`;
 
-        const res = await fetch(GAS_URL + "?sheets=Config_ThiDua,Data_BI,Data_ThiDua,Data_NV_BI,Data_NV_ThiDua");
+        const res = await fetch(GAS_URL + "?sheets=Config_ThiDua,Data_BI,Data_ThiDua,Data_NV_BI,Data_NV_ThiDua&t=" + Date.now());
         const fromCache = res.headers.get('X-From-Cache') === 'true';
         const currentData = await res.json();
 

@@ -815,7 +815,7 @@
 
             // Start fetches in parallel
             const historyPromise = initHistory();
-            const mainFetchPromise = fetch(GAS_URL + "?sheets=Config_ThiDua,Data_NV_BI,Data_NV_ThiDua,Data_BI,Data_ThiDua");
+            const mainFetchPromise = fetch(GAS_URL + "?sheets=Config_ThiDua,Data_NV_BI,Data_NV_ThiDua,Data_BI,Data_ThiDua&t=" + Date.now());
 
             await historyPromise;
 
