@@ -449,7 +449,7 @@ async function copyImageToClipboard(dataUrl) {
 }
 
 // Hàm chụp và sao chép ảnh của một phần (section) chỉ định
-async function copySectionImage(elementId, btnEl) {
+function copySectionImage(elementId, btnEl) {
     if (btnEl) {
         btnEl.disabled = true;
         btnEl.innerHTML = "⏳ Đang chụp...";
@@ -569,31 +569,38 @@ async function copySectionImage(elementId, btnEl) {
         }
     }
     
-    // Đợi 100ms để trình duyệt cập nhật lại layout trước khi render canvas
-    await new Promise(resolve => setTimeout(resolve, 100));
+    const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
     
-    try {
-        const activeTheme = document.documentElement.getAttribute('data-theme') || 'light';
-        const themeBg = activeTheme === 'dark' ? '#1e222b' : '#e9ecef';
-        
-        let dataUrl = await htmlToImage.toPng(el, {
-            pixelRatio: 2.5,
-            cacheBust: true,
-            backgroundColor: themeBg
-        });
-        
-        const success = await copyImageToClipboard(dataUrl);
-        if (success) {
-            if (btnEl) btnEl.innerHTML = "✅ Đã Copy Ảnh!";
-        } else {
-            if (btnEl) btnEl.innerHTML = "❌ Lỗi Copy";
-            alert("Trình duyệt không hỗ trợ sao chép ảnh trực tiếp. Vui lòng cấp quyền clipboard.");
-        }
-    } catch (e) {
-        console.error("Lỗi chụp ảnh:", e);
-        if (btnEl) btnEl.innerHTML = "❌ Lỗi";
-        alert("Lỗi khi chụp và sao chép ảnh: " + e.message);
-    } finally {
+    // Create Promise for asynchronous rendering to bypass Safari user gesture restrictions
+    const blobPromise = new Promise((resolve, reject) => {
+        setTimeout(async () => {
+            try {
+                let dataUrl = await htmlToImage.toPng(el, {
+                    pixelRatio: 2.5,
+                    cacheBust: true,
+                    backgroundColor: themeBg
+                });
+                const response = await fetch(dataUrl);
+                const blob = await response.blob();
+                resolve(blob);
+            } catch (err) {
+                reject(err);
+            }
+        }, 150); // Give browser enough time to hide elements
+    });
+    
+    navigator.clipboard.write([
+        new ClipboardItem({
+            "image/png": blobPromise
+        })
+    ]).then(() => {
+        if (btnEl) btnEl.innerHTML = "✅ Đã Copy Ảnh!";
+    }).catch((e) => {
+        console.error("Lỗi sao chép ảnh:", e);
+        if (btnEl) btnEl.innerHTML = "❌ Lỗi Copy";
+        alert("Trình duyệt không hỗ trợ sao chép ảnh trực tiếp. Vui lòng cấp quyền clipboard.");
+    }).finally(() => {
         // Phục hồi lại layout ban đầu
         if (originalWidth !== null) {
             el.style.width = originalWidth;
@@ -604,8 +611,8 @@ async function copySectionImage(elementId, btnEl) {
         
         // Hiện lại các phần tử bị ẩn
         document.body.classList.remove('rendering-canvas');
-        originalStyles.forEach(item => {
-            item.el.style.display = item.display;
+        noCaps.forEach((el, idx) => {
+            el.style.display = originalStyles[idx].display;
         });
         
         if (btnEl) {
@@ -614,5 +621,5 @@ async function copySectionImage(elementId, btnEl) {
                 btnEl.innerHTML = "📋 Copy Ảnh";
             }, 2000);
         }
-    }
+    });
 }
