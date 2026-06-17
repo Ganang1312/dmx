@@ -9,17 +9,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
     <!-- SheetJS (Excel) -->
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     
     <!-- HTML5-QRCode (Phiên bản ổn định) -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js" type="text/javascript"></script>
     
     <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
     
     <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.24.7/babel.min.js"></script>
 
     <style>
         /* Tối ưu thanh cuộn */
@@ -588,22 +588,87 @@
                         const sheet = workbook.Sheets[workbook.SheetNames[0]];
                         const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
                         
-                        for (let i = 1; i < rows.length; i++) {
+                        let colProductCode = COL_PRODUCT_CODE;
+                        let colProductName = COL_PRODUCT_NAME;
+                        let colImei = COL_IMEI;
+                        let colQuantity = COL_QUANTITY;
+                        let colStatus = COL_STATUS;
+                        let colReceiptCode = COL_RECEIPT_CODE;
+                        let headerRowIndex = -1;
+
+                        // Tự động nhận diện cột dựa trên hàng tiêu đề (quét 10 dòng đầu)
+                        for (let r = 0; r < Math.min(rows.length, 10); r++) {
+                            const row = rows[r];
+                            if (!row) continue;
+                            let matchesCount = 0;
+                            let tempMap = {};
+                            for (let c = 0; c < row.length; c++) {
+                                const val = String(row[c] || '').trim().toLowerCase();
+                                if (!val) continue;
+                                if (val.includes('mã sản phẩm') || val.includes('mã sp') || val === 'masp' || val === 'item code' || val === 'product code' || val === 'mã hàng') {
+                                    tempMap.productCode = c;
+                                    matchesCount++;
+                                } else if (val.includes('tên sản phẩm') || val.includes('tên sp') || val === 'tensp' || val === 'product name' || val === 'tên hàng') {
+                                    tempMap.productName = c;
+                                    matchesCount++;
+                                } else if (val === 'imei' || val === 'serial' || val === 'seri' || val.includes('số imei') || val === 'imei/serial') {
+                                    tempMap.imei = c;
+                                    matchesCount++;
+                                } else if (val.includes('số lượng') || val === 'qty' || val === 'quantity' || val === 'sl') {
+                                    tempMap.quantity = c;
+                                    matchesCount++;
+                                } else if (val.includes('trạng thái') || val === 'status') {
+                                    tempMap.status = c;
+                                    matchesCount++;
+                                } else if (val.includes('mã nhận') || val.includes('mã phiếu') || val.includes('receipt') || val.includes('số phiếu')) {
+                                    tempMap.receiptCode = c;
+                                    matchesCount++;
+                                }
+                            }
+                            if (matchesCount >= 2) {
+                                headerRowIndex = r;
+                                if (tempMap.productCode !== undefined) colProductCode = tempMap.productCode;
+                                if (tempMap.productName !== undefined) colProductName = tempMap.productName;
+                                if (tempMap.imei !== undefined) colImei = tempMap.imei;
+                                if (tempMap.quantity !== undefined) colQuantity = tempMap.quantity;
+                                if (tempMap.status !== undefined) colStatus = tempMap.status;
+                                if (tempMap.receiptCode !== undefined) colReceiptCode = tempMap.receiptCode;
+                                break;
+                            }
+                        }
+
+                        const startRow = headerRowIndex !== -1 ? headerRowIndex + 1 : 1;
+                        for (let i = startRow; i < rows.length; i++) {
                             const row = rows[i];
                             if (!row || row.length === 0) continue;
-                            const pCode = String(row[COL_PRODUCT_CODE] || '').trim();
-                            const pName = String(row[COL_PRODUCT_NAME] || '').trim();
-                            const imei = String(row[COL_IMEI] || '').trim();
-                            const receiptCode = String(row[COL_RECEIPT_CODE] || '').trim();
-                            let qty = parseInt(row[COL_QUANTITY]);
+
+                            let pCode = String(row[colProductCode] || '').trim();
+                            let pName = String(row[colProductName] || '').trim();
+                            let imei = String(row[colImei] || '').trim();
+                            let receiptCode = String(row[colReceiptCode] || '').trim();
+                            let qty = parseInt(row[colQuantity]);
                             if (isNaN(qty)) qty = 0;
+
+                            // Fallback nếu không đọc được mã SP/IMEI theo cột mặc định, nhưng cột A (index 0) có dữ liệu
+                            if (!pCode && !imei && row[0]) {
+                                const valA = String(row[0]).trim();
+                                if (valA && valA.toLowerCase() !== 'undefined') {
+                                    pCode = valA;
+                                }
+                            }
+
                             if (!pCode && !imei) continue;
 
                             newProducts.push({
                                 uniqueId: imei || `${file.name}-${i}-${pCode}-${Date.now()}`,
-                                productCode: pCode, productName: pName, imei: imei,
-                                quantity: qty || 1, scannedCount: 0, status: row[COL_STATUS] || '',
-                                sourceFile: file.name, receiptCode: receiptCode
+                                productCode: pCode,
+                                productName: pName || pCode,
+                                imei: imei,
+                                quantity: qty || 1,
+                                scannedCount: 0,
+                                status: row[colStatus] || '',
+                                sourceFile: file.name,
+                                receiptCode: receiptCode
                             });
                         }
                     } catch (e) { console.error(e); }
