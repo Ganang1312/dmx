@@ -656,18 +656,23 @@
         try {
             const devices = await Html5Qrcode.getCameras();
             if (devices && devices.length > 0) {
+                const currentVal = cameraSelect.value;
                 cameraSelect.innerHTML = '';
-                let backCameraId = null;
+
+                // Tuỳ chọn mặc định: Camera Sau chuẩn WebRTC (ổn định nhất, không bị lỗi đen hình của cụm đa camera)
+                const optDefault = document.createElement('option');
+                optDefault.value = "environment";
+                optDefault.textContent = "📷 Camera Sau (Mặc định - Chuẩn nét nhất)";
+                cameraSelect.appendChild(optDefault);
 
                 devices.forEach((device, index) => {
                     const opt = document.createElement('option');
                     opt.value = device.id;
                     const label = device.label || `Camera ${index + 1}`;
-                    const isBack = /back|rear|sau|environment|fac(ing)?\s*back|camera2\s*0/i.test(label);
+                    const isBack = /back|rear|sau|environment/i.test(label);
                     
                     if (isBack) {
-                        opt.textContent = `📷 ${label} (Camera Sau - Khuyên Dùng)`;
-                        if (!backCameraId) backCameraId = device.id;
+                        opt.textContent = `📷 ${label}`;
                     } else if (/front|trước|selfie|user/i.test(label)) {
                         opt.textContent = `🤳 ${label} (Camera Trước)`;
                     } else {
@@ -676,71 +681,57 @@
                     cameraSelect.appendChild(opt);
                 });
 
-                // Ưu tiên chọn mặc định là Camera Sau
-                if (backCameraId) {
-                    cameraSelect.value = backCameraId;
-                } else if (devices.length > 1) {
-                    // Trên điện thoại Android nếu không đọc được nhãn, camera sau thường là thiết bị cuối
-                    cameraSelect.value = devices[devices.length - 1].id;
+                // Giữ lại lựa chọn của người dùng nếu có, nếu không thì mặc định là "environment"
+                if (currentVal && Array.from(cameraSelect.options).some(o => o.value === currentVal)) {
+                    cameraSelect.value = currentVal;
+                } else {
+                    cameraSelect.value = "environment";
                 }
 
                 if (devices.length > 1) {
                     cameraSelectContainer.classList.remove('hidden');
                 }
-                return backCameraId || cameraSelect.value;
             }
         } catch (e) {
             console.warn('Lỗi lấy danh mục camera:', e);
         }
-        return null;
     }
 
     async function startCameraScanner(cameraIdOrConfig = null) {
         try {
+            // Không dùng experimentalFeatures để tránh xung đột GPU làm màn hình camera bị đen trên Android
             if (!html5QrCodeScanner) {
-                // Kích hoạt BarcodeDetector phần cứng giúp nhận diện mã QR trên nền tem vàng/phản chiếu mica cực nhạy
-                html5QrCodeScanner = new Html5Qrcode("reader", {
-                    experimentalFeatures: {
-                        useBarCodeDetectorIfSupported: true
-                    },
-                    verbose: false
-                });
+                html5QrCodeScanner = new Html5Qrcode("reader", { verbose: false });
             }
 
-            // Lấy danh sách camera & tìm camera sau
-            const detectedRearId = await initCameraDevicesList();
+            // Nạp danh sách camera
+            await initCameraDevicesList();
 
-            // MẶC ĐỊNH LUÔN ƯU TIÊN CAMERA SAU (ENVIRONMENT)
-            let cameraConfig;
+            // Xác định camera để mở:
+            // MẶC ĐỊNH LUÔN DÙNG { facingMode: "environment" } ĐỂ TRÌNH DUYỆT TỰ CHỌN CAMERA SAU CHÍNH
+            let cameraConfig = { facingMode: "environment" };
+
             if (cameraIdOrConfig) {
-                cameraConfig = cameraIdOrConfig;
-            } else if (cameraSelect.value) {
+                if (cameraIdOrConfig === "environment") {
+                    cameraConfig = { facingMode: "environment" };
+                } else {
+                    cameraConfig = cameraIdOrConfig;
+                }
+            } else if (cameraSelect.value && cameraSelect.value !== "environment") {
                 cameraConfig = cameraSelect.value;
-            } else if (detectedRearId) {
-                cameraConfig = detectedRearId;
-            } else {
-                cameraConfig = { facingMode: { ideal: "environment" } };
             }
 
-            // Cấu hình quét tối ưu:
-            // 1. fps: 20 để bắt nét nhanh
-            // 2. qrbox hình vuông chiếm 88% khung hình để không bao giờ bị cắt xén góc mã QR trên tem
-            // 3. Độ phân giải cao Full HD (1920x1080) và focusMode: continuous giúp các ô vuông QR nhỏ không bị nhòe
+            // Cấu hình quét:
+            // Tuyệt đối không ép buộc resolution min: 1280 để tránh OverconstrainedError làm đen khung hình trên Android
             const config = {
                 fps: 20,
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
                     const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                    const boxSize = Math.floor(minEdge * 0.88);
+                    const boxSize = Math.floor(minEdge * 0.85);
                     return {
                         width: boxSize,
                         height: boxSize
                     };
-                },
-                videoConstraints: {
-                    facingMode: { ideal: "environment" },
-                    width: { min: 1280, ideal: 1920 },
-                    height: { min: 720, ideal: 1080 },
-                    focusMode: { ideal: "continuous" }
                 },
                 aspectRatio: 1.333334,
                 formatsToSupport: [
@@ -764,7 +755,7 @@
                     addScannedCode(decodedText);
                 },
                 (errorMessage) => {
-                    // Frame chưa có mã -> tiếp tục
+                    // Frame chưa có mã -> tiếp tục quét
                 }
             );
 
@@ -772,8 +763,15 @@
             btnStartCamera.classList.add('hidden');
             btnStopCamera.classList.remove('hidden');
 
-            // Cập nhật lại nhãn camera sau khi đã được cấp quyền truy cập
-            initCameraDevicesList();
+            // Đảm bảo video đang được hiển thị & phát bình thường (tránh bị đen hình)
+            const videoElem = document.querySelector('#reader video');
+            if (videoElem) {
+                videoElem.setAttribute('playsinline', 'true');
+                videoElem.setAttribute('webkit-playsinline', 'true');
+                if (videoElem.paused) {
+                    videoElem.play().catch(() => {});
+                }
+            }
 
             // Kiểm tra capabilities đèn Flash và Zoom
             checkCameraCapabilities();
@@ -782,7 +780,6 @@
             console.error('Lỗi khởi động camera:', err);
             cameraPlaceholder.classList.remove('hidden');
             statusCameraDot.classList.remove('scanning-active');
-            alert('Không thể mở camera: ' + (err.message || err) + '\nVui lòng kiểm tra quyền truy cập camera trên trình duyệt.');
         }
     }
 
