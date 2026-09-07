@@ -73,13 +73,10 @@
 
             <!-- Quick Action Buttons -->
             <div class="flex items-center gap-2">
-                <button id="btn-open-gas-modal" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
-                    </svg>
-                    Cài đặt Google Sheet
-                </button>
+                <a href="https://docs.google.com/spreadsheets/d/1j3VS2Hte7MgrlTNBXQUiOmDQj_uLIAK0XZSgC-Eh-O8/edit?usp=sharing" target="_blank" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors shadow-2xs">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    Google Sheet (Đã kết nối) ↗
+                </a>
                 <button id="btn-export-excel" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
@@ -168,7 +165,7 @@
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                                     <circle cx="12" cy="13" r="4"></circle>
                                 </svg>
-                                Bật Camera Quét
+                                <span>Bật Camera Sau Quét</span>
                             </button>
                             <button id="btn-stop-camera" class="hidden flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -180,10 +177,37 @@
                             </button>
                         </div>
 
-                        <!-- Chọn Camera nếu máy có nhiều camera -->
+                        <!-- Chụp ảnh / Tải ảnh lên quét (Hỗ trợ tốt nhất khi tem nhãn vàng bị lóa mica hoặc máy khó bắt nét) -->
+                        <div>
+                            <button type="button" id="btn-scan-image" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-xl text-xs transition border border-slate-200 flex items-center justify-center gap-1.5 shadow-xs">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                                    <polyline points="21 15 16 10 5 21"></polyline>
+                                </svg>
+                                <span>Chụp ảnh hoặc Tải ảnh nhãn để quét mã</span>
+                            </button>
+                            <input type="file" id="input-qr-image" accept="image/*" class="hidden">
+                        </div>
+
+                        <!-- Thu phóng Zoom nhanh khi quét tem nhỏ hoặc ở xa -->
+                        <div id="zoom-controls-container" class="hidden flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                            <span class="text-slate-500 font-medium flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+                                Zoom camera:
+                            </span>
+                            <div class="flex items-center gap-1" id="zoom-btn-group">
+                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="1">1x</button>
+                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="1.5">1.5x</button>
+                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="2">2x</button>
+                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="3">3x</button>
+                            </div>
+                        </div>
+
+                        <!-- Chọn Camera nếu máy có nhiều ống kính -->
                         <div id="camera-select-container" class="hidden">
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Chọn ống kính camera:</label>
-                            <select id="camera-select" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Ống kính camera (Mặc định: Camera Sau):</label>
+                            <select id="camera-select" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
                             </select>
                         </div>
                     </div>
@@ -334,101 +358,12 @@
 
     </main>
 
-    <!-- MODAL HƯỚNG DẪN & CẤU HÌNH GOOGLE APPS SCRIPT WEBHOOK -->
-    <div id="gas-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
-            
-            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
-                        GS
-                    </div>
-                    <div>
-                        <h3 class="text-base font-bold text-slate-900">Cấu hình Đẩy Dữ Liệu vào Google Sheet</h3>
-                        <p class="text-xs text-slate-500">Google Sheet ID: 1j3VS2Hte7MgrlTNBXQUiOmDQj_uLIAK0XZSgC-Eh-O8</p>
-                    </div>
-                </div>
-                <button id="btn-close-gas-modal" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg">✕</button>
-            </div>
-
-            <div class="p-5 overflow-y-auto space-y-4 text-xs">
-                
-                <div>
-                    <label for="input-gas-url" class="block font-bold text-slate-700 mb-1">
-                        URL Web App Google Apps Script (Webhook):
-                    </label>
-                    <input type="url" id="input-gas-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
-                    <p class="text-[11px] text-slate-400 mt-1">Dán URL Web App triển khai từ Google Apps Script của trang tính vào đây.</p>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
-                    <span class="font-bold text-slate-800 block">📋 Hướng dẫn tạo kết nối 1 lần (Mất 30 giây):</span>
-                    <ol class="list-decimal list-inside space-y-1.5 text-slate-600 leading-relaxed">
-                        <li>Mở file Google Sheet: <a href="https://docs.google.com/spreadsheets/d/1j3VS2Hte7MgrlTNBXQUiOmDQj_uLIAK0XZSgC-Eh-O8/edit?usp=sharing" target="_blank" class="text-emerald-700 font-semibold underline">Nhấn vào đây để mở Sheet</a></li>
-                        <li>Trên menu trang tính, chọn <strong>Tiện ích mở rộng (Extensions)</strong> &gt; <strong>Apps Script</strong>.</li>
-                        <li>Xóa hết mã có sẵn và <strong>dán đoạn mã bên dưới</strong> vào.</li>
-                        <li>Nhấn <strong>Triển khai (Deploy)</strong> &gt; <strong>Tùy chọn triển khai mới (New deployment)</strong> &gt; Chọn loại là <strong>Ứng dụng web (Web app)</strong>.</li>
-                        <li>Tại mục <em>Ai có quyền truy cập (Who has access)</em>, chọn <strong>Bất kỳ ai (Anyone)</strong> &gt; Nhấn <strong>Triển khai (Deploy)</strong>.</li>
-                        <li>Sao chép <strong>URL ứng dụng web</strong> nhận được và dán vào ô bên trên!</li>
-                    </ol>
-                </div>
-
-                <!-- Code block to copy -->
-                <div>
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-semibold text-slate-700">Mã Google Apps Script (AppsScript.gs):</span>
-                        <button id="btn-copy-gas-code" class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                            Sao chép mã
-                        </button>
-                    </div>
-                    <pre id="gas-code-block" class="bg-slate-900 text-slate-200 p-3 rounded-lg overflow-x-auto text-[11px] font-mono leading-normal">
-function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    var data = JSON.parse(e.postData.contents);
-    
-    // Nếu trang tính chưa có tiêu đề cột thì tạo
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["Thời gian", "Mã Barcode / QR", "Tên Model / Ghi chú", "Số lượng", "Thiết bị quét"]);
-      sheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f4f6");
-    }
-    
-    // Nhận danh sách mảng các mã hoặc 1 mã đơn lẻ
-    var rows = Array.isArray(data) ? data : [data];
-    rows.forEach(function(item) {
-      sheet.appendRow([
-        item.timestamp || new Date().toLocaleString("vi-VN"),
-        item.code || "",
-        item.note || "",
-        item.quantity || 1,
-        item.device || "Smart Scanner Web"
-      ]);
-    });
-    
-    return ContentService.createTextOutput(JSON.stringify({ status: "success", count: rows.length }))
-      .setMimeType(ContentService.MimeType.JSON);
-  } catch (err) {
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
-      .setMimeType(ContentService.MimeType.JSON);
-  }
-}
-                    </pre>
-                </div>
-
-            </div>
-
-            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
-                <button id="btn-cancel-gas-modal" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">Đóng</button>
-                <button id="btn-save-gas-url" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition">Lưu cấu hình</button>
-            </div>
-
-        </div>
-    </div>
-
 <script>
+    // URL Google Apps Script Web App trực tiếp (đã kết nối với Google Sheet của anh Tris)
+    const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby9tmAFO1oxWxbNeWTZK4kKBQkI6iIb9T4I_hAgMU08mF0UxUX-w135dNh9DPURxPgu/exec';
+
     // State management
     const LOCAL_STORAGE_ITEMS_KEY = 'smart_scanner_items_v1';
-    const LOCAL_STORAGE_GAS_URL_KEY = 'smart_scanner_gas_url_v1';
 
     let scannedItems = []; // Array of { id, code, note, quantity, timestamp, synced }
     let html5QrCodeScanner = null;
@@ -475,15 +410,6 @@ function doPost(e) {
     const syncBannerText = document.getElementById('sync-banner-text');
     const btnCloseSyncBanner = document.getElementById('btn-close-sync-banner');
 
-    const gasModal = document.getElementById('gas-modal');
-    const btnOpenGasModal = document.getElementById('btn-open-gas-modal');
-    const btnCloseGasModal = document.getElementById('btn-close-gas-modal');
-    const btnCancelGasModal = document.getElementById('btn-cancel-gas-modal');
-    const btnSaveGasUrl = document.getElementById('btn-save-gas-url');
-    const inputGasUrl = document.getElementById('input-gas-url');
-    const btnCopyGasCode = document.getElementById('btn-copy-gas-code');
-    const gasCodeBlock = document.getElementById('gas-code-block');
-
     // ==========================================
     // AUDIO FEEDBACK (WEB AUDIO API BEEP)
     // ==========================================
@@ -522,15 +448,6 @@ function doPost(e) {
         } catch (e) {
             console.warn('Cannot read localStorage items:', e);
             scannedItems = [];
-        }
-
-        try {
-            const savedGasUrl = localStorage.getItem(LOCAL_STORAGE_GAS_URL_KEY);
-            if (savedGasUrl) {
-                inputGasUrl.value = savedGasUrl;
-            }
-        } catch (e) {
-            console.warn('Cannot read GAS URL:', e);
         }
 
         renderTable();
@@ -733,38 +650,97 @@ function doPost(e) {
     // ==========================================
     // CAMERA CONTROLS (HTML5-QRCODE)
     // ==========================================
-    async function startCameraScanner(cameraIdOrConfig = null) {
-        try {
-            if (!html5QrCodeScanner) {
-                html5QrCodeScanner = new Html5Qrcode("reader");
-            }
+    let currentVideoTrack = null;
 
-            // Lấy danh sách camera nếu chưa lấy
+    async function initCameraDevicesList() {
+        try {
             const devices = await Html5Qrcode.getCameras();
             if (devices && devices.length > 0) {
                 cameraSelect.innerHTML = '';
-                devices.forEach(device => {
+                let backCameraId = null;
+
+                devices.forEach((device, index) => {
                     const opt = document.createElement('option');
                     opt.value = device.id;
-                    opt.textContent = device.label || `Camera ${cameraSelect.length + 1}`;
+                    const label = device.label || `Camera ${index + 1}`;
+                    const isBack = /back|rear|sau|environment|fac(ing)?\s*back|camera2\s*0/i.test(label);
+                    
+                    if (isBack) {
+                        opt.textContent = `📷 ${label} (Camera Sau - Khuyên Dùng)`;
+                        if (!backCameraId) backCameraId = device.id;
+                    } else if (/front|trước|selfie|user/i.test(label)) {
+                        opt.textContent = `🤳 ${label} (Camera Trước)`;
+                    } else {
+                        opt.textContent = `📹 ${label}`;
+                    }
                     cameraSelect.appendChild(opt);
                 });
+
+                // Ưu tiên chọn mặc định là Camera Sau
+                if (backCameraId) {
+                    cameraSelect.value = backCameraId;
+                } else if (devices.length > 1) {
+                    // Trên điện thoại Android nếu không đọc được nhãn, camera sau thường là thiết bị cuối
+                    cameraSelect.value = devices[devices.length - 1].id;
+                }
+
                 if (devices.length > 1) {
                     cameraSelectContainer.classList.remove('hidden');
                 }
+                return backCameraId || cameraSelect.value;
+            }
+        } catch (e) {
+            console.warn('Lỗi lấy danh mục camera:', e);
+        }
+        return null;
+    }
+
+    async function startCameraScanner(cameraIdOrConfig = null) {
+        try {
+            if (!html5QrCodeScanner) {
+                // Kích hoạt BarcodeDetector phần cứng giúp nhận diện mã QR trên nền tem vàng/phản chiếu mica cực nhạy
+                html5QrCodeScanner = new Html5Qrcode("reader", {
+                    experimentalFeatures: {
+                        useBarCodeDetectorIfSupported: true
+                    },
+                    verbose: false
+                });
             }
 
-            const selectedCameraId = cameraIdOrConfig || (cameraSelect.value || { facingMode: "environment" });
+            // Lấy danh sách camera & tìm camera sau
+            const detectedRearId = await initCameraDevicesList();
 
+            // MẶC ĐỊNH LUÔN ƯU TIÊN CAMERA SAU (ENVIRONMENT)
+            let cameraConfig;
+            if (cameraIdOrConfig) {
+                cameraConfig = cameraIdOrConfig;
+            } else if (cameraSelect.value) {
+                cameraConfig = cameraSelect.value;
+            } else if (detectedRearId) {
+                cameraConfig = detectedRearId;
+            } else {
+                cameraConfig = { facingMode: { ideal: "environment" } };
+            }
+
+            // Cấu hình quét tối ưu:
+            // 1. fps: 20 để bắt nét nhanh
+            // 2. qrbox hình vuông chiếm 88% khung hình để không bao giờ bị cắt xén góc mã QR trên tem
+            // 3. Độ phân giải cao Full HD (1920x1080) và focusMode: continuous giúp các ô vuông QR nhỏ không bị nhòe
             const config = {
-                fps: 15,
+                fps: 20,
                 qrbox: (viewfinderWidth, viewfinderHeight) => {
-                    // Box quét chữ nhật thích hợp cho cả barcode dài và QR vuông
                     const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                    const boxSize = Math.floor(minEdge * 0.88);
                     return {
-                        width: Math.floor(minEdge * 0.85),
-                        height: Math.floor(minEdge * 0.6)
+                        width: boxSize,
+                        height: boxSize
                     };
+                },
+                videoConstraints: {
+                    facingMode: { ideal: "environment" },
+                    width: { min: 1280, ideal: 1920 },
+                    height: { min: 720, ideal: 1080 },
+                    focusMode: { ideal: "continuous" }
                 },
                 aspectRatio: 1.333334,
                 formatsToSupport: [
@@ -782,13 +758,13 @@ function doPost(e) {
             statusCameraDot.classList.add('bg-emerald-500', 'scanning-active');
 
             await html5QrCodeScanner.start(
-                selectedCameraId,
+                cameraConfig,
                 config,
                 (decodedText, decodedResult) => {
                     addScannedCode(decodedText);
                 },
                 (errorMessage) => {
-                    // Quét từng frame không có mã -> bỏ qua
+                    // Frame chưa có mã -> tiếp tục
                 }
             );
 
@@ -796,19 +772,78 @@ function doPost(e) {
             btnStartCamera.classList.add('hidden');
             btnStopCamera.classList.remove('hidden');
 
-            // Kiểm tra hỗ trợ đèn pin (torch)
-            try {
-                const track = html5QrCodeScanner.getRunningTrackCapabilities();
-                if (track && track.torch) {
-                    btnToggleTorch.classList.remove('hidden');
-                }
-            } catch (_) {}
+            // Cập nhật lại nhãn camera sau khi đã được cấp quyền truy cập
+            initCameraDevicesList();
+
+            // Kiểm tra capabilities đèn Flash và Zoom
+            checkCameraCapabilities();
 
         } catch (err) {
             console.error('Lỗi khởi động camera:', err);
             cameraPlaceholder.classList.remove('hidden');
             statusCameraDot.classList.remove('scanning-active');
             alert('Không thể mở camera: ' + (err.message || err) + '\nVui lòng kiểm tra quyền truy cập camera trên trình duyệt.');
+        }
+    }
+
+    function checkCameraCapabilities() {
+        try {
+            const videoElem = document.querySelector('#reader video');
+            if (!videoElem || !videoElem.srcObject) return;
+            const tracks = videoElem.srcObject.getVideoTracks();
+            if (!tracks || tracks.length === 0) return;
+            currentVideoTrack = tracks[0];
+
+            const capabilities = currentVideoTrack.getCapabilities ? currentVideoTrack.getCapabilities() : {};
+
+            // Bật/tắt nút Flash
+            if (capabilities.torch) {
+                btnToggleTorch.classList.remove('hidden');
+            } else {
+                btnToggleTorch.classList.add('hidden');
+            }
+
+            // Hiển thị thanh Zoom nếu camera hỗ trợ
+            const zoomControlsContainer = document.getElementById('zoom-controls-container');
+            if (capabilities.zoom && zoomControlsContainer) {
+                zoomControlsContainer.classList.remove('hidden');
+            }
+        } catch (e) {
+            console.warn('Lỗi kiểm tra capabilities camera:', e);
+        }
+    }
+
+    async function applyCameraZoom(zoomLevel) {
+        try {
+            if (!currentVideoTrack) {
+                const videoElem = document.querySelector('#reader video');
+                if (videoElem && videoElem.srcObject) {
+                    const tracks = videoElem.srcObject.getVideoTracks();
+                    if (tracks && tracks.length > 0) currentVideoTrack = tracks[0];
+                }
+            }
+            if (!currentVideoTrack) return;
+
+            const capabilities = currentVideoTrack.getCapabilities ? currentVideoTrack.getCapabilities() : {};
+            if (capabilities.zoom) {
+                const min = capabilities.zoom.min || 1;
+                const max = capabilities.zoom.max || 5;
+                const target = Math.min(Math.max(Number(zoomLevel), min), max);
+                await currentVideoTrack.applyConstraints({
+                    advanced: [{ zoom: target }]
+                });
+
+                document.querySelectorAll('.btn-zoom').forEach(btn => {
+                    const z = Number(btn.getAttribute('data-zoom'));
+                    if (Math.abs(z - target) < 0.1) {
+                        btn.className = 'btn-zoom px-2 py-0.5 rounded bg-blue-600 border border-blue-600 font-bold text-white shadow-xs';
+                    } else {
+                        btn.className = 'btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100';
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('Không thể thu phóng camera:', e);
         }
     }
 
@@ -820,10 +855,13 @@ function doPost(e) {
                 console.warn('Lỗi khi dừng camera:', e);
             }
             isCameraRunning = false;
+            currentVideoTrack = null;
             cameraPlaceholder.classList.remove('hidden');
             btnStartCamera.classList.remove('hidden');
             btnStopCamera.classList.add('hidden');
             btnToggleTorch.classList.add('hidden');
+            const zoomControlsContainer = document.getElementById('zoom-controls-container');
+            if (zoomControlsContainer) zoomControlsContainer.classList.add('hidden');
             statusCameraDot.classList.remove('scanning-active');
         }
     }
@@ -869,11 +907,7 @@ function doPost(e) {
     // PUSH TO GOOGLE SHEET (WEBHOOK / GAS)
     // ==========================================
     async function syncItemsToGoogleSheet() {
-        const gasUrl = (inputGasUrl.value || '').trim();
-        if (!gasUrl) {
-            gasModal.classList.remove('hidden');
-            return;
-        }
+        const gasUrl = GOOGLE_APPS_SCRIPT_URL;
 
         if (scannedItems.length === 0) {
             alert('Chưa có mã nào để đồng bộ!');
@@ -923,7 +957,7 @@ function doPost(e) {
 
         } catch (err) {
             console.error('Lỗi đồng bộ Google Sheet:', err);
-            showSyncBanner(`❌ Có lỗi khi đồng bộ: ${err.message}. Hãy kiểm tra lại URL Web App.`, 'bg-rose-50 text-rose-800 border-rose-200');
+            showSyncBanner(`❌ Có lỗi khi đồng bộ: ${err.message}. Hãy kiểm tra kết nối mạng.`, 'bg-rose-50 text-rose-800 border-rose-200');
         } finally {
             btnSyncGoogleSheet.disabled = false;
             btnSyncGoogleSheet.innerHTML = `
@@ -939,8 +973,7 @@ function doPost(e) {
 
     // Đồng bộ đơn lẻ khi bật Real-time sync
     async function syncSingleItemToGas(code, note, quantity, timestamp) {
-        const gasUrl = (inputGasUrl.value || '').trim();
-        if (!gasUrl) return;
+        const gasUrl = GOOGLE_APPS_SCRIPT_URL;
 
         try {
             await fetch(gasUrl, {
@@ -986,6 +1019,130 @@ function doPost(e) {
             stopCameraScanner().then(() => startCameraScanner(cameraSelect.value));
         }
     });
+
+    // ==========================================
+    // THU PHÓNG (ZOOM) & QUÉT QUA ẢNH CHỤP
+    // ==========================================
+    document.querySelectorAll('.btn-zoom').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const zoomVal = e.currentTarget.getAttribute('data-zoom');
+            if (zoomVal) {
+                applyCameraZoom(zoomVal);
+            }
+        });
+    });
+
+    // Xử lý Chụp ảnh / Tải ảnh nhãn lên để quét
+    const btnScanImage = document.getElementById('btn-scan-image');
+    const inputQrImage = document.getElementById('input-qr-image');
+
+    if (btnScanImage && inputQrImage) {
+        btnScanImage.addEventListener('click', () => {
+            inputQrImage.click();
+        });
+
+        inputQrImage.addEventListener('change', async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            try {
+                if (!html5QrCodeScanner) {
+                    html5QrCodeScanner = new Html5Qrcode("reader", {
+                        experimentalFeatures: {
+                            useBarCodeDetectorIfSupported: true
+                        },
+                        verbose: false
+                    });
+                }
+
+                // Hiển thị trạng thái đang đọc
+                btnScanImage.disabled = true;
+                const oldContent = btnScanImage.innerHTML;
+                btnScanImage.innerHTML = `<span>⏳ Đang phân tích mã từ ảnh...</span>`;
+
+                try {
+                    // Thử quét trực tiếp từ ảnh gốc
+                    const decodedText = await html5QrCodeScanner.scanFile(file, true);
+                    addScannedCode(decodedText, 'Quét từ ảnh chụp');
+                    btnScanImage.disabled = false;
+                    btnScanImage.innerHTML = oldContent;
+                    return;
+                } catch (err1) {
+                    console.warn('Quét ảnh gốc chưa ra, chạy thuật toán lọc tương phản tem vàng...', err1);
+                    // Lọc tương phản nhị phân tăng nét chuyên dụng cho tem vàng / lóa mica
+                    const processedBlob = await preprocessImageForQR(file);
+                    if (processedBlob) {
+                        const processedFile = new File([processedBlob], "qr_processed.png", { type: "image/png" });
+                        const decodedText2 = await html5QrCodeScanner.scanFile(processedFile, true);
+                        addScannedCode(decodedText2, 'Quét từ ảnh (lọc nét)');
+                        btnScanImage.disabled = false;
+                        btnScanImage.innerHTML = oldContent;
+                        return;
+                    }
+                    throw err1;
+                }
+            } catch (err) {
+                console.error('Lỗi nhận diện ảnh:', err);
+                alert('Không tìm thấy mã QR/Barcode trong ảnh này.\nLời khuyên: Chụp thẳng góc nhãn, tránh bóng đèn chiếu thẳng gây lóa và đảm bảo mã QR rõ nét.');
+            } finally {
+                btnScanImage.disabled = false;
+                btnScanImage.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span>Chụp ảnh hoặc Tải ảnh nhãn để quét mã</span>
+                `;
+                inputQrImage.value = '';
+            }
+        });
+    }
+
+    // Hàm chuyển đổi ảnh sang Grayscale & Thresholding tăng tương phản nền vàng
+    function preprocessImageForQR(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = new Image();
+                img.onload = () => {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+
+                        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const d = imgData.data;
+
+                        // Tem vàng laptop có Red và Green rất cao (~180-250), Blue thấp (~0-80)
+                        // Mã QR màu đen có R, G, B đều thấp (~10-60).
+                        // Áp dụng công thức Luma & Threshold 130 để tách nền vàng thành trắng tinh và QR thành đen đậm
+                        for (let i = 0; i < d.length; i += 4) {
+                            const luma = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+                            const val = luma < 130 ? 0 : 255;
+                            d[i] = val;
+                            d[i + 1] = val;
+                            d[i + 2] = val;
+                        }
+                        ctx.putImageData(imgData, 0, 0);
+
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, 'image/png');
+                    } catch (e) {
+                        console.warn('Preprocess error:', e);
+                        resolve(null);
+                    }
+                };
+                img.onerror = () => resolve(null);
+                img.src = ev.target.result;
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+        });
+    }
 
     let torchState = false;
     btnToggleTorch.addEventListener('click', async () => {
@@ -1034,28 +1191,6 @@ function doPost(e) {
     });
 
     btnSyncGoogleSheet.addEventListener('click', syncItemsToGoogleSheet);
-
-    // Modal GAS Events
-    btnOpenGasModal.addEventListener('click', () => gasModal.classList.remove('hidden'));
-    btnCloseGasModal.addEventListener('click', () => gasModal.classList.add('hidden'));
-    btnCancelGasModal.addEventListener('click', () => gasModal.classList.add('hidden'));
-    
-    btnSaveGasUrl.addEventListener('click', () => {
-        const url = inputGasUrl.value.trim();
-        try {
-            localStorage.setItem(LOCAL_STORAGE_GAS_URL_KEY, url);
-        } catch (_) {}
-        gasModal.classList.add('hidden');
-        showSyncBanner('Đã lưu cấu hình Google Sheet Web App!', 'bg-blue-50 text-blue-800 border-blue-200');
-    });
-
-    btnCopyGasCode.addEventListener('click', () => {
-        const code = gasCodeBlock.innerText;
-        navigator.clipboard.writeText(code).then(() => {
-            btnCopyGasCode.textContent = 'Đã sao chép!';
-            setTimeout(() => btnCopyGasCode.textContent = 'Sao chép mã', 2000);
-        });
-    });
 
     // Auto load on start
     loadSavedData();
