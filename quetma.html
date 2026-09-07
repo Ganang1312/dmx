@@ -152,6 +152,37 @@
             <!-- CỘT TRÁI: CAMERA SCANNER & INPUT (5 CỘT) -->
             <div id="col-scanner" class="lg:col-span-5 space-y-3 sm:space-y-4">
                 
+                <!-- CẤU HÌNH ĐỢT QUÉT / NHÂN VIÊN / NGÀNH HÀNG (LƯU SHEET RIÊNG BIỆT) -->
+                <div class="bg-gradient-to-br from-blue-50/90 via-white to-indigo-50/60 rounded-2xl border border-blue-200/90 shadow-xs p-3 sm:p-4 transition-all">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="session-name-input" class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                            <span class="flex h-2.5 w-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+                            Tên Đợt Quét / Nhân Viên / Ngành Hàng
+                        </label>
+                        <span class="text-[10px] font-bold text-blue-700 bg-blue-100/90 px-2 py-0.5 rounded-full border border-blue-200">
+                            Tách Sheet Riêng
+                        </span>
+                    </div>
+                    
+                    <div class="relative">
+                        <input type="text" id="session-name-input" 
+                            placeholder="VD: Tuấn - Laptop Dell, Kho A - Phụ kiện..." 
+                            class="w-full text-xs sm:text-sm font-semibold px-3 py-2.5 pr-8 bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-2xs text-slate-900 placeholder:text-slate-400 transition"
+                            autocomplete="off">
+                        <button type="button" id="btn-clear-session-name" class="hidden absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 rounded-full" title="Xóa tên">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                        </button>
+                    </div>
+
+                    <div class="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                        <span class="flex items-center gap-1 truncate">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600 shrink-0"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            Lưu vào Sheet: <strong id="preview-target-sheet" class="text-slate-500 italic font-mono">Chưa đặt tên (Mặc định)</strong>
+                        </span>
+                        <span class="text-[10px] text-slate-400 shrink-0 hidden sm:inline">Tự nhớ trên máy</span>
+                    </div>
+                </div>
+
                 <!-- KHỐI QUÉT CAMERA -->
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-3 sm:p-4 overflow-hidden">
                     <div class="flex items-center justify-between mb-2.5">
@@ -443,6 +474,12 @@
 
     // State management
     const LOCAL_STORAGE_ITEMS_KEY = 'smart_scanner_items_v1';
+    const LOCAL_STORAGE_SESSION_KEY = 'smart_scanner_session_name_v1';
+
+    // DOM Elements - Session / Staff Name
+    const sessionNameInput = document.getElementById('session-name-input');
+    const previewTargetSheet = document.getElementById('preview-target-sheet');
+    const btnClearSessionName = document.getElementById('btn-clear-session-name');
 
     let scannedItems = []; // Array of { id, code, note, quantity, timestamp, synced }
     let html5QrCodeScanner = null;
@@ -604,6 +641,37 @@
     // ==========================================
     // STORAGE & STATE
     // ==========================================
+    function updateSessionDisplay(name) {
+        const cleanName = (name || '').trim();
+        if (previewTargetSheet) {
+            if (cleanName) {
+                previewTargetSheet.textContent = cleanName;
+                previewTargetSheet.className = 'text-blue-700 font-bold font-mono';
+            } else {
+                previewTargetSheet.textContent = 'Chưa đặt tên (Mặc định: Kiểm Kê Chung)';
+                previewTargetSheet.className = 'text-slate-500 italic font-mono';
+            }
+        }
+        if (btnClearSessionName) {
+            if (cleanName) {
+                btnClearSessionName.classList.remove('hidden');
+            } else {
+                btnClearSessionName.classList.add('hidden');
+            }
+        }
+        if (btnSyncGoogleSheet && !btnSyncGoogleSheet.disabled) {
+            const shortName = cleanName ? (cleanName.length > 18 ? cleanName.substring(0, 16) + '...' : cleanName) : '';
+            btnSyncGoogleSheet.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                ${shortName ? `Đẩy vào Sheet "${shortName}"` : 'Đẩy lên Google Sheet'}
+            `;
+        }
+    }
+
     function loadSavedData() {
         try {
             const savedItems = localStorage.getItem(LOCAL_STORAGE_ITEMS_KEY);
@@ -613,6 +681,19 @@
         } catch (e) {
             console.warn('Cannot read localStorage items:', e);
             scannedItems = [];
+        }
+
+        // Khôi phục tên đợt quét / nhân viên đã lưu
+        try {
+            const savedSession = localStorage.getItem(LOCAL_STORAGE_SESSION_KEY);
+            if (savedSession && sessionNameInput) {
+                sessionNameInput.value = savedSession;
+                updateSessionDisplay(savedSession);
+            } else {
+                updateSessionDisplay('');
+            }
+        } catch (e) {
+            console.warn('Cannot read session name:', e);
         }
 
         renderTable();
@@ -1059,6 +1140,7 @@
             'Tên Model / Ghi chú': item.note || '',
             'Số lượng': item.quantity || 1,
             'Thời gian quét': item.timestamp,
+            'Đợt quét / Người quét': sessionNameInput ? sessionNameInput.value.trim() || 'Mặc định' : 'Mặc định',
             'Trạng thái đồng bộ': item.synced ? 'Đã sync Google Sheet' : 'Chưa sync'
         }));
 
@@ -1071,14 +1153,21 @@
             { wch: 36 },  // Tên
             { wch: 10 },  // SL
             { wch: 22 },  // Thời gian
+            { wch: 24 },  // Đợt quét
             { wch: 20 }   // Trạng thái
         ];
 
+        const rawSessionName = sessionNameInput ? sessionNameInput.value.trim() : '';
+        const currentSessionName = rawSessionName || 'DanhSachQuet';
+        // Tên sheet Excel tối đa 31 ký tự, không chứa ký tự cấm
+        const safeExcelSheetName = currentSessionName.replace(/[\:\\\/\?\*\[\]]/g, '_').substring(0, 31) || 'DanhSachQuet';
+
         const workbook = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(workbook, worksheet, "DanhSachQuet");
+        XLSX.utils.book_append_sheet(workbook, worksheet, safeExcelSheetName);
 
         const dateStr = new Date().toISOString().slice(0, 10);
-        XLSX.writeFile(workbook, `Kiem_Ke_SanPham_${dateStr}.xlsx`);
+        const safeFileName = currentSessionName.replace(/[^a-zA-Z0-9_\u00C0-\u1EF9]/g, '_');
+        XLSX.writeFile(workbook, `Kiem_Ke_${safeFileName}_${dateStr}.xlsx`);
     });
 
     // ==========================================
@@ -1099,23 +1188,30 @@
             return;
         }
 
+        const rawSessionName = sessionNameInput ? sessionNameInput.value.trim() : '';
+        const currentSessionName = rawSessionName || 'Kiểm Kê Chung';
+
         btnSyncGoogleSheet.disabled = true;
         btnSyncGoogleSheet.innerHTML = `
             <svg class="animate-spin h-3.5 w-3.5 text-white inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
-            Đang đồng bộ (${itemsToSync.length})...
+            Đang lưu vào Sheet "${currentSessionName}"...
         `;
 
         try {
-            const payload = itemsToSync.map(i => ({
-                timestamp: i.timestamp,
-                code: i.code,
-                note: i.note || '',
-                quantity: i.quantity || 1,
-                device: navigator.userAgent.includes('Mobile') ? 'Điện thoại di động' : 'Máy tính / Súng quét'
-            }));
+            const payload = {
+                sheetName: currentSessionName,
+                items: itemsToSync.map(i => ({
+                    timestamp: i.timestamp,
+                    code: i.code,
+                    note: i.note || '',
+                    quantity: i.quantity || 1,
+                    device: navigator.userAgent.includes('Mobile') ? 'Điện thoại di động' : 'Máy tính / Súng quét',
+                    sheetName: currentSessionName
+                }))
+            };
 
             // Gửi qua Webhook Google Apps Script bằng text/plain để tránh CORS preflight
             await fetch(gasUrl, {
@@ -1131,40 +1227,39 @@
             renderTable();
             updateStats();
 
-            showSyncBanner(`✅ Đã gửi lệnh đồng bộ ${itemsToSync.length} sản phẩm lên Google Sheet! (Lưu ý: Bạn cần cấu hình Apps Script quyền 'Bất kỳ ai' để Sheet nhận được dữ liệu).`, 'bg-emerald-50 text-emerald-800 border-emerald-200');
+            showSyncBanner(`✅ Đã đẩy thành công ${itemsToSync.length} sản phẩm vào Sheet: "${currentSessionName}" trên Google Sheet!`, 'bg-emerald-50 text-emerald-800 border-emerald-200');
 
         } catch (err) {
             console.error('Lỗi đồng bộ Google Sheet:', err);
             showSyncBanner(`❌ Có lỗi khi đồng bộ: ${err.message}. Hãy kiểm tra lại kết nối mạng hoặc URL Web App.`, 'bg-rose-50 text-rose-800 border-rose-200');
         } finally {
             btnSyncGoogleSheet.disabled = false;
-            btnSyncGoogleSheet.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                    <polyline points="17 8 12 3 7 8"></polyline>
-                    <line x1="12" y1="3" x2="12" y2="15"></line>
-                </svg>
-                Đẩy lên Google Sheet
-            `;
+            updateSessionDisplay(sessionNameInput ? sessionNameInput.value : '');
         }
     }
 
     // Đồng bộ đơn lẻ khi bật Real-time sync
     async function syncSingleItemToGas(code, note, quantity, timestamp) {
         const gasUrl = GOOGLE_APPS_SCRIPT_URL;
+        const rawSessionName = sessionNameInput ? sessionNameInput.value.trim() : '';
+        const currentSessionName = rawSessionName || 'Kiểm Kê Chung';
 
         try {
             await fetch(gasUrl, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify([{
-                    timestamp: timestamp,
-                    code: code,
-                    note: note,
-                    quantity: quantity,
-                    device: 'Quét tức thì'
-                }])
+                body: JSON.stringify({
+                    sheetName: currentSessionName,
+                    items: [{
+                        timestamp: timestamp,
+                        code: code,
+                        note: note,
+                        quantity: quantity,
+                        device: 'Quét tức thì',
+                        sheetName: currentSessionName
+                    }]
+                })
             });
             const item = scannedItems.find(i => i.code === code);
             if (item) {
@@ -1407,6 +1502,29 @@
     });
 
     btnSyncGoogleSheet.addEventListener('click', syncItemsToGoogleSheet);
+
+    if (sessionNameInput) {
+        sessionNameInput.addEventListener('input', (e) => {
+            const val = e.target.value;
+            try {
+                localStorage.setItem(LOCAL_STORAGE_SESSION_KEY, val);
+            } catch (_) {}
+            updateSessionDisplay(val);
+        });
+    }
+
+    if (btnClearSessionName) {
+        btnClearSessionName.addEventListener('click', () => {
+            if (sessionNameInput) {
+                sessionNameInput.value = '';
+                try {
+                    localStorage.removeItem(LOCAL_STORAGE_SESSION_KEY);
+                } catch (_) {}
+                updateSessionDisplay('');
+                sessionNameInput.focus();
+            }
+        });
+    }
 
     // Auto load on start
     loadSavedData();
