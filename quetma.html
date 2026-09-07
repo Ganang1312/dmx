@@ -48,6 +48,24 @@
         .scanning-active {
             animation: pulse-ring 2s infinite ease-in-out;
         }
+        @keyframes scanFlash {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.9), inset 0 0 25px rgba(16, 185, 129, 0.6); }
+            50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.5), inset 0 0 45px rgba(16, 185, 129, 0.85); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0), inset 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .scan-flash-active {
+            animation: scanFlash 0.5s ease-out;
+            border-color: #10b981 !important;
+        }
+        @keyframes slideDownBounce {
+            0% { transform: translateY(-100%); opacity: 0; }
+            60% { transform: translateY(6px); opacity: 1; }
+            80% { transform: translateY(-2px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .animate-scan-banner {
+            animation: slideDownBounce 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
@@ -91,43 +109,55 @@
     </header>
 
     <!-- MAIN CONTAINER -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+    <main class="max-w-7xl mx-auto px-3 sm:px-6 py-3 sm:py-6">
         
-        <!-- TOP STATS CARDS -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Tổng mã duy nhất</div>
-                <div class="text-2xl font-bold text-slate-900 mt-1" id="stat-unique-count">0</div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Số lượng mã không trùng</div>
+        <!-- TOP STATS CARDS (Tối ưu nhỏ gọn trên di động) -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3.5 mb-3 sm:mb-6">
+            <div class="bg-white p-2.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-[10px] sm:text-xs font-semibold uppercase text-slate-500 tracking-wider">Mã duy nhất</div>
+                <div class="text-lg sm:text-2xl font-black text-slate-900 mt-0.5" id="stat-unique-count">0</div>
+                <div class="text-[10px] text-slate-400">Không trùng</div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Tổng lượt quét</div>
-                <div class="text-2xl font-bold text-blue-600 mt-1" id="stat-total-scans">0</div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Bao gồm số lần cộng dồn</div>
+            <div class="bg-white p-2.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-[10px] sm:text-xs font-semibold uppercase text-slate-500 tracking-wider">Tổng lượt quét</div>
+                <div class="text-lg sm:text-2xl font-black text-blue-600 mt-0.5" id="stat-total-scans">0</div>
+                <div class="text-[10px] text-slate-400">Cộng dồn</div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Đã đồng bộ Sheet</div>
-                <div class="text-2xl font-bold text-emerald-600 mt-1" id="stat-synced-count">0</div>
-                <div class="text-[11px] text-slate-400 mt-0.5">Đã gửi lên Google Sheet</div>
+            <div class="bg-white p-2.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-[10px] sm:text-xs font-semibold uppercase text-slate-500 tracking-wider">Đã đồng bộ</div>
+                <div class="text-lg sm:text-2xl font-black text-emerald-600 mt-0.5" id="stat-synced-count">0</div>
+                <div class="text-[10px] text-slate-400">Google Sheet</div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Mã quét gần nhất</div>
-                <div class="text-base font-bold text-indigo-600 truncate mt-1" id="stat-last-code">Chưa có</div>
-                <div class="text-[11px] text-slate-400 mt-0.5" id="stat-last-time">--:--:--</div>
+            <div class="bg-white p-2.5 sm:p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-[10px] sm:text-xs font-semibold uppercase text-slate-500 tracking-wider">Mã gần nhất</div>
+                <div class="text-sm sm:text-base font-bold text-indigo-600 truncate mt-0.5" id="stat-last-code">Chưa có</div>
+                <div class="text-[10px] text-slate-400" id="stat-last-time">--:--:--</div>
             </div>
         </div>
 
-        <div class="grid lg:grid-cols-12 gap-6 items-start">
+        <!-- MOBILE QUICK SWITCHER (Nút chuyển nhanh màn hình trên điện thoại) -->
+        <div class="lg:hidden flex bg-slate-200/90 p-1 rounded-xl mb-3 text-xs font-bold shadow-2xs">
+            <button type="button" id="tab-scanner-view" class="flex-1 py-2 rounded-lg bg-white shadow-xs text-blue-700 flex items-center justify-center gap-1.5 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                <span>📷 Máy Quét</span>
+            </button>
+            <button type="button" id="tab-table-view" class="flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                <span>📋 Danh Sách (<span id="mobile-badge-count">0</span>)</span>
+            </button>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-4 sm:gap-6 items-start">
             
             <!-- CỘT TRÁI: CAMERA SCANNER & INPUT (5 CỘT) -->
-            <div class="lg:col-span-5 space-y-4">
+            <div id="col-scanner" class="lg:col-span-5 space-y-3 sm:space-y-4">
                 
                 <!-- KHỐI QUÉT CAMERA -->
-                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 overflow-hidden">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block" id="status-camera-dot"></span>
-                            Máy Quét Camera
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-3 sm:p-4 overflow-hidden">
+                    <div class="flex items-center justify-between mb-2.5">
+                        <span class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" id="status-camera-dot"></span>
+                            Máy Quét Camera Sau
                         </span>
                         
                         <div class="flex items-center gap-1">
@@ -135,81 +165,130 @@
                             <button id="btn-toggle-torch" class="p-1.5 text-slate-500 hover:text-amber-500 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors hidden" title="Bật/Tắt đèn Flash">
                                 💡 Flash
                             </button>
+                            <!-- Haptic Vibration Toggle -->
+                            <button id="btn-toggle-vibrate" class="px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1" title="Bật/Tắt rung khi quét">
+                                📳 Rung: Bật
+                            </button>
                             <!-- Audio Mute Toggle -->
-                            <button id="btn-toggle-sound" class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors" title="Bật/Tắt âm báo bíp">
+                            <button id="btn-toggle-sound" class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-[11px] font-medium transition-colors" title="Bật/Tắt âm báo bíp">
                                 🔊 Bíp: Bật
                             </button>
                         </div>
                     </div>
 
-                    <!-- Camera Container -->
-                    <div class="relative bg-slate-950 rounded-xl overflow-hidden min-h-[260px] flex items-center justify-center border border-slate-800">
+                    <!-- Camera Container & Floating Scan Success Banner -->
+                    <div id="camera-frame" class="relative bg-slate-950 rounded-xl overflow-hidden min-h-[250px] sm:min-h-[270px] flex items-center justify-center border-2 border-slate-800 transition-all duration-300">
                         <div id="reader" class="w-full"></div>
+
+                        <!-- FLOATING SUCCESS BANNER (Hiện mã vừa quét to rõ ngay trên khung hình) -->
+                        <div id="scan-success-banner" class="hidden absolute top-2.5 left-2.5 right-2.5 z-20 bg-emerald-600/95 backdrop-blur-md text-white p-3 rounded-xl shadow-xl border border-emerald-300 animate-scan-banner">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="flex items-center gap-2.5 min-w-0">
+                                    <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center shrink-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    </div>
+                                    <div class="min-w-0">
+                                        <div class="text-[10px] font-bold text-emerald-100 uppercase tracking-wider flex items-center gap-1.5">
+                                            <span>Quét Thành Công</span>
+                                            <span id="scan-banner-badge" class="bg-white text-emerald-800 text-[10px] font-black px-1.5 py-0.2 rounded">Mã Mới</span>
+                                        </div>
+                                        <div id="scan-banner-code" class="text-base sm:text-lg font-black font-mono tracking-wider truncate select-all text-white">
+                                            ---
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <div class="text-xs font-black text-white" id="scan-banner-qty">SL: 1</div>
+                                    <div class="text-[10px] text-emerald-200 font-mono" id="scan-banner-time">--:--:--</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Camera Placeholder -->
                         <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-slate-400 bg-slate-900">
-                            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3 shadow-inner">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300">
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                                     <circle cx="12" cy="13" r="4"></circle>
                                 </svg>
                             </div>
-                            <p class="text-sm font-medium text-slate-200">Camera chưa được bật</p>
-                            <p class="text-xs text-slate-400 mt-1 max-w-xs">Nhấn nút bên dưới để cấp quyền mở camera quét mã vạch hoặc mã QR trên máy</p>
+                            <p class="text-sm font-semibold text-slate-200">Camera chưa được bật</p>
+                            <p class="text-xs text-slate-400 mt-1 max-w-xs">Nhấn nút bên dưới để mở camera quét mã QR hoặc mã vạch laptop</p>
                         </div>
                     </div>
 
                     <!-- Camera Controls -->
-                    <div class="mt-3 space-y-2.5">
+                    <div class="mt-2.5 space-y-2">
                         <div class="flex items-center gap-2">
-                            <button id="btn-start-camera" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-sm flex items-center justify-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <button id="btn-start-camera" class="flex-1 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl text-sm transition shadow-sm flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                                     <circle cx="12" cy="13" r="4"></circle>
                                 </svg>
                                 <span>Bật Camera Sau Quét</span>
                             </button>
-                            <button id="btn-stop-camera" class="hidden flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <button id="btn-stop-camera" class="hidden flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-bold py-3 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <circle cx="12" cy="12" r="10"></circle>
                                     <line x1="15" y1="9" x2="9" y2="15"></line>
                                     <line x1="9" y1="9" x2="15" y2="15"></line>
                                 </svg>
-                                Dừng Camera
+                                <span>Dừng Camera</span>
                             </button>
                         </div>
 
-                        <!-- Chụp ảnh / Tải ảnh lên quét (Hỗ trợ tốt nhất khi tem nhãn vàng bị lóa mica hoặc máy khó bắt nét) -->
+                        <!-- Chụp ảnh / Tải ảnh lên quét (Cứu cánh khi tem nhãn vàng bị bóng đèn lóa mica) -->
                         <div>
-                            <button type="button" id="btn-scan-image" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-3 rounded-xl text-xs transition border border-slate-200 flex items-center justify-center gap-1.5 shadow-xs">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600">
+                            <button type="button" id="btn-scan-image" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-3 rounded-xl text-xs transition border border-slate-200 flex items-center justify-center gap-1.5 shadow-2xs">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600">
                                     <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                                     <circle cx="8.5" cy="8.5" r="1.5"></circle>
                                     <polyline points="21 15 16 10 5 21"></polyline>
                                 </svg>
-                                <span>Chụp ảnh hoặc Tải ảnh nhãn để quét mã</span>
+                                <span>Chụp ảnh hoặc Tải ảnh nhãn để quét</span>
                             </button>
                             <input type="file" id="input-qr-image" accept="image/*" class="hidden">
                         </div>
 
-                        <!-- Thu phóng Zoom nhanh khi quét tem nhỏ hoặc ở xa -->
+                        <!-- Thu phóng Zoom nhanh -->
                         <div id="zoom-controls-container" class="hidden flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
-                            <span class="text-slate-500 font-medium flex items-center gap-1">
+                            <span class="text-slate-500 font-semibold flex items-center gap-1">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
-                                Zoom camera:
+                                Zoom:
                             </span>
                             <div class="flex items-center gap-1" id="zoom-btn-group">
-                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="1">1x</button>
-                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="1.5">1.5x</button>
-                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="2">2x</button>
-                                <button type="button" class="btn-zoom px-2 py-0.5 rounded bg-white border border-slate-200 font-semibold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="3">3x</button>
+                                <button type="button" class="btn-zoom px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="1">1x</button>
+                                <button type="button" class="btn-zoom px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="1.5">1.5x</button>
+                                <button type="button" class="btn-zoom px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="2">2x</button>
+                                <button type="button" class="btn-zoom px-2.5 py-1 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-blue-50 active:bg-blue-100" data-zoom="3">3x</button>
                             </div>
                         </div>
 
-                        <!-- Chọn Camera nếu máy có nhiều ống kính -->
+                        <!-- Chọn Camera nếu máy có nhiều camera -->
                         <div id="camera-select-container" class="hidden">
-                            <label class="block text-xs font-semibold text-slate-500 mb-1">Ống kính camera (Mặc định: Camera Sau):</label>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Chọn ống kính camera:</label>
                             <select id="camera-select" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-medium">
                             </select>
                         </div>
+                    </div>
+                </div>
+
+                <!-- THẺ HIỂN THỊ MÃ VỪA QUÉT THÀNH CÔNG (Dễ dàng đối soát trực tiếp trên điện thoại) -->
+                <div id="live-scanned-card" class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white p-3.5 rounded-2xl border border-indigo-900/60 shadow-sm transition-all">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-ping"></span>
+                            Mã Vừa Quét Gần Nhất
+                        </span>
+                        <span id="live-scanned-badge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">Chờ quét...</span>
+                    </div>
+                    <div class="mt-1 flex items-baseline justify-between gap-2">
+                        <div id="live-scanned-code" class="text-base sm:text-xl font-black font-mono tracking-wider text-white select-all">Chưa có mã nào</div>
+                        <div id="live-scanned-qty" class="text-xs font-black text-indigo-300 shrink-0">SL: 0</div>
+                    </div>
+                    <div class="mt-1.5 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-1.5">
+                        <span id="live-scanned-note" class="truncate max-w-[200px] text-slate-300">Chưa có ghi chú</span>
+                        <span id="live-scanned-time" class="font-mono text-slate-400">--:--:--</span>
                     </div>
                 </div>
 
@@ -261,7 +340,7 @@
             </div>
 
             <!-- CỘT PHẢI: BẢNG DANH SÁCH SẢN PHẨM ĐÃ QUÉT (7 CỘT) -->
-            <div class="lg:col-span-7 space-y-4">
+            <div id="col-table" class="lg:col-span-7 space-y-4 hidden lg:block">
                 
                 <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
                     
@@ -411,28 +490,114 @@
     const btnCloseSyncBanner = document.getElementById('btn-close-sync-banner');
 
     // ==========================================
-    // AUDIO FEEDBACK (WEB AUDIO API BEEP)
+    // AUDIO & HAPTIC FEEDBACK (BÍP & RUNG PHẢN HỒI)
     // ==========================================
-    function playBeepSound() {
-        if (!soundEnabled) return;
+    let vibrationEnabled = true;
+
+    function triggerHapticFeedback() {
+        if (!vibrationEnabled) return;
         try {
-            const ctx = new (window.AudioContext || window.webkitAudioContext)();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1850, ctx.currentTime);
-            gain.gain.setValueAtTime(0.12, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + 0.14);
+            if ("vibrate" in navigator) {
+                // Nhịp rung kép dứt khoát: 80ms rung, 40ms nghỉ, 80ms rung
+                navigator.vibrate([80, 40, 80]);
+            }
         } catch (e) {
-            console.warn('Audio play error:', e);
+            console.warn('Haptic error:', e);
         }
-        // Rung nhẹ nếu là điện thoại di động
-        if (navigator.vibrate) {
-            navigator.vibrate(80);
+    }
+
+    function playBeepSound() {
+        if (soundEnabled) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1850, ctx.currentTime);
+                gain.gain.setValueAtTime(0.12, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.14);
+            } catch (e) {
+                console.warn('Audio play error:', e);
+            }
+        }
+        // Luôn kích hoạt rung điện thoại
+        triggerHapticFeedback();
+    }
+
+    // ==========================================
+    // HIỂN THỊ PHẢN HỒI QUÉT TRỰC QUAN (BANNER & THẺ TRỰC TIẾP)
+    // ==========================================
+    let scanBannerTimeout = null;
+
+    function showScanSuccessFeedback(code, isNewItem, quantity, timestamp, note) {
+        // 1. Kích hoạt rung haptic
+        triggerHapticFeedback();
+
+        // 2. Chớp sáng viền xanh lá trên khung camera (nhận biết tức thì)
+        const cameraFrame = document.getElementById('camera-frame');
+        if (cameraFrame) {
+            cameraFrame.classList.remove('scan-flash-active');
+            void cameraFrame.offsetWidth;
+            cameraFrame.classList.add('scan-flash-active');
+            setTimeout(() => {
+                cameraFrame.classList.remove('scan-flash-active');
+            }, 600);
+        }
+
+        // 3. Floating Success Banner nổi trên camera
+        const scanSuccessBanner = document.getElementById('scan-success-banner');
+        const scanBannerCode = document.getElementById('scan-banner-code');
+        const scanBannerBadge = document.getElementById('scan-banner-badge');
+        const scanBannerQty = document.getElementById('scan-banner-qty');
+        const scanBannerTime = document.getElementById('scan-banner-time');
+
+        if (scanSuccessBanner && scanBannerCode) {
+            scanBannerCode.textContent = code;
+            scanBannerTime.textContent = timestamp.split(' ')[0] || timestamp;
+            scanBannerQty.textContent = `SL: ${quantity}`;
+
+            if (isNewItem) {
+                scanBannerBadge.textContent = 'Mã Mới';
+                scanBannerBadge.className = 'bg-white text-emerald-800 text-[10px] font-black px-1.5 py-0.2 rounded';
+            } else {
+                scanBannerBadge.textContent = `+1 (SL: ${quantity})`;
+                scanBannerBadge.className = 'bg-blue-100 text-blue-800 text-[10px] font-black px-1.5 py-0.2 rounded';
+            }
+
+            scanSuccessBanner.classList.remove('hidden');
+
+            if (scanBannerTimeout) clearTimeout(scanBannerTimeout);
+            scanBannerTimeout = setTimeout(() => {
+                scanSuccessBanner.classList.add('hidden');
+            }, 2600);
+        }
+
+        // 4. Cập nhật thẻ hiển thị mã vừa quét dưới camera
+        const liveScannedCode = document.getElementById('live-scanned-code');
+        const liveScannedQty = document.getElementById('live-scanned-qty');
+        const liveScannedBadge = document.getElementById('live-scanned-badge');
+        const liveScannedTime = document.getElementById('live-scanned-time');
+        const liveScannedNote = document.getElementById('live-scanned-note');
+
+        if (liveScannedCode) {
+            liveScannedCode.textContent = code;
+            if (liveScannedQty) liveScannedQty.textContent = `SL: ${quantity}`;
+            if (liveScannedTime) liveScannedTime.textContent = timestamp;
+            if (liveScannedNote) liveScannedNote.textContent = note || 'Chưa có ghi chú';
+
+            if (liveScannedBadge) {
+                if (isNewItem) {
+                    liveScannedBadge.textContent = 'Mã Mới (+1)';
+                    liveScannedBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+                } else {
+                    liveScannedBadge.textContent = `Cộng dồn (x${quantity})`;
+                    liveScannedBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30';
+                }
+            }
         }
     }
 
@@ -487,6 +652,8 @@
         playBeepSound();
 
         const autoAccumulate = chkAutoAccumulate.checked;
+        let isNewItem = false;
+        let currentQty = 1;
 
         if (autoAccumulate) {
             const existing = scannedItems.find(item => item.code.toLowerCase() === code.toLowerCase());
@@ -497,7 +664,11 @@
                 if (optionalNote && !existing.note) {
                     existing.note = optionalNote;
                 }
+                currentQty = existing.quantity;
+                isNewItem = false;
             } else {
+                isNewItem = true;
+                currentQty = 1;
                 scannedItems.unshift({
                     id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                     code: code,
@@ -509,6 +680,8 @@
             }
         } else {
             // Mỗi lần quét là 1 dòng riêng
+            isNewItem = true;
+            currentQty = 1;
             scannedItems.unshift({
                 id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
                 code: code,
@@ -522,6 +695,9 @@
         saveItemsToStorage();
         renderTable();
         updateStats();
+
+        // KÍCH HOẠT PHẢN HỒI TRỰC QUAN & HIỆN MÃ VỪA QUÉT LÊN MÀN HÌNH
+        showScanSuccessFeedback(code, isNewItem, currentQty, timeString, optionalNote);
 
         // Tự động đẩy lên Google Sheet nếu bật chế độ real-time sync
         if (chkAutoSyncGas.checked) {
@@ -540,6 +716,11 @@
         statUniqueCount.textContent = uniqueCount;
         statTotalScans.textContent = totalScans;
         statSyncedCount.textContent = syncedCount;
+
+        const mobileBadgeCount = document.getElementById('mobile-badge-count');
+        if (mobileBadgeCount) {
+            mobileBadgeCount.textContent = uniqueCount;
+        }
 
         if (scannedItems.length > 0) {
             const last = scannedItems[0];
@@ -936,11 +1117,11 @@
                 device: navigator.userAgent.includes('Mobile') ? 'Điện thoại di động' : 'Máy tính / Súng quét'
             }));
 
-            // Gửi qua Webhook Google Apps Script
+            // Gửi qua Webhook Google Apps Script bằng text/plain để tránh CORS preflight
             await fetch(gasUrl, {
                 method: 'POST',
-                mode: 'no-cors', // Google Apps Script Web App yêu cầu no-cors khi gọi từ client không có proxy
-                headers: { 'Content-Type': 'application/json' },
+                mode: 'no-cors', // Google Apps Script Web App yêu cầu no-cors khi gọi trực tiếp từ client
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(payload)
             });
 
@@ -950,11 +1131,11 @@
             renderTable();
             updateStats();
 
-            showSyncBanner(`✅ Đã đồng bộ thành công ${itemsToSync.length} sản phẩm lên Google Sheet!`, 'bg-emerald-50 text-emerald-800 border-emerald-200');
+            showSyncBanner(`✅ Đã gửi lệnh đồng bộ ${itemsToSync.length} sản phẩm lên Google Sheet! (Lưu ý: Bạn cần cấu hình Apps Script quyền 'Bất kỳ ai' để Sheet nhận được dữ liệu).`, 'bg-emerald-50 text-emerald-800 border-emerald-200');
 
         } catch (err) {
             console.error('Lỗi đồng bộ Google Sheet:', err);
-            showSyncBanner(`❌ Có lỗi khi đồng bộ: ${err.message}. Hãy kiểm tra kết nối mạng.`, 'bg-rose-50 text-rose-800 border-rose-200');
+            showSyncBanner(`❌ Có lỗi khi đồng bộ: ${err.message}. Hãy kiểm tra lại kết nối mạng hoặc URL Web App.`, 'bg-rose-50 text-rose-800 border-rose-200');
         } finally {
             btnSyncGoogleSheet.disabled = false;
             btnSyncGoogleSheet.innerHTML = `
@@ -976,7 +1157,7 @@
             await fetch(gasUrl, {
                 method: 'POST',
                 mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify([{
                     timestamp: timestamp,
                     code: code,
@@ -1160,6 +1341,44 @@
         soundEnabled = !soundEnabled;
         btnToggleSound.textContent = soundEnabled ? '🔊 Bíp: Bật' : '🔇 Bíp: Tắt';
     });
+
+    // Bật/tắt rung phản hồi haptic
+    const btnToggleVibrate = document.getElementById('btn-toggle-vibrate');
+    if (btnToggleVibrate) {
+        btnToggleVibrate.addEventListener('click', () => {
+            vibrationEnabled = !vibrationEnabled;
+            if (vibrationEnabled) {
+                btnToggleVibrate.textContent = '📳 Rung: Bật';
+                btnToggleVibrate.className = 'px-2 py-1 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1';
+                triggerHapticFeedback();
+            } else {
+                btnToggleVibrate.textContent = '📴 Rung: Tắt';
+                btnToggleVibrate.className = 'px-2 py-1 bg-slate-100 text-slate-400 hover:bg-slate-200 rounded-lg text-[11px] font-medium transition-colors flex items-center gap-1';
+            }
+        });
+    }
+
+    // Chuyển đổi màn hình nhanh trên điện thoại
+    const tabScannerView = document.getElementById('tab-scanner-view');
+    const tabTableView = document.getElementById('tab-table-view');
+    const colScanner = document.getElementById('col-scanner');
+    const colTable = document.getElementById('col-table');
+
+    if (tabScannerView && tabTableView && colScanner && colTable) {
+        tabScannerView.addEventListener('click', () => {
+            colScanner.classList.remove('hidden');
+            colTable.classList.add('hidden');
+            tabScannerView.className = 'flex-1 py-2 rounded-lg bg-white shadow-xs text-blue-700 flex items-center justify-center gap-1.5 transition font-bold';
+            tabTableView.className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition font-medium';
+        });
+
+        tabTableView.addEventListener('click', () => {
+            colScanner.classList.add('hidden');
+            colTable.classList.remove('hidden');
+            tabTableView.className = 'flex-1 py-2 rounded-lg bg-white shadow-xs text-blue-700 flex items-center justify-center gap-1.5 transition font-bold';
+            tabScannerView.className = 'flex-1 py-2 rounded-lg text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition font-medium';
+        });
+    }
 
     formManualInput.addEventListener('submit', (e) => {
         e.preventDefault();
