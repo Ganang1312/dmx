@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Quét Mã Barcode & QR - Kiểm Kê Sản Phẩm</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Thư viện quét Barcode & QR đa năng Html5-QRCode -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- Thư viện xuất file Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        #reader video {
+            border-radius: 12px;
+            object-fit: cover;
+            width: 100% !important;
+        }
+        #reader {
+            border: none !important;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 0.3; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .scanning-active {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-blue-500/20">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 7V5a2 2 0 0 1 2-2h2"></path>
+                        <path d="M17 3h2a2 2 0 0 1 2 2v2"></path>
+                        <path d="M21 17v2a2 2 0 0 1-2 2h-2"></path>
+                        <path d="M7 21H5a2 2 0 0 1-2-2v-2"></path>
+                        <line x1="7" y1="12" x2="17" y2="12"></line>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-extrabold text-slate-900 tracking-tight">Smart Scanner Pro</h1>
+                    <p class="text-xs text-slate-500">Quét Barcode / QR • Kiểm Kê Trưng Bày • Đồng Bộ Google Sheet</p>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="flex items-center gap-2">
+                <button id="btn-open-gas-modal" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                    </svg>
+                    Cài đặt Google Sheet
+                </button>
+                <button id="btn-export-excel" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 text-white hover:bg-blue-700 shadow-sm transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="8" y1="13" x2="16" y2="13"></line>
+                        <line x1="8" y1="17" x2="16" y2="17"></line>
+                    </svg>
+                    Xuất Excel
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        
+        <!-- TOP STATS CARDS -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 mb-6">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Tổng mã duy nhất</div>
+                <div class="text-2xl font-bold text-slate-900 mt-1" id="stat-unique-count">0</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Số lượng mã không trùng</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Tổng lượt quét</div>
+                <div class="text-2xl font-bold text-blue-600 mt-1" id="stat-total-scans">0</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Bao gồm số lần cộng dồn</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Đã đồng bộ Sheet</div>
+                <div class="text-2xl font-bold text-emerald-600 mt-1" id="stat-synced-count">0</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">Đã gửi lên Google Sheet</div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+                <div class="text-xs font-semibold uppercase text-slate-500 tracking-wider">Mã quét gần nhất</div>
+                <div class="text-base font-bold text-indigo-600 truncate mt-1" id="stat-last-code">Chưa có</div>
+                <div class="text-[11px] text-slate-400 mt-0.5" id="stat-last-time">--:--:--</div>
+            </div>
+        </div>
+
+        <div class="grid lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- CỘT TRÁI: CAMERA SCANNER & INPUT (5 CỘT) -->
+            <div class="lg:col-span-5 space-y-4">
+                
+                <!-- KHỐI QUÉT CAMERA -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block" id="status-camera-dot"></span>
+                            Máy Quét Camera
+                        </span>
+                        
+                        <div class="flex items-center gap-1">
+                            <!-- Torch Button -->
+                            <button id="btn-toggle-torch" class="p-1.5 text-slate-500 hover:text-amber-500 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors hidden" title="Bật/Tắt đèn Flash">
+                                💡 Flash
+                            </button>
+                            <!-- Audio Mute Toggle -->
+                            <button id="btn-toggle-sound" class="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg text-xs font-medium transition-colors" title="Bật/Tắt âm báo bíp">
+                                🔊 Bíp: Bật
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Camera Container -->
+                    <div class="relative bg-slate-950 rounded-xl overflow-hidden min-h-[260px] flex items-center justify-center border border-slate-800">
+                        <div id="reader" class="w-full"></div>
+                        <div id="camera-placeholder" class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-slate-400 bg-slate-900">
+                            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                            </div>
+                            <p class="text-sm font-medium text-slate-200">Camera chưa được bật</p>
+                            <p class="text-xs text-slate-400 mt-1 max-w-xs">Nhấn nút bên dưới để cấp quyền mở camera quét mã vạch hoặc mã QR trên máy</p>
+                        </div>
+                    </div>
+
+                    <!-- Camera Controls -->
+                    <div class="mt-3 space-y-2.5">
+                        <div class="flex items-center gap-2">
+                            <button id="btn-start-camera" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-sm flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                    <circle cx="12" cy="13" r="4"></circle>
+                                </svg>
+                                Bật Camera Quét
+                            </button>
+                            <button id="btn-stop-camera" class="hidden flex-1 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold py-2.5 px-4 rounded-xl text-sm transition flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                                </svg>
+                                Dừng Camera
+                            </button>
+                        </div>
+
+                        <!-- Chọn Camera nếu máy có nhiều camera -->
+                        <div id="camera-select-container" class="hidden">
+                            <label class="block text-xs font-semibold text-slate-500 mb-1">Chọn ống kính camera:</label>
+                            <select id="camera-select" class="w-full text-xs p-2 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KHỐI NHẬP TAY / MÁY QUÉT CẦM TAY (SÚNG BẮN MÃ VẠCH) -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4">
+                    <span class="text-sm font-bold text-slate-800 flex items-center gap-1.5 mb-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500">
+                            <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                            <path d="M6 8h.001"></path>
+                            <path d="M10 8h.001"></path>
+                            <path d="M14 8h.001"></path>
+                            <path d="M18 8h.001"></path>
+                            <path d="M8 12h.001"></path>
+                            <path d="M12 12h.001"></path>
+                            <path d="M16 12h.001"></path>
+                            <path d="M7 16h10"></path>
+                        </svg>
+                        Nhập thủ công hoặc Dùng Súng Quét Mã Vạch
+                    </span>
+                    <form id="form-manual-input" class="space-y-2">
+                        <div class="relative">
+                            <input type="text" id="input-barcode" placeholder="Quét mã vạch hoặc nhập mã rồi nhấn Enter..." autofocus autocomplete="off" class="w-full text-sm pl-3 pr-20 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono font-medium">
+                            <button type="submit" class="absolute right-1.5 top-1.5 bottom-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold transition">
+                                Thêm
+                            </button>
+                        </div>
+                        <input type="text" id="input-item-note" placeholder="Tên model / Ghi chú (tùy chọn, vd: Asus Zenbook 14...)" class="w-full text-xs px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500">
+                    </form>
+                    <p class="text-[11px] text-slate-400 mt-2">💡 Nếu anh cắm súng quét mã vạch (USB/Bluetooth), súng sẽ tự động bắn mã vào ô trên và Enter ngay lập tức.</p>
+                </div>
+
+                <!-- TÙY CHỌN QUÉT -->
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-4 text-xs space-y-2.5">
+                    <span class="font-bold text-slate-700 block">Tuỳ chọn quét & lưu:</span>
+                    <label class="flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                        <input type="checkbox" id="chk-auto-accumulate" checked class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                        <span>Cộng dồn số lượng khi quét trùng mã (Nếu tắt: mỗi lần quét là 1 dòng riêng)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                        <input type="checkbox" id="chk-cooldown" checked class="w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-blue-500">
+                        <span>Chống quét lặp liên tục trong 2 giây (tránh lia camera bị quét nhiều lần)</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer select-none text-slate-700">
+                        <input type="checkbox" id="chk-auto-sync-gas" class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+                        <span>Tự động đẩy lên Google Sheet ngay khi quét (Real-time sync)</span>
+                    </label>
+                </div>
+
+            </div>
+
+            <!-- CỘT PHẢI: BẢNG DANH SÁCH SẢN PHẨM ĐÃ QUÉT (7 CỘT) -->
+            <div class="lg:col-span-7 space-y-4">
+                
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+                    
+                    <!-- Table Header & Toolbar -->
+                    <div class="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+                        <div>
+                            <h2 class="text-sm font-bold text-slate-900">Danh Sách Mã Đã Quét</h2>
+                            <p class="text-xs text-slate-500" id="table-summary-text">0 sản phẩm trong phiên kiểm kê</p>
+                        </div>
+
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <!-- Search in list -->
+                            <div class="relative">
+                                <input type="text" id="search-scanned-input" placeholder="Lọc danh sách..." class="text-xs pl-7 pr-2.5 py-1.5 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500 w-36 sm:w-44">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="absolute left-2.5 top-2.5 text-slate-400">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </div>
+
+                            <!-- Push to Google Sheet Button -->
+                            <button id="btn-sync-google-sheet" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="17 8 12 3 7 8"></polyline>
+                                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                                </svg>
+                                Đẩy lên Google Sheet
+                            </button>
+
+                            <!-- Clear all -->
+                            <button id="btn-clear-all" class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg text-xs transition" title="Xóa toàn bộ danh sách">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Sync Status Banner -->
+                    <div id="sync-banner" class="hidden px-4 py-2 text-xs flex items-center justify-between border-b">
+                        <span id="sync-banner-text" class="font-medium"></span>
+                        <button id="btn-close-sync-banner" class="text-xs font-bold underline ml-2">Đóng</button>
+                    </div>
+
+                    <!-- Table Data Container -->
+                    <div class="overflow-x-auto max-h-[540px] overflow-y-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead class="bg-slate-100/75 text-slate-600 sticky top-0 uppercase tracking-wider font-bold border-b border-slate-200 z-10">
+                                <tr>
+                                    <th class="py-2.5 px-3 w-12 text-center">STT</th>
+                                    <th class="py-2.5 px-3">Mã Barcode / QR</th>
+                                    <th class="py-2.5 px-3">Tên Model / Ghi chú</th>
+                                    <th class="py-2.5 px-3 w-16 text-center">SL</th>
+                                    <th class="py-2.5 px-3 w-28">Thời gian</th>
+                                    <th class="py-2.5 px-3 w-24 text-center">Đồng bộ</th>
+                                    <th class="py-2.5 px-3 w-12 text-center">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scanned-items-tbody" class="divide-y divide-slate-100">
+                                <tr id="row-empty-state">
+                                    <td colspan="7" class="py-16 text-center text-slate-400">
+                                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-2 text-slate-300">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="2" y="4" width="20" height="16" rx="2"></rect>
+                                                <line x1="6" y1="8" x2="6" y2="8"></line>
+                                                <line x1="10" y1="8" x2="10" y2="8"></line>
+                                                <line x1="14" y1="8" x2="14" y2="8"></line>
+                                                <line x1="18" y1="8" x2="18" y2="8"></line>
+                                                <line x1="6" y1="12" x2="18" y2="12"></line>
+                                                <line x1="6" y1="16" x2="18" y2="16"></line>
+                                            </svg>
+                                        </div>
+                                        <p class="font-medium text-slate-600">Chưa có mã nào được quét</p>
+                                        <p class="text-[11px] text-slate-400 mt-0.5">Bật camera hoặc nhập mã vạch phía bên trái để bắt đầu kiểm kê</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer Table Stats -->
+                    <div class="p-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+                        <span>Google Sheet: <a href="https://docs.google.com/spreadsheets/d/1j3VS2Hte7MgrlTNBXQUiOmDQj_uLIAK0XZSgC-Eh-O8/edit?usp=sharing" target="_blank" class="text-blue-600 font-semibold underline hover:text-blue-800">Mở trang tính ↗</a></span>
+                        <span id="storage-hint">Dữ liệu được lưu tự động trên trình duyệt</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- MODAL HƯỚNG DẪN & CẤU HÌNH GOOGLE APPS SCRIPT WEBHOOK -->
+    <div id="gas-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl overflow-hidden border border-slate-200 flex flex-col max-h-[90vh]">
+            
+            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold">
+                        GS
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-900">Cấu hình Đẩy Dữ Liệu vào Google Sheet</h3>
+                        <p class="text-xs text-slate-500">Google Sheet ID: 1j3VS2Hte7MgrlTNBXQUiOmDQj_uLIAK0XZSgC-Eh-O8</p>
+                    </div>
+                </div>
+                <button id="btn-close-gas-modal" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg">✕</button>
+            </div>
+
+            <div class="p-5 overflow-y-auto space-y-4 text-xs">
+                
+                <div>
+                    <label for="input-gas-url" class="block font-bold text-slate-700 mb-1">
+                        URL Web App Google Apps Script (Webhook):
+                    </label>
+                    <input type="url" id="input-gas-url" placeholder="https://script.google.com/macros/s/AKfycbx.../exec" class="w-full text-xs p-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono">
+                    <p class="text-[11px] text-slate-400 mt-1">Dán URL Web App triển khai từ Google Apps Script của trang tính vào đây.</p>
+                </div>
+
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-2">
+                    <span class="font-bold text-slate-800 block">📋 Hướng dẫn tạo kết nối 1 lần (Mất 30 giây):</span>
+                    <ol class="list-decimal list-inside space-y-1.5 text-slate-600 leading-relaxed">
+                        <li>Mở file Google Sheet: <a href="https://docs.google.com/spreadsheets/d/1j3VS2Hte7MgrlTNBXQUiOmDQj_uLIAK0XZSgC-Eh-O8/edit?usp=sharing" target="_blank" class="text-emerald-700 font-semibold underline">Nhấn vào đây để mở Sheet</a></li>
+                        <li>Trên menu trang tính, chọn <strong>Tiện ích mở rộng (Extensions)</strong> &gt; <strong>Apps Script</strong>.</li>
+                        <li>Xóa hết mã có sẵn và <strong>dán đoạn mã bên dưới</strong> vào.</li>
+                        <li>Nhấn <strong>Triển khai (Deploy)</strong> &gt; <strong>Tùy chọn triển khai mới (New deployment)</strong> &gt; Chọn loại là <strong>Ứng dụng web (Web app)</strong>.</li>
+                        <li>Tại mục <em>Ai có quyền truy cập (Who has access)</em>, chọn <strong>Bất kỳ ai (Anyone)</strong> &gt; Nhấn <strong>Triển khai (Deploy)</strong>.</li>
+                        <li>Sao chép <strong>URL ứng dụng web</strong> nhận được và dán vào ô bên trên!</li>
+                    </ol>
+                </div>
+
+                <!-- Code block to copy -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-semibold text-slate-700">Mã Google Apps Script (AppsScript.gs):</span>
+                        <button id="btn-copy-gas-code" class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                            Sao chép mã
+                        </button>
+                    </div>
+                    <pre id="gas-code-block" class="bg-slate-900 text-slate-200 p-3 rounded-lg overflow-x-auto text-[11px] font-mono leading-normal">
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    
+    // Nếu trang tính chưa có tiêu đề cột thì tạo
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["Thời gian", "Mã Barcode / QR", "Tên Model / Ghi chú", "Số lượng", "Thiết bị quét"]);
+      sheet.getRange(1, 1, 1, 5).setFontWeight("bold").setBackground("#f3f4f6");
+    }
+    
+    // Nhận danh sách mảng các mã hoặc 1 mã đơn lẻ
+    var rows = Array.isArray(data) ? data : [data];
+    rows.forEach(function(item) {
+      sheet.appendRow([
+        item.timestamp || new Date().toLocaleString("vi-VN"),
+        item.code || "",
+        item.note || "",
+        item.quantity || 1,
+        item.device || "Smart Scanner Web"
+      ]);
+    });
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", count: rows.length }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+                    </pre>
+                </div>
+
+            </div>
+
+            <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-2">
+                <button id="btn-cancel-gas-modal" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-semibold transition">Đóng</button>
+                <button id="btn-save-gas-url" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition">Lưu cấu hình</button>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+    // State management
+    const LOCAL_STORAGE_ITEMS_KEY = 'smart_scanner_items_v1';
+    const LOCAL_STORAGE_GAS_URL_KEY = 'smart_scanner_gas_url_v1';
+
+    let scannedItems = []; // Array of { id, code, note, quantity, timestamp, synced }
+    let html5QrCodeScanner = null;
+    let isCameraRunning = false;
+    let soundEnabled = true;
+    let lastScanTime = 0;
+    let lastScannedCode = '';
+
+    // DOM Elements
+    const readerDiv = document.getElementById('reader');
+    const cameraPlaceholder = document.getElementById('camera-placeholder');
+    const btnStartCamera = document.getElementById('btn-start-camera');
+    const btnStopCamera = document.getElementById('btn-stop-camera');
+    const btnToggleTorch = document.getElementById('btn-toggle-torch');
+    const btnToggleSound = document.getElementById('btn-toggle-sound');
+    const cameraSelectContainer = document.getElementById('camera-select-container');
+    const cameraSelect = document.getElementById('camera-select');
+    const statusCameraDot = document.getElementById('status-camera-dot');
+
+    const formManualInput = document.getElementById('form-manual-input');
+    const inputBarcode = document.getElementById('input-barcode');
+    const inputItemNote = document.getElementById('input-item-note');
+
+    const chkAutoAccumulate = document.getElementById('chk-auto-accumulate');
+    const chkCooldown = document.getElementById('chk-cooldown');
+    const chkAutoSyncGas = document.getElementById('chk-auto-sync-gas');
+
+    const statUniqueCount = document.getElementById('stat-unique-count');
+    const statTotalScans = document.getElementById('stat-total-scans');
+    const statSyncedCount = document.getElementById('stat-synced-count');
+    const statLastCode = document.getElementById('stat-last-code');
+    const statLastTime = document.getElementById('stat-last-time');
+
+    const tableSummaryText = document.getElementById('table-summary-text');
+    const searchScannedInput = document.getElementById('search-scanned-input');
+    const scannedItemsTbody = document.getElementById('scanned-items-tbody');
+    const rowEmptyState = document.getElementById('row-empty-state');
+
+    const btnExportExcel = document.getElementById('btn-export-excel');
+    const btnSyncGoogleSheet = document.getElementById('btn-sync-google-sheet');
+    const btnClearAll = document.getElementById('btn-clear-all');
+
+    const syncBanner = document.getElementById('sync-banner');
+    const syncBannerText = document.getElementById('sync-banner-text');
+    const btnCloseSyncBanner = document.getElementById('btn-close-sync-banner');
+
+    const gasModal = document.getElementById('gas-modal');
+    const btnOpenGasModal = document.getElementById('btn-open-gas-modal');
+    const btnCloseGasModal = document.getElementById('btn-close-gas-modal');
+    const btnCancelGasModal = document.getElementById('btn-cancel-gas-modal');
+    const btnSaveGasUrl = document.getElementById('btn-save-gas-url');
+    const inputGasUrl = document.getElementById('input-gas-url');
+    const btnCopyGasCode = document.getElementById('btn-copy-gas-code');
+    const gasCodeBlock = document.getElementById('gas-code-block');
+
+    // ==========================================
+    // AUDIO FEEDBACK (WEB AUDIO API BEEP)
+    // ==========================================
+    function playBeepSound() {
+        if (!soundEnabled) return;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1850, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.14);
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + 0.14);
+        } catch (e) {
+            console.warn('Audio play error:', e);
+        }
+        // Rung nhẹ nếu là điện thoại di động
+        if (navigator.vibrate) {
+            navigator.vibrate(80);
+        }
+    }
+
+    // ==========================================
+    // STORAGE & STATE
+    // ==========================================
+    function loadSavedData() {
+        try {
+            const savedItems = localStorage.getItem(LOCAL_STORAGE_ITEMS_KEY);
+            if (savedItems) {
+                scannedItems = JSON.parse(savedItems);
+            }
+        } catch (e) {
+            console.warn('Cannot read localStorage items:', e);
+            scannedItems = [];
+        }
+
+        try {
+            const savedGasUrl = localStorage.getItem(LOCAL_STORAGE_GAS_URL_KEY);
+            if (savedGasUrl) {
+                inputGasUrl.value = savedGasUrl;
+            }
+        } catch (e) {
+            console.warn('Cannot read GAS URL:', e);
+        }
+
+        renderTable();
+        updateStats();
+    }
+
+    function saveItemsToStorage() {
+        try {
+            localStorage.setItem(LOCAL_STORAGE_ITEMS_KEY, JSON.stringify(scannedItems));
+        } catch (e) {
+            console.warn('LocalStorage full or error:', e);
+        }
+    }
+
+    // ==========================================
+    // SCAN & RECORD LOGIC
+    // ==========================================
+    function addScannedCode(rawCode, optionalNote = '') {
+        if (!rawCode) return;
+        const code = String(rawCode).trim();
+        if (!code) return;
+
+        const now = new Date();
+        const timeString = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' ' +
+                           now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        // Cooldown check (tránh lia camera vào 1 mã bị quét liên tục nhiều lần trong 2 giây)
+        const isCooldownEnabled = chkCooldown.checked;
+        const nowMs = Date.now();
+        if (isCooldownEnabled && code === lastScannedCode && (nowMs - lastScanTime) < 2000) {
+            return; // Bỏ qua quét lặp
+        }
+
+        lastScannedCode = code;
+        lastScanTime = nowMs;
+
+        playBeepSound();
+
+        const autoAccumulate = chkAutoAccumulate.checked;
+
+        if (autoAccumulate) {
+            const existing = scannedItems.find(item => item.code.toLowerCase() === code.toLowerCase());
+            if (existing) {
+                existing.quantity += 1;
+                existing.timestamp = timeString;
+                existing.synced = false; // đánh dấu cần đồng bộ lại nếu số lượng đổi
+                if (optionalNote && !existing.note) {
+                    existing.note = optionalNote;
+                }
+            } else {
+                scannedItems.unshift({
+                    id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    code: code,
+                    note: optionalNote,
+                    quantity: 1,
+                    timestamp: timeString,
+                    synced: false
+                });
+            }
+        } else {
+            // Mỗi lần quét là 1 dòng riêng
+            scannedItems.unshift({
+                id: 'item_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                code: code,
+                note: optionalNote,
+                quantity: 1,
+                timestamp: timeString,
+                synced: false
+            });
+        }
+
+        saveItemsToStorage();
+        renderTable();
+        updateStats();
+
+        // Tự động đẩy lên Google Sheet nếu bật chế độ real-time sync
+        if (chkAutoSyncGas.checked) {
+            syncSingleItemToGas(code, optionalNote || '', 1, timeString);
+        }
+    }
+
+    // ==========================================
+    // RENDER & UI UPDATES
+    // ==========================================
+    function updateStats() {
+        const uniqueCount = new Set(scannedItems.map(i => i.code.toLowerCase())).size;
+        const totalScans = scannedItems.reduce((acc, cur) => acc + (cur.quantity || 1), 0);
+        const syncedCount = scannedItems.filter(i => i.synced).length;
+
+        statUniqueCount.textContent = uniqueCount;
+        statTotalScans.textContent = totalScans;
+        statSyncedCount.textContent = syncedCount;
+
+        if (scannedItems.length > 0) {
+            const last = scannedItems[0];
+            statLastCode.textContent = last.code;
+            statLastTime.textContent = last.timestamp.split(' ')[0] || '';
+        } else {
+            statLastCode.textContent = 'Chưa có';
+            statLastTime.textContent = '--:--:--';
+        }
+
+        tableSummaryText.textContent = `${uniqueCount} mã duy nhất (${totalScans} lượt quét)`;
+    }
+
+    function renderTable() {
+        const filterText = searchScannedInput.value.toLowerCase().trim();
+        const filtered = scannedItems.filter(item => {
+            if (!filterText) return true;
+            return item.code.toLowerCase().includes(filterText) ||
+                   (item.note && item.note.toLowerCase().includes(filterText));
+        });
+
+        // Clear existing rows except empty state
+        scannedItemsTbody.innerHTML = '';
+
+        if (filtered.length === 0) {
+            scannedItemsTbody.appendChild(rowEmptyState);
+            rowEmptyState.classList.remove('hidden');
+            return;
+        } else {
+            rowEmptyState.classList.add('hidden');
+        }
+
+        filtered.forEach((item, index) => {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-blue-50/50 transition-colors group';
+            tr.innerHTML = `
+                <td class="py-2.5 px-3 text-center text-slate-400 font-mono">${index + 1}</td>
+                <td class="py-2.5 px-3">
+                    <span class="font-mono font-bold text-slate-900 text-sm tracking-wide select-all">${escapeHtml(item.code)}</span>
+                </td>
+                <td class="py-2.5 px-3">
+                    <input type="text" value="${escapeHtml(item.note || '')}" data-id="${item.id}" placeholder="Nhập ghi chú / tên máy..." class="item-note-input w-full bg-transparent hover:bg-white focus:bg-white border border-transparent hover:border-slate-200 focus:border-blue-400 rounded px-1.5 py-0.5 text-xs text-slate-700 transition">
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                    <div class="inline-flex items-center gap-1 font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded-full">
+                        ${item.quantity || 1}
+                    </div>
+                </td>
+                <td class="py-2.5 px-3 text-slate-500 whitespace-nowrap text-[11px]">${item.timestamp}</td>
+                <td class="py-2.5 px-3 text-center whitespace-nowrap">
+                    ${item.synced ? 
+                        `<span class="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Đã sync
+                        </span>` : 
+                        `<span class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            Chưa sync
+                        </span>`
+                    }
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                    <button data-id="${item.id}" class="btn-delete-item text-slate-300 hover:text-rose-600 p-1 rounded transition opacity-60 group-hover:opacity-100" title="Xóa dòng này">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </td>
+            `;
+            scannedItemsTbody.appendChild(tr);
+        });
+
+        // Gán sự kiện sửa ghi chú trực tiếp
+        document.querySelectorAll('.item-note-input').forEach(input => {
+            input.addEventListener('change', (e) => {
+                const id = e.target.getAttribute('data-id');
+                const targetItem = scannedItems.find(i => i.id === id);
+                if (targetItem) {
+                    targetItem.note = e.target.value.trim();
+                    targetItem.synced = false;
+                    saveItemsToStorage();
+                }
+            });
+        });
+
+        // Gán sự kiện xóa dòng
+        document.querySelectorAll('.btn-delete-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = btn.getAttribute('data-id');
+                scannedItems = scannedItems.filter(i => i.id !== id);
+                saveItemsToStorage();
+                renderTable();
+                updateStats();
+            });
+        });
+    }
+
+    function escapeHtml(string) {
+        if (!string) return '';
+        return String(string)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // ==========================================
+    // CAMERA CONTROLS (HTML5-QRCODE)
+    // ==========================================
+    async function startCameraScanner(cameraIdOrConfig = null) {
+        try {
+            if (!html5QrCodeScanner) {
+                html5QrCodeScanner = new Html5Qrcode("reader");
+            }
+
+            // Lấy danh sách camera nếu chưa lấy
+            const devices = await Html5Qrcode.getCameras();
+            if (devices && devices.length > 0) {
+                cameraSelect.innerHTML = '';
+                devices.forEach(device => {
+                    const opt = document.createElement('option');
+                    opt.value = device.id;
+                    opt.textContent = device.label || `Camera ${cameraSelect.length + 1}`;
+                    cameraSelect.appendChild(opt);
+                });
+                if (devices.length > 1) {
+                    cameraSelectContainer.classList.remove('hidden');
+                }
+            }
+
+            const selectedCameraId = cameraIdOrConfig || (cameraSelect.value || { facingMode: "environment" });
+
+            const config = {
+                fps: 15,
+                qrbox: (viewfinderWidth, viewfinderHeight) => {
+                    // Box quét chữ nhật thích hợp cho cả barcode dài và QR vuông
+                    const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+                    return {
+                        width: Math.floor(minEdge * 0.85),
+                        height: Math.floor(minEdge * 0.6)
+                    };
+                },
+                aspectRatio: 1.333334,
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.EAN_8
+                ]
+            };
+
+            cameraPlaceholder.classList.add('hidden');
+            statusCameraDot.classList.add('bg-emerald-500', 'scanning-active');
+
+            await html5QrCodeScanner.start(
+                selectedCameraId,
+                config,
+                (decodedText, decodedResult) => {
+                    addScannedCode(decodedText);
+                },
+                (errorMessage) => {
+                    // Quét từng frame không có mã -> bỏ qua
+                }
+            );
+
+            isCameraRunning = true;
+            btnStartCamera.classList.add('hidden');
+            btnStopCamera.classList.remove('hidden');
+
+            // Kiểm tra hỗ trợ đèn pin (torch)
+            try {
+                const track = html5QrCodeScanner.getRunningTrackCapabilities();
+                if (track && track.torch) {
+                    btnToggleTorch.classList.remove('hidden');
+                }
+            } catch (_) {}
+
+        } catch (err) {
+            console.error('Lỗi khởi động camera:', err);
+            cameraPlaceholder.classList.remove('hidden');
+            statusCameraDot.classList.remove('scanning-active');
+            alert('Không thể mở camera: ' + (err.message || err) + '\nVui lòng kiểm tra quyền truy cập camera trên trình duyệt.');
+        }
+    }
+
+    async function stopCameraScanner() {
+        if (html5QrCodeScanner && isCameraRunning) {
+            try {
+                await html5QrCodeScanner.stop();
+            } catch (e) {
+                console.warn('Lỗi khi dừng camera:', e);
+            }
+            isCameraRunning = false;
+            cameraPlaceholder.classList.remove('hidden');
+            btnStartCamera.classList.remove('hidden');
+            btnStopCamera.classList.add('hidden');
+            btnToggleTorch.classList.add('hidden');
+            statusCameraDot.classList.remove('scanning-active');
+        }
+    }
+
+    // ==========================================
+    // EXPORT TO EXCEL (.xlsx)
+    // ==========================================
+    btnExportExcel.addEventListener('click', () => {
+        if (scannedItems.length === 0) {
+            alert('Chưa có dữ liệu để xuất Excel!');
+            return;
+        }
+
+        const dataToExport = scannedItems.map((item, index) => ({
+            'STT': index + 1,
+            'Mã Barcode / QR': item.code,
+            'Tên Model / Ghi chú': item.note || '',
+            'Số lượng': item.quantity || 1,
+            'Thời gian quét': item.timestamp,
+            'Trạng thái đồng bộ': item.synced ? 'Đã sync Google Sheet' : 'Chưa sync'
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+
+        // Canh chỉnh độ rộng cột
+        worksheet['!cols'] = [
+            { wch: 6 },   // STT
+            { wch: 22 },  // Mã
+            { wch: 36 },  // Tên
+            { wch: 10 },  // SL
+            { wch: 22 },  // Thời gian
+            { wch: 20 }   // Trạng thái
+        ];
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "DanhSachQuet");
+
+        const dateStr = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(workbook, `Kiem_Ke_SanPham_${dateStr}.xlsx`);
+    });
+
+    // ==========================================
+    // PUSH TO GOOGLE SHEET (WEBHOOK / GAS)
+    // ==========================================
+    async function syncItemsToGoogleSheet() {
+        const gasUrl = (inputGasUrl.value || '').trim();
+        if (!gasUrl) {
+            gasModal.classList.remove('hidden');
+            return;
+        }
+
+        if (scannedItems.length === 0) {
+            alert('Chưa có mã nào để đồng bộ!');
+            return;
+        }
+
+        // Tìm các mục chưa đồng bộ
+        const itemsToSync = scannedItems.filter(item => !item.synced);
+        if (itemsToSync.length === 0) {
+            showSyncBanner('Tất cả sản phẩm đã được đồng bộ lên Google Sheet trước đó rồi!', 'bg-emerald-50 text-emerald-800 border-emerald-200');
+            return;
+        }
+
+        btnSyncGoogleSheet.disabled = true;
+        btnSyncGoogleSheet.innerHTML = `
+            <svg class="animate-spin h-3.5 w-3.5 text-white inline-block mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Đang đồng bộ (${itemsToSync.length})...
+        `;
+
+        try {
+            const payload = itemsToSync.map(i => ({
+                timestamp: i.timestamp,
+                code: i.code,
+                note: i.note || '',
+                quantity: i.quantity || 1,
+                device: navigator.userAgent.includes('Mobile') ? 'Điện thoại di động' : 'Máy tính / Súng quét'
+            }));
+
+            // Gửi qua Webhook Google Apps Script
+            await fetch(gasUrl, {
+                method: 'POST',
+                mode: 'no-cors', // Google Apps Script Web App yêu cầu no-cors khi gọi từ client không có proxy
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            // Đánh dấu đã đồng bộ
+            itemsToSync.forEach(i => i.synced = true);
+            saveItemsToStorage();
+            renderTable();
+            updateStats();
+
+            showSyncBanner(`✅ Đã đồng bộ thành công ${itemsToSync.length} sản phẩm lên Google Sheet!`, 'bg-emerald-50 text-emerald-800 border-emerald-200');
+
+        } catch (err) {
+            console.error('Lỗi đồng bộ Google Sheet:', err);
+            showSyncBanner(`❌ Có lỗi khi đồng bộ: ${err.message}. Hãy kiểm tra lại URL Web App.`, 'bg-rose-50 text-rose-800 border-rose-200');
+        } finally {
+            btnSyncGoogleSheet.disabled = false;
+            btnSyncGoogleSheet.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                Đẩy lên Google Sheet
+            `;
+        }
+    }
+
+    // Đồng bộ đơn lẻ khi bật Real-time sync
+    async function syncSingleItemToGas(code, note, quantity, timestamp) {
+        const gasUrl = (inputGasUrl.value || '').trim();
+        if (!gasUrl) return;
+
+        try {
+            await fetch(gasUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify([{
+                    timestamp: timestamp,
+                    code: code,
+                    note: note,
+                    quantity: quantity,
+                    device: 'Quét tức thì'
+                }])
+            });
+            const item = scannedItems.find(i => i.code === code);
+            if (item) {
+                item.synced = true;
+                saveItemsToStorage();
+                renderTable();
+                updateStats();
+            }
+        } catch (_) {}
+    }
+
+    function showSyncBanner(msg, colorClasses) {
+        syncBanner.className = `px-4 py-2.5 text-xs flex items-center justify-between border-b ${colorClasses}`;
+        syncBannerText.textContent = msg;
+        syncBanner.classList.remove('hidden');
+    }
+
+    btnCloseSyncBanner.addEventListener('click', () => {
+        syncBanner.classList.add('hidden');
+    });
+
+    // ==========================================
+    // EVENT LISTENERS
+    // ==========================================
+    btnStartCamera.addEventListener('click', () => startCameraScanner());
+    btnStopCamera.addEventListener('click', () => stopCameraScanner());
+
+    cameraSelect.addEventListener('change', () => {
+        if (isCameraRunning) {
+            stopCameraScanner().then(() => startCameraScanner(cameraSelect.value));
+        }
+    });
+
+    let torchState = false;
+    btnToggleTorch.addEventListener('click', async () => {
+        if (html5QrCodeScanner && isCameraRunning) {
+            try {
+                torchState = !torchState;
+                await html5QrCodeScanner.applyVideoConstraints({
+                    advanced: [{ torch: torchState }]
+                });
+                btnToggleTorch.textContent = torchState ? '🔦 Flash: BẬT' : '💡 Flash: TẮT';
+            } catch (e) {
+                console.warn('Lỗi bật/tắt đèn flash:', e);
+            }
+        }
+    });
+
+    btnToggleSound.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        btnToggleSound.textContent = soundEnabled ? '🔊 Bíp: Bật' : '🔇 Bíp: Tắt';
+    });
+
+    formManualInput.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = inputBarcode.value.trim();
+        const note = inputItemNote.value.trim();
+        if (code) {
+            addScannedCode(code, note);
+            inputBarcode.value = '';
+            inputItemNote.value = '';
+            inputBarcode.focus();
+        }
+    });
+
+    searchScannedInput.addEventListener('input', () => {
+        renderTable();
+    });
+
+    btnClearAll.addEventListener('click', () => {
+        if (scannedItems.length === 0) return;
+        if (confirm(`Bạn có chắc muốn xóa toàn bộ ${scannedItems.length} mã đã quét không?`)) {
+            scannedItems = [];
+            saveItemsToStorage();
+            renderTable();
+            updateStats();
+        }
+    });
+
+    btnSyncGoogleSheet.addEventListener('click', syncItemsToGoogleSheet);
+
+    // Modal GAS Events
+    btnOpenGasModal.addEventListener('click', () => gasModal.classList.remove('hidden'));
+    btnCloseGasModal.addEventListener('click', () => gasModal.classList.add('hidden'));
+    btnCancelGasModal.addEventListener('click', () => gasModal.classList.add('hidden'));
+    
+    btnSaveGasUrl.addEventListener('click', () => {
+        const url = inputGasUrl.value.trim();
+        try {
+            localStorage.setItem(LOCAL_STORAGE_GAS_URL_KEY, url);
+        } catch (_) {}
+        gasModal.classList.add('hidden');
+        showSyncBanner('Đã lưu cấu hình Google Sheet Web App!', 'bg-blue-50 text-blue-800 border-blue-200');
+    });
+
+    btnCopyGasCode.addEventListener('click', () => {
+        const code = gasCodeBlock.innerText;
+        navigator.clipboard.writeText(code).then(() => {
+            btnCopyGasCode.textContent = 'Đã sao chép!';
+            setTimeout(() => btnCopyGasCode.textContent = 'Sao chép mã', 2000);
+        });
+    });
+
+    // Auto load on start
+    loadSavedData();
+
+</script>
+</body>
+</html>
